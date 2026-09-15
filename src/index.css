@@ -1,6 +1,7 @@
-/* Jost stands in for the geometric sans luxury marques use for display
-   (Nobel at Lexus, Audi Type); Manrope carries the UI text. */
-@import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&family=Manrope:wght@400;500;600;700&display=swap');
+/* Saira Italic stands in for the logo's oblique squared lettering (the real
+   logo only exists at low resolution, so it cannot be scaled up cleanly).
+   Jost carries display headings, Archivo the body copy. */
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Jost:wght@300;400;500;600&family=Saira:ital,wght@1,700;1,800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -13,6 +14,6 @@ html {
 body {
   margin: 0;
   background: #010101;
-  font-family: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  font-family: 'Archivo', ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }

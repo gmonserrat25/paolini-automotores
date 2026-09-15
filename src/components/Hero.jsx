@@ -20,7 +20,7 @@ export default function Hero() {
     >
       {/* Background video */}
       <video
-        className="absolute inset-0 h-full w-full object-cover"
+        className="absolute inset-0 h-full w-full object-cover [filter:hue-rotate(-25deg)_saturate(1.25)]"
         src={VIDEO_URL}
         poster="/hero-poster.jpg"
         autoPlay
@@ -36,26 +36,21 @@ export default function Hero() {
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[260px] bg-gradient-to-b from-black/60 to-transparent" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[420px] bg-gradient-to-t from-black via-black/70 to-transparent sm:h-[260px] sm:from-black/60 sm:via-transparent" />
 
-      {/* Large decorative wordmark — the real logo lettering used as a mask so
-          the gradient fill keeps Paolini's own typeface. */}
+      {/* Large decorative wordmark, set in the logo's oblique squared face */}
       <div className="pointer-events-none absolute left-1/2 top-[15%] w-[75%] max-w-[1073px] -translate-x-1/2 select-none">
-        <div
-          className="h-[13vw] max-h-[190px] min-h-[52px] w-full"
+        <h2
+          className="whitespace-nowrap text-center font-wordmark font-bold uppercase leading-[0.85] tracking-[0.01em]"
           style={{
+            fontSize: 'clamp(56px, 14.5vw, 214px)',
             backgroundImage:
-              'linear-gradient(180deg, rgba(255,255,255,0.83) 0%, rgba(255,255,255,0.12) 100%)',
-            WebkitMaskImage: "url('/ig/wordmark-paolini.png')",
-            maskImage: "url('/ig/wordmark-paolini.png')",
-            WebkitMaskSize: 'contain',
-            maskSize: 'contain',
-            WebkitMaskRepeat: 'no-repeat',
-            maskRepeat: 'no-repeat',
-            WebkitMaskPosition: 'center',
-            maskPosition: 'center',
+              'linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.42) 100%)',
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
+            color: 'transparent',
           }}
-          role="img"
-          aria-label="Paolini"
-        />
+        >
+          Paolini
+        </h2>
       </div>
 
       {/* Navbar */}

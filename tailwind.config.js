@@ -4,8 +4,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['Archivo', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         display: ['Jost', 'Futura', 'ui-sans-serif', 'sans-serif'],
+        wordmark: ['Saira', 'Eurostile', 'ui-sans-serif', 'sans-serif'],
       },
     },
   },
