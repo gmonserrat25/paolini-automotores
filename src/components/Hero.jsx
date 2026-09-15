@@ -8,8 +8,9 @@ const NAV_LINKS = [
   { label: 'Contacto', href: '#contacto' },
 ]
 
-// Local copy of the hero clip (originally served from CloudFront).
-const VIDEO_URL = '/hero.mp4'
+// Ford Everest Titanium from the dealership's own Instagram, composited onto a
+// studio backdrop so it reads like the original stock clip. Two framings: the
+// portrait plate keeps the whole truck in shot on phones.
 
 export default function Hero() {
   return (
@@ -18,23 +19,21 @@ export default function Hero() {
       className="relative w-full overflow-hidden bg-[#010101]"
       style={{ height: '100vh', minHeight: '600px', maxHeight: '965px' }}
     >
-      {/* Background video */}
-      <video
-        className="absolute inset-0 h-full w-full object-cover"
-        src={VIDEO_URL}
-        poster="/hero-poster.jpg"
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="auto"
-      />
+      {/* Background plate: a slow drift keeps the shot alive without a video file */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div
+          className="absolute inset-0 animate-heroPan bg-[url('/hero-everest-portrait.jpg')] bg-cover bg-center will-change-transform motion-reduce:animate-none sm:bg-[url('/hero-everest.jpg')]"
+          role="img"
+          aria-label="Ford Everest Titanium en Automotores Paolini"
+        />
+        {/* Light sweeping across the bodywork */}
+        <div className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 animate-heroSheen bg-gradient-to-r from-transparent via-white to-transparent opacity-0 motion-reduce:hidden" />
+      </div>
 
-      {/* Gradient overlays. The clip is bright, so a flat scrim backs up the
-          top/bottom gradients to keep the white type readable. */}
-      <div className="pointer-events-none absolute inset-0 bg-black/25" />
+      {/* Gradient overlays keep the white type readable over the plate. */}
+      <div className="pointer-events-none absolute inset-0 bg-black/15" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[260px] bg-gradient-to-b from-black/60 to-transparent" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[260px] bg-gradient-to-t from-black/60 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[420px] bg-gradient-to-t from-black via-black/70 to-transparent sm:h-[260px] sm:via-transparent sm:from-black/70" />
 
       {/* Large decorative wordmark */}
       <div className="pointer-events-none absolute left-1/2 top-[15%] w-[75%] max-w-[1073px] -translate-x-1/2 select-none">
