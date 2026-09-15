@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef } from 'react'
+import { asset } from '../lib/asset'
 import './BlobRevealHero.css'
 
 /* Hero de revelado con cursor-blob.
@@ -21,11 +22,11 @@ import './BlobRevealHero.css'
    gooey (blur + umbral en el canal alfa), de modo que el núcleo y la estela
    se funden entre sí como una gota de mercurio. */
 
-const BASE_IMAGE = '/ig/hero-208gt-wide.jpg'
-const REVEAL_IMAGE = '/ig/hero-208gt-detalle.jpg'
+const BASE_IMAGE = asset('/ig/hero-208gt-wide.jpg')
+const REVEAL_IMAGE = asset('/ig/hero-208gt-detalle.jpg')
 // A 2.7:1 crop in a phone-shaped hero leaves the car as a thin band, so narrow
 // screens get a portrait framing of the same car instead.
-const NARROW_IMAGE = '/ig/hero-208gt-tall.jpg'
+const NARROW_IMAGE = asset('/ig/hero-208gt-tall.jpg')
 
 // Radio del núcleo del blob, en px. El resto de las medidas se derivan de él.
 const CORE_R = 96

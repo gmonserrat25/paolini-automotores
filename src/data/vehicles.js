@@ -1,3 +1,5 @@
+import { asset } from '../lib/asset'
+
 export const VEHICLES = [
   {
     id: 'amarok',
@@ -5,7 +7,7 @@ export const VEHICLES = [
     model: 'Amarok',
     tag: 'Entrega inmediata',
     detail: 'Pick-up 4x4 · Diésel',
-    image: '/ig/car-amarok.jpg',
+    image: asset('/ig/car-amarok.jpg'),
   },
   {
     id: 'tcross',
@@ -13,7 +15,7 @@ export const VEHICLES = [
     model: 'T-Cross Extreme',
     tag: '0km',
     detail: 'SUV · Automática',
-    image: '/ig/car-tcross.jpg',
+    image: asset('/ig/car-tcross.jpg'),
   },
   {
     id: 'peugeot-208-gt',
@@ -21,7 +23,7 @@ export const VEHICLES = [
     model: '208 GT',
     tag: '0km',
     detail: 'Hatchback · Full',
-    image: '/ig/car-peugeot208gt.jpg',
+    image: asset('/ig/car-peugeot208gt.jpg'),
   },
   {
     id: 'byd-atto2',
@@ -29,7 +31,7 @@ export const VEHICLES = [
     model: 'Atto 2',
     tag: 'Eléctrico',
     detail: 'SUV · 100% eléctrico',
-    image: '/ig/car-byd-atto2.jpg',
+    image: asset('/ig/car-byd-atto2.jpg'),
   },
   {
     id: 'peugeot-208',
@@ -37,7 +39,7 @@ export const VEHICLES = [
     model: '208',
     tag: 'Entrega inmediata',
     detail: 'Hatchback · Nafta',
-    image: '/ig/car-peugeot208.jpg',
+    image: asset('/ig/car-peugeot208.jpg'),
   },
   {
     id: 'hibrido',
@@ -45,7 +47,7 @@ export const VEHICLES = [
     model: '1.100 km de autonomía',
     tag: 'Novedad',
     detail: 'Menos consumo · Más tecnología',
-    image: '/ig/car-hibrido.jpg',
+    image: asset('/ig/car-hibrido.jpg'),
   },
 ]
 

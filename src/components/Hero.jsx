@@ -15,7 +15,7 @@ export default function Hero() {
       {/* Same frame on both layers: the blob turns the colour and the light
           back on over an otherwise dark plate, instead of cutting to a second
           crop. Passing a different revealImage brings back the two-shot effect. */}
-      <BlobRevealHero revealImage="/ig/hero-208gt-wide.jpg">
+      <BlobRevealHero revealImage={asset("/ig/hero-208gt-wide.jpg")}>
         {/* Gradient overlays keep the white type readable over the plate. */}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[260px] bg-gradient-to-b from-black/75 to-transparent" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[420px] bg-gradient-to-t from-black via-black/70 to-transparent sm:h-[300px] sm:from-black/85 sm:via-transparent" />
@@ -30,8 +30,8 @@ export default function Hero() {
               style={{
                 backgroundImage:
                   "linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.62) 100%)",
-                WebkitMaskImage: "url('/ig/wordmark-paolini.png')",
-                maskImage: "url('/ig/wordmark-paolini.png')",
+                WebkitMaskImage: `url('${asset("/ig/wordmark-paolini.png")}')`,
+                maskImage: `url('${asset("/ig/wordmark-paolini.png")}')`,
                 WebkitMaskSize: "contain",
                 maskSize: "contain",
                 WebkitMaskRepeat: "no-repeat",
@@ -50,7 +50,7 @@ export default function Hero() {
           <nav className="flex items-center justify-between gap-3 sm:gap-6">
             <a href="#inicio" className="flex shrink-0 items-center">
               <img
-                src="/ig/logo-paolini.png"
+                src={asset("/ig/logo-paolini.png")}
                 alt="Automotores Paolini"
                 className="h-5 w-auto max-w-[188px] object-contain object-left sm:h-7 sm:max-w-none"
               />

@@ -1,16 +1,38 @@
-# React + Vite
+# Automotores Paolini
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Sitio de [Automotores Paolini](https://www.instagram.com/paoliniautomotores/),
+concesionaria multimarca de Av. España 601, La Falda, Córdoba.
 
-Currently, two official plugins are available:
+Publicado en **https://gmonserrat25.github.io/paolini-automotores/**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Correr en local
 
-## React Compiler
+```bash
+npm install
+npm run dev
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Publicar
 
-## Expanding the Oxlint configuration
+Cada push a `main` dispara el workflow de GitHub Pages
+(`.github/workflows/deploy.yml`), que construye con `GITHUB_PAGES=true` para
+que los assets cuelguen del subdirectorio del repo.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## Cómo está armado
+
+- **Vite + React + Tailwind.** Sin router: es una sola página con anclas.
+- **Hero con blob cursor** (`src/components/BlobRevealHero.jsx`). La foto de
+  fondo va oscura y casi monocroma; una máscara SVG con filtro gooey sigue al
+  puntero y devuelve color y luz sobre el mismo encuadre. Los elementos con
+  `data-pa-ink` se invierten cuando el blob les pasa por debajo y los
+  `data-depth` acompañan el parallax. A ancho de teléfono las dos capas cambian
+  a un recorte vertical del mismo auto.
+- **Las fotos salen del Instagram de la concesionaria.** Los recortes que sirve
+  el sitio están en `public/ig/`; los originales sin tocar, en
+  `assets-src/instagram/`.
+- **El wordmark del hero y el logo del navbar** se reconstruyeron apilando 24
+  apariciones del logo en sus posteos: se localizan por la línea roja bajo
+  "AUTOMOTORES", se alinean por correlación cruzada y se combinan por mediana,
+  lo que cancela el ruido de compresión de cada JPEG. El original en vectorial
+  no lo tenemos.
+- **Tipografías:** Jost para títulos, Archivo para texto.

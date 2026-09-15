@@ -1,10 +1,11 @@
+import { asset } from '../lib/asset'
 export default function Showroom() {
   return (
     <section className="bg-[#010101] px-5 pb-24 sm:px-8 lg:px-[80px]">
       <div className="mx-auto grid max-w-[1440px] gap-6 lg:grid-cols-3">
         <figure className="relative overflow-hidden rounded-2xl lg:col-span-2">
           <img
-            src="/ig/car-showroom.jpg"
+            src={asset("/ig/car-showroom.jpg")}
             alt="Salón de Automotores Paolini en La Falda"
             loading="lazy"
             className="h-[320px] w-full object-cover sm:h-[420px]"
@@ -23,7 +24,7 @@ export default function Showroom() {
 
         <figure className="relative overflow-hidden rounded-2xl">
           <img
-            src="/ig/car-entrega.jpg"
+            src={asset("/ig/car-entrega.jpg")}
             alt="Entrega de un vehículo en Automotores Paolini"
             loading="lazy"
             className="h-[320px] w-full object-cover sm:h-[420px]"
