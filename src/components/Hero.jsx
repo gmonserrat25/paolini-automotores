@@ -8,8 +8,8 @@ const NAV_LINKS = [
   { label: 'Contacto', href: '#contacto' },
 ]
 
-// Local copy of the hero clip (originally served from CloudFront).
-const VIDEO_URL = '/hero.mp4'
+// The car is cut out of the original clip and re-tinted to the brand red, then
+// set inside Paolini's own showroom instead of the stock backdrop.
 
 export default function Hero() {
   return (
@@ -18,23 +18,30 @@ export default function Hero() {
       className="relative w-full overflow-hidden bg-[#010101]"
       style={{ height: '100vh', minHeight: '600px', maxHeight: '965px' }}
     >
-      {/* Background video */}
-      <video
-        className="absolute inset-0 h-full w-full object-cover [filter:hue-rotate(-25deg)_saturate(1.25)]"
-        src={VIDEO_URL}
-        poster="/hero-poster.jpg"
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="auto"
-      />
+      {/* Paolini's showroom, blurred back so it reads as depth */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 bg-[url('/salon-bg.jpg')] bg-cover bg-center" />
 
-      {/* Gradient overlays. The clip is bright, so a flat scrim backs up the
-          top/bottom gradients to keep the white type readable. */}
-      <div className="pointer-events-none absolute inset-0 bg-black/25" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[260px] bg-gradient-to-b from-black/60 to-transparent" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[420px] bg-gradient-to-t from-black via-black/70 to-transparent sm:h-[260px] sm:from-black/60 sm:via-transparent" />
+        {/* Contact shadow, then the car itself */}
+        <div className="absolute inset-x-0 bottom-[20%] flex items-end justify-center">
+          <div className="relative w-[76%] max-w-[960px]">
+            <div
+              className="absolute inset-x-[8%] bottom-[2%] h-[14%] rounded-[50%] blur-xl"
+              style={{ background: 'rgba(0,0,0,0.6)' }}
+            />
+            <img
+              src="/car-red.png"
+              alt="Deportivo en el salón de Automotores Paolini"
+              className="relative w-full drop-shadow-[0_30px_50px_rgba(0,0,0,0.55)]"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Gradient overlays keep the white type readable. */}
+      <div className="pointer-events-none absolute inset-0 bg-black/15" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[260px] bg-gradient-to-b from-black/70 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[420px] bg-gradient-to-t from-black via-black/70 to-transparent sm:h-[300px] sm:via-transparent sm:from-black/80" />
 
       {/* Large decorative wordmark, set in the logo's oblique squared face */}
       <div className="pointer-events-none absolute left-1/2 top-[15%] w-[75%] max-w-[1073px] -translate-x-1/2 select-none">
