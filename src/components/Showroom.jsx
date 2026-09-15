@@ -11,10 +11,10 @@ export default function Showroom() {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
           <figcaption className="absolute bottom-0 left-0 p-8">
-            <h3 className="font-bebas text-[36px] leading-none text-white sm:text-[44px]">
+            <h3 className="font-display text-[24px] font-medium uppercase leading-tight tracking-[0.04em] text-white sm:text-[30px]">
               Pasá por el salón
             </h3>
-            <p className="mt-2 max-w-[380px] font-inter text-[15px] leading-[24px] text-white/80">
+            <p className="mt-2 max-w-[380px] font-sans text-[15px] leading-[24px] text-white/80">
               Av. España 601, La Falda. Todos los vehículos que ves acá están
               en el salón, listos para probar.
             </p>
@@ -30,10 +30,10 @@ export default function Showroom() {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
           <figcaption className="absolute bottom-0 left-0 p-8">
-            <h3 className="font-bebas text-[36px] leading-none text-white sm:text-[44px]">
+            <h3 className="font-display text-[24px] font-medium uppercase leading-tight tracking-[0.04em] text-white sm:text-[30px]">
               Y llevate las llaves
             </h3>
-            <p className="mt-2 font-inter text-[15px] leading-[24px] text-white/80">
+            <p className="mt-2 font-sans text-[15px] leading-[24px] text-white/80">
               Entregas en el día, con los papeles hechos.
             </p>
           </figcaption>

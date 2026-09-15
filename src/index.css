@@ -1,4 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Bebas+Neue&display=swap');
+/* Jost stands in for the geometric sans luxury marques use for display
+   (Nobel at Lexus, Audi Type); Manrope carries the UI text. */
+@import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&family=Manrope:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -11,6 +13,6 @@ html {
 body {
   margin: 0;
   background: #010101;
-  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  font-family: 'Manrope', ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }

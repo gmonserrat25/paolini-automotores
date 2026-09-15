@@ -9,14 +9,14 @@ export default function Footer() {
           alt="Automotores Paolini"
           className="h-6 w-auto"
         />
-        <p className="font-inter text-[14px] text-[#7A7C88]">
+        <p className="font-sans text-[14px] text-[#7A7C88]">
           © {new Date().getFullYear()} Automotores Paolini · La Falda, Córdoba
         </p>
         <a
           href={CONTACT.instagram}
           target="_blank"
           rel="noreferrer"
-          className="font-inter text-[14px] text-[#EEEFF2] hover:opacity-70"
+          className="font-sans text-[14px] text-[#EEEFF2] hover:opacity-70"
         >
           @paoliniautomotores
         </a>

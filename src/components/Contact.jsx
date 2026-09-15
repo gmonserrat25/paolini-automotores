@@ -7,10 +7,10 @@ export default function Contact() {
       <div className="mx-auto max-w-[1440px]">
         <div className="grid gap-14 lg:grid-cols-2 lg:gap-20">
           <div>
-            <p className="font-inter text-[13px] uppercase tracking-[0.18em] text-[#E0323F]">
+            <p className="font-sans text-[13px] uppercase tracking-[0.18em] text-[#E0323F]">
               Contacto
             </p>
-            <h2 className="mt-3 max-w-[466px] font-bebas text-[44px] leading-none text-white sm:text-[56px] lg:text-[64px]">
+            <h2 className="mt-3 max-w-[520px] font-display text-[30px] font-medium uppercase leading-[1.1] tracking-[0.04em] text-white sm:text-[38px] lg:text-[46px]">
               Escribinos y te respondemos hoy
             </h2>
 
@@ -22,7 +22,7 @@ export default function Contact() {
                 className="flex h-12 items-center gap-2 rounded-lg bg-white px-5 shadow-[0_4px_16px_rgba(0,0,0,0.25)] transition-transform hover:-translate-y-0.5"
               >
                 <WhatsAppIcon className="h-[18px] w-[18px] text-[#272835]" />
-                <span className="font-inter text-[15px] font-medium text-[#272835]">
+                <span className="font-sans text-[15px] font-medium text-[#272835]">
                   WhatsApp {CONTACT.phone}
                 </span>
               </a>
@@ -32,7 +32,7 @@ export default function Contact() {
                 rel="noreferrer"
                 className="flex h-12 items-center gap-2 rounded-lg border border-white/20 px-5 text-white transition-colors hover:bg-white/10"
               >
-                <span className="font-inter text-[15px] font-medium">
+                <span className="font-sans text-[15px] font-medium">
                   @paoliniautomotores
                 </span>
                 <ArrowRightIcon className="h-[18px] w-[18px]" />
@@ -41,18 +41,18 @@ export default function Contact() {
 
             <dl className="mt-12 grid gap-8 sm:grid-cols-2">
               <div>
-                <dt className="font-inter text-[13px] uppercase tracking-[0.14em] text-[#7A7C88]">
+                <dt className="font-sans text-[13px] uppercase tracking-[0.14em] text-[#7A7C88]">
                   Dirección
                 </dt>
-                <dd className="mt-2 font-inter text-[16px] leading-[26px] text-white">
+                <dd className="mt-2 font-sans text-[16px] leading-[26px] text-white">
                   {CONTACT.address}
                 </dd>
               </div>
               <div>
-                <dt className="font-inter text-[13px] uppercase tracking-[0.14em] text-[#7A7C88]">
+                <dt className="font-sans text-[13px] uppercase tracking-[0.14em] text-[#7A7C88]">
                   Teléfono
                 </dt>
-                <dd className="mt-2 font-inter text-[16px] leading-[26px] text-white">
+                <dd className="mt-2 font-sans text-[16px] leading-[26px] text-white">
                   <a
                     href={`tel:+54${CONTACT.whatsapp.slice(2)}`}
                     className="inline-flex items-center gap-2 hover:opacity-70"
@@ -63,14 +63,14 @@ export default function Contact() {
                 </dd>
               </div>
               <div className="sm:col-span-2">
-                <dt className="font-inter text-[13px] uppercase tracking-[0.14em] text-[#7A7C88]">
+                <dt className="font-sans text-[13px] uppercase tracking-[0.14em] text-[#7A7C88]">
                   Horarios
                 </dt>
                 <dd className="mt-2 space-y-1">
                   {CONTACT.hours.map(([day, time]) => (
                     <div
                       key={day}
-                      className="flex max-w-[380px] justify-between gap-6 font-inter text-[15px] text-[#9A9CA8]"
+                      className="flex max-w-[380px] justify-between gap-6 font-sans text-[15px] text-[#9A9CA8]"
                     >
                       <span>{day}</span>
                       <span className="text-white">{time}</span>

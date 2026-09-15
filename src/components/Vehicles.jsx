@@ -8,15 +8,15 @@ export default function Vehicles() {
         <div className="flex flex-col gap-6 border-b border-white/10 pb-10 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p
-              className="font-inter text-[13px] uppercase tracking-[0.18em] text-[#E0323F]"
+              className="font-sans text-[13px] uppercase tracking-[0.18em] text-[#E0323F]"
             >
               Stock disponible
             </p>
-            <h2 className="mt-3 max-w-[560px] font-bebas text-[44px] leading-none text-white sm:text-[56px] lg:text-[64px]">
+            <h2 className="mt-3 max-w-[620px] font-display text-[30px] font-medium uppercase leading-[1.1] tracking-[0.04em] text-white sm:text-[38px] lg:text-[46px]">
               0km y usados certificados
             </h2>
           </div>
-          <p className="max-w-[414px] font-inter text-[17px] leading-[27px] text-[#9A9CA8]">
+          <p className="max-w-[414px] font-sans text-[17px] leading-[27px] text-[#9A9CA8]">
             Multimarca, con garantía y papeles al día. Tomamos tu usado como
             parte de pago y trabajamos financiación en cuotas.
           </p>
@@ -35,19 +35,19 @@ export default function Vehicles() {
                   loading="lazy"
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <span className="absolute left-4 top-4 rounded-full bg-[#E0323F] px-3 py-1 font-inter text-[12px] font-medium text-white">
+                <span className="absolute left-4 top-4 rounded-full bg-[#E0323F] px-3 py-1 font-sans text-[12px] font-medium text-white">
                   {v.tag}
                 </span>
               </div>
               <div className="flex items-end justify-between gap-4 p-6">
                 <div>
-                  <p className="font-inter text-[13px] uppercase tracking-[0.14em] text-[#7A7C88]">
+                  <p className="font-sans text-[13px] uppercase tracking-[0.14em] text-[#7A7C88]">
                     {v.brand}
                   </p>
-                  <h3 className="mt-1 font-bebas text-[30px] leading-none text-white">
+                  <h3 className="mt-1 font-display text-[22px] font-medium uppercase leading-tight tracking-[0.03em] text-white">
                     {v.model}
                   </h3>
-                  <p className="mt-2 font-inter text-[14px] text-[#9A9CA8]">
+                  <p className="mt-2 font-sans text-[14px] text-[#9A9CA8]">
                     {v.detail}
                   </p>
                 </div>

@@ -4,8 +4,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        inter: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        bebas: ['"Bebas Neue"', 'Impact', 'sans-serif'],
+        sans: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['Jost', 'Futura', 'ui-sans-serif', 'sans-serif'],
       },
       keyframes: {
         // Slow drift across the hero plate, standing in for the original clip's motion
