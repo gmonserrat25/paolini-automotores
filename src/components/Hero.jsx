@@ -8,8 +8,8 @@ const NAV_LINKS = [
   { label: 'Contacto', href: '#contacto' },
 ]
 
-// The car is cut out of the original clip and re-tinted to the brand red, then
-// set inside Paolini's own showroom instead of the stock backdrop.
+// Local copy of the hero clip (originally served from CloudFront).
+const VIDEO_URL = '/hero.mp4'
 
 export default function Hero() {
   return (
@@ -18,46 +18,44 @@ export default function Hero() {
       className="relative w-full overflow-hidden bg-[#010101]"
       style={{ height: '100vh', minHeight: '600px', maxHeight: '965px' }}
     >
-      {/* Paolini's showroom, blurred back so it reads as depth */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('/salon-bg.jpg')] bg-cover bg-center" />
+      {/* Background video */}
+      <video
+        className="absolute inset-0 h-full w-full object-cover"
+        src={VIDEO_URL}
+        poster="/hero-poster.jpg"
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+      />
 
-        {/* Contact shadow, then the car itself */}
-        <div className="absolute inset-x-0 bottom-[20%] flex items-end justify-center">
-          <div className="relative w-[76%] max-w-[960px]">
-            <div
-              className="absolute inset-x-[8%] bottom-[2%] h-[14%] rounded-[50%] blur-xl"
-              style={{ background: 'rgba(0,0,0,0.6)' }}
-            />
-            <img
-              src="/car-red.png"
-              alt="Deportivo en el salón de Automotores Paolini"
-              className="relative w-full drop-shadow-[0_30px_50px_rgba(0,0,0,0.55)]"
-            />
-          </div>
-        </div>
-      </div>
+      {/* Gradient overlays. The clip is bright, so a flat scrim backs up the
+          top/bottom gradients to keep the white type readable. */}
+      <div className="pointer-events-none absolute inset-0 bg-black/25" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[260px] bg-gradient-to-b from-black/60 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[420px] bg-gradient-to-t from-black via-black/70 to-transparent sm:h-[260px] sm:from-black/60 sm:via-transparent" />
 
-      {/* Gradient overlays keep the white type readable. */}
-      <div className="pointer-events-none absolute inset-0 bg-black/15" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[260px] bg-gradient-to-b from-black/70 to-transparent" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[420px] bg-gradient-to-t from-black via-black/70 to-transparent sm:h-[300px] sm:via-transparent sm:from-black/80" />
-
-      {/* Large decorative wordmark, set in the logo's oblique squared face */}
+      {/* Large decorative wordmark — the real logo lettering used as a mask so
+          the gradient fill keeps Paolini's own typeface. */}
       <div className="pointer-events-none absolute left-1/2 top-[15%] w-[75%] max-w-[1073px] -translate-x-1/2 select-none">
-        <h2
-          className="whitespace-nowrap text-center font-wordmark font-bold uppercase leading-[0.85] tracking-[0.01em]"
+        <div
+          className="h-[13vw] max-h-[190px] min-h-[52px] w-full"
           style={{
-            fontSize: 'clamp(56px, 14.5vw, 214px)',
             backgroundImage:
-              'linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.42) 100%)',
-            WebkitBackgroundClip: 'text',
-            backgroundClip: 'text',
-            color: 'transparent',
+              'linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.55) 100%)',
+            WebkitMaskImage: "url('/ig/wordmark-paolini.png')",
+            maskImage: "url('/ig/wordmark-paolini.png')",
+            WebkitMaskSize: 'contain',
+            maskSize: 'contain',
+            WebkitMaskRepeat: 'no-repeat',
+            maskRepeat: 'no-repeat',
+            WebkitMaskPosition: 'center',
+            maskPosition: 'center',
           }}
-        >
-          Paolini
-        </h2>
+          role="img"
+          aria-label="Paolini"
+        />
       </div>
 
       {/* Navbar */}
