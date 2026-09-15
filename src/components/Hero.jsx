@@ -1,12 +1,11 @@
 import BlobRevealHero from "./BlobRevealHero";
 import { asset } from "../lib/asset";
+import MobileMenu from "./MobileMenu";
 import { ArrowRightIcon, WhatsAppIcon } from "./Icons";
 
 const NAV_LINKS = [
-  { label: "Inicio", href: "#inicio" },
-  { label: "Vehículos", href: "#vehiculos" },
   { label: "0km", href: "#vehiculos" },
-  { label: "Usados", href: "#vehiculos" },
+  { label: "Usados seleccionados", href: "#vehiculos" },
   { label: "Contacto", href: "#contacto" },
 ];
 
@@ -18,8 +17,8 @@ export default function Hero() {
           crop. Passing a different revealImage brings back the two-shot effect. */}
       <BlobRevealHero revealImage={asset("/ig/hero-208gt-wide.jpg")}>
         {/* Gradient overlays keep the white type readable over the plate. */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-[260px] bg-gradient-to-b from-black/75 to-transparent" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[420px] bg-gradient-to-t from-black via-black/70 to-transparent sm:h-[300px] sm:from-black/85 sm:via-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-[200px] bg-gradient-to-b from-black/70 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[55%] max-h-[320px] bg-gradient-to-t from-black via-black/55 to-transparent sm:h-[300px] sm:from-black/85 sm:via-transparent" />
 
         {/* Large decorative wordmark — the real logo lettering as a mask.
             Difference blending flips it against whatever the blob reveals
@@ -85,20 +84,22 @@ export default function Hero() {
                 href="https://wa.me/5493548468411"
                 target="_blank"
                 rel="noreferrer"
-                className="flex h-11 items-center gap-2 rounded-lg bg-white px-4 shadow-[0_4px_16px_rgba(0,0,0,0.18)] transition-transform hover:-translate-y-0.5 sm:h-12 sm:px-5"
+                className="flex h-11 w-11 items-center justify-center gap-2 rounded-lg bg-white shadow-[0_4px_16px_rgba(0,0,0,0.18)] transition-transform hover:-translate-y-0.5 sm:h-12 sm:w-auto sm:px-5"
               >
                 <WhatsAppIcon className="h-[18px] w-[18px] text-[#272835]" />
-                <span className="font-sans text-[14px] font-medium text-[#272835] sm:text-[15px]">
+                <span className="hidden font-sans text-[15px] font-medium text-[#272835] sm:inline">
                   Contacto
                 </span>
+                <span className="sr-only sm:hidden">Contacto por WhatsApp</span>
               </a>
+              <MobileMenu />
             </div>
           </nav>
         </header>
 
         {/* Bottom CTA area */}
-        <div className="absolute inset-x-0 bottom-0 w-full px-5 pb-10 sm:px-8 lg:px-[80px] lg:pb-14">
-          <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between lg:gap-12">
+        <div className="absolute inset-x-0 bottom-0 w-full px-5 pb-8 sm:px-8 sm:pb-10 lg:px-[80px] lg:pb-14">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between lg:gap-12">
             <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-end">
               <p
                 data-pa-ink
