@@ -1,4 +1,5 @@
 import BlobRevealHero from "./BlobRevealHero";
+import { asset } from "../lib/asset";
 import { ArrowRightIcon, WhatsAppIcon } from "./Icons";
 
 const NAV_LINKS = [
