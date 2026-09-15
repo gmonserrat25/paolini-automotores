@@ -1,0 +1,92 @@
+.pa-hero {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  min-height: 600px;
+  max-height: 965px;
+  overflow: hidden;
+  background: #010101;
+  cursor: crosshair;
+}
+
+.pa-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Base photograph. Dropped to near-monochrome and darkened so the hero keeps
+   reading black like the rest of the site — the colour only comes back inside
+   the blob. */
+.pa-base {
+  object-fit: cover;
+  object-position: center;
+  filter: grayscale(0.9) brightness(0.38) contrast(1.12);
+  will-change: transform;
+}
+
+.pa-wash {
+  background: rgba(1, 1, 1, 0.34);
+  pointer-events: none;
+}
+
+.pa-svg {
+  pointer-events: none;
+}
+
+/* Contra una base apagada, el revelado tiene que llegar encendido: el blob
+   es lo único a todo color y a plena luz en el cuadro. */
+.pa-reveal {
+  filter: saturate(1.4) contrast(1.06) brightness(1.18);
+}
+
+.pa-waves path {
+  fill: none;
+  stroke: rgba(224, 50, 63, 0.20);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+/* ---- Foreground UI ---- */
+
+.pa-ui {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: block;
+}
+
+/* Everything that flips to white once the blob passes underneath. */
+.pa-ink {
+  color: #ffffff;
+  transition:
+    color 300ms cubic-bezier(0.4, 0, 0.2, 1),
+    fill 300ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 300ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pa-ink svg {
+  fill: currentColor;
+}
+
+.pa-ink.is-inverted {
+  color: #0B0B0D;
+}
+
+/* En vertical las dos capas cambian a la foto retrato (ver syncFit), así que
+   el encuadre sigue siendo "cover" y el hero no queda con bandas negras. */
+@media (max-width: 640px) {
+
+  .pa-hero {
+    min-height: 500px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pa-ink {
+    transition: none;
+  }
+}
