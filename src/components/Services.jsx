@@ -16,8 +16,8 @@ const SERVICES = [
   },
   {
     n: '04',
-    title: 'Autos, aviones y embarcaciones',
-    body: 'Más de tres décadas en La Falda comprando y vendiendo todo tipo de vehículos.',
+    title: 'Más de 30 años en La Falda',
+    body: 'Tres décadas comprando y vendiendo autos en el mismo lugar, sobre Av. España.',
   },
 ]
 
