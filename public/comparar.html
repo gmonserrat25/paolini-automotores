@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Paolini — comparar heroes</title>
+    <style>
+      /* Página de trabajo: muestra las dos propuestas de hero una al lado de
+         la otra, cada una en un marco de celular y en uno de escritorio.
+         Los iframes responden a su propio ancho, así que las media queries del
+         sitio se disparan igual que en un teléfono de verdad. */
+      :root {
+        color-scheme: dark;
+        --line: rgba(255, 255, 255, 0.14);
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: #17171b;
+        color: #fff;
+        font-family: 'Archivo', ui-sans-serif, system-ui, sans-serif;
+        padding: 28px;
+      }
+      h1 {
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0 0 4px;
+      }
+      .sub { color: #9a9ca8; font-size: 14px; margin: 0 0 28px; }
+      .row { display: flex; gap: 28px; align-items: flex-start; flex-wrap: wrap; }
+      .col { flex: 0 0 auto; }
+      .label {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        margin: 0 0 10px;
+      }
+      .label b { font-size: 15px; font-weight: 600; }
+      .label span { font-size: 13px; color: #9a9ca8; }
+      .frame {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        overflow: hidden;
+        background: #000;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+      }
+      iframe { border: 0; display: block; }
+      /* El marco de escritorio se muestra encogido para que entren los dos. */
+      .desk { width: 720px; height: 450px; }
+      .desk iframe {
+        width: 1440px;
+        height: 900px;
+        transform: scale(0.5);
+        transform-origin: 0 0;
+      }
+      .phone { width: 390px; height: 844px; }
+      .phone iframe { width: 390px; height: 844px; }
+    </style>
+  </head>
+  <body>
+    <h1>Paolini — dos propuestas de hero</h1>
+    <p class="sub">
+      Arriba, escritorio a 1440×900 (a mitad de escala). Abajo, celular a
+      390×844, tamaño real.
+    </p>
+
+    <div class="row">
+      <div class="col">
+        <p class="label"><b>Opción A — Salón</b><span>foto a pantalla completa</span></p>
+        <div class="frame desk"><iframe src="./?hero=a" title="Opción A escritorio"></iframe></div>
+      </div>
+      <div class="col">
+        <p class="label"><b>Opción B — Vertex</b><span>arco 3D con el stock</span></p>
+        <div class="frame desk"><iframe src="./?hero=b" title="Opción B escritorio"></iframe></div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top: 36px">
+      <div class="col">
+        <p class="label"><b>Opción A</b><span>celular</span></p>
+        <div class="frame phone"><iframe src="./?hero=a" title="Opción A celular"></iframe></div>
+      </div>
+      <div class="col">
+        <p class="label"><b>Opción B</b><span>celular</span></p>
+        <div class="frame phone"><iframe src="./?hero=b" title="Opción B celular"></iframe></div>
+      </div>
+      <div class="col">
+        <p class="label"><b>Hero actual</b><span>celular</span></p>
+        <div class="frame phone"><iframe src="./" title="Hero actual celular"></iframe></div>
+      </div>
+    </div>
+  </body>
+</html>
