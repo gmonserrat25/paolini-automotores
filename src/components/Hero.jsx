@@ -27,7 +27,7 @@ export default function Hero() {
   return (
     <section
       id="inicio"
-      className="relative isolate flex min-h-[100svh] flex-col bg-[#010101] lg:min-h-[94svh]"
+      className="pa-hero relative isolate flex min-h-[100svh] flex-col bg-[#010101] lg:min-h-[94svh]"
     >
       {/* Media. En móvil es una banda del flujo normal; en lg pasa a ser el
           fondo absoluto de toda la sección. */}
@@ -47,24 +47,24 @@ export default function Hero() {
 
       <HeroNav className="absolute inset-x-0 top-0 z-20" />
 
-      <div className="relative z-10 flex flex-1 flex-col justify-end px-5 pb-8 pt-8 sm:px-8 lg:px-[80px] lg:pb-12 lg:pt-0">
+      <div className="pa-hero__body relative z-10 flex flex-1 flex-col justify-end px-5 pb-8 pt-8 sm:px-8 lg:px-[80px] lg:pb-12">
         <div className="mx-auto w-full max-w-[1440px]">
-          <p className="flex items-center gap-2 font-sans text-[11px] uppercase tracking-[0.16em] text-[#E0323F] sm:text-[13px] sm:tracking-[0.2em]">
+          <p className="pa-hero__eyebrow flex items-center gap-2 font-sans text-[11px] uppercase tracking-[0.16em] text-[#E0323F] sm:text-[13px] sm:tracking-[0.2em]">
             <span className="h-[6px] w-[6px] rounded-full bg-[#E0323F]" />
             La Falda, Córdoba · Multimarca
           </p>
 
-          <h1 className="mt-4 max-w-[760px] font-display text-[34px] font-medium uppercase leading-[1.05] tracking-[0.03em] text-white sm:text-[46px] lg:text-[64px]">
+          <h1 className="pa-hero__title mt-4 max-w-[760px] font-display text-[34px] font-medium uppercase leading-[1.05] tracking-[0.03em] text-white sm:text-[46px] lg:text-[64px]">
             Encontrá el auto que va con tu camino
           </h1>
 
-          <p className="mt-5 max-w-[520px] font-sans text-[16px] leading-[26px] text-[#B9BBC5] sm:text-[18px] sm:leading-[29px]">
+          <p className="pa-hero__lead mt-5 max-w-[520px] font-sans text-[16px] leading-[26px] text-[#B9BBC5] sm:text-[18px] sm:leading-[29px]">
             Decenas de vehículos 0km y usados certificados, con precio
             transparente y financiación a medida. Porque comprar tu auto tiene
             que ser una alegría.
           </p>
 
-          <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="pa-hero__cta mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
             <a
               href="#vehiculos"
               className="flex items-center justify-center gap-2 rounded-lg bg-white px-6 py-3.5 shadow-[0_6px_24px_rgba(0,0,0,0.35)] transition-transform hover:-translate-y-0.5"
@@ -87,7 +87,7 @@ export default function Hero() {
             </a>
           </div>
 
-          <dl className="mt-9 grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10 sm:grid-cols-3">
+          <dl className="pa-hero__stats mt-9 grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10 sm:grid-cols-3">
             {STATS.map(([title, detail]) => (
               <div key={title} className="bg-[#050507]/80 px-5 py-4 backdrop-blur-sm">
                 <dt className="font-sans text-[12px] uppercase tracking-[0.16em] text-[#E0323F]">
