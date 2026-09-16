@@ -1,134 +1,106 @@
-import BlobRevealHero from "./BlobRevealHero";
 import { asset } from "../lib/asset";
-import MobileMenu from "./MobileMenu";
+import HeroNav from "./HeroNav";
 import { ArrowRightIcon, WhatsAppIcon } from "./Icons";
 
-const NAV_LINKS = [
-  { label: "0km", href: "#vehiculos" },
-  { label: "Usados seleccionados", href: "#vehiculos" },
-  { label: "Contacto", href: "#contacto" },
+/* Hero "Salón".
+
+   Foto a pantalla completa, sin filtros ni efectos de cursor: la referencia
+   son los heroes de concesionaria tipo Car Dealership 128 (Awwwards), donde
+   el auto se ve entero y el texto se apoya abajo.
+
+   Reemplaza al hero anterior, que revelaba la foto con un blob pegado al
+   cursor: en el celular el blob se paseaba solo sobre un primer plano oscuro
+   de la parrilla y no se entendía que hubiera un auto.
+
+   La clave para que funcione en el celular es no recortar la foto a formato
+   vertical: en pantallas angostas la imagen ocupa una banda arriba y el texto
+   baja al negro. Recién en lg la foto pasa a fondo completo y el texto se
+   superpone. Así el auto siempre se ve completo, en vez de una tira oscura. */
+
+const STATS = [
+  ["Multimarca", "0km y usados certificados"],
+  ["Financiación", "En cuotas, a medida"],
+  ["Tu usado", "Lo tomamos como parte de pago"],
 ];
 
 export default function Hero() {
   return (
-    <div id="inicio">
-      {/* Same frame on both layers: the blob turns the colour and the light
-          back on over an otherwise dark plate, instead of cutting to a second
-          crop. Passing a different revealImage brings back the two-shot effect. */}
-      <BlobRevealHero revealImage={asset("/ig/hero-208gt-wide.jpg")}>
-        {/* Gradient overlays keep the white type readable over the plate. */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-[200px] bg-gradient-to-b from-black/70 to-transparent" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[55%] max-h-[320px] bg-gradient-to-t from-black via-black/55 to-transparent sm:h-[300px] sm:from-black/85 sm:via-transparent" />
+    <section
+      id="inicio"
+      className="relative isolate flex min-h-[100svh] flex-col bg-[#010101] lg:min-h-[94svh]"
+    >
+      {/* Media. En móvil es una banda del flujo normal; en lg pasa a ser el
+          fondo absoluto de toda la sección. */}
+      <div className="relative h-[46svh] min-h-[260px] w-full shrink-0 lg:absolute lg:inset-0 lg:h-full lg:min-h-0">
+        <img
+          src={asset("/ig/hero-208-salon.jpg")}
+          alt="Peugeot 208 0km en el salón de Automotores Paolini, La Falda"
+          className="h-full w-full object-cover object-[56%_center] lg:object-[66%_46%]"
+          fetchPriority="high"
+        />
+        {/* Degradados: arriba para que se lea la barra, abajo para que el
+            texto no pelee con la foto. Nada de oscurecer la imagen entera. */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/80 via-black/30 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-[#010101] via-[#010101]/80 to-transparent lg:h-[80%] lg:via-[#010101]/60" />
+        <div className="pointer-events-none absolute inset-y-0 left-0 hidden w-[66%] bg-gradient-to-r from-[#010101] via-[#010101]/72 to-transparent lg:block" />
+      </div>
 
-        {/* Large decorative wordmark — the real logo lettering as a mask.
-            Difference blending flips it against whatever the blob reveals
-            underneath, so it stays legible without tracking the cursor. */}
-        <div className="pointer-events-none absolute left-1/2 top-[15%] w-[75%] max-w-[1073px] -translate-x-1/2 select-none mix-blend-difference">
-          <div data-depth="0.5">
-            <div
-              className="h-[13vw] max-h-[190px] min-h-[52px] w-full"
-              style={{
-                backgroundImage:
-                  "linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.62) 100%)",
-                WebkitMaskImage: `url('${asset("/ig/wordmark-paolini.png")}')`,
-                maskImage: `url('${asset("/ig/wordmark-paolini.png")}')`,
-                WebkitMaskSize: "contain",
-                maskSize: "contain",
-                WebkitMaskRepeat: "no-repeat",
-                maskRepeat: "no-repeat",
-                WebkitMaskPosition: "center",
-                maskPosition: "center",
-              }}
-              role="img"
-              aria-label="Paolini"
-            />
-          </div>
-        </div>
+      <HeroNav className="absolute inset-x-0 top-0 z-20" />
 
-        {/* Navbar */}
-        <header className="absolute inset-x-0 top-0 w-full px-5 py-6 sm:px-8 lg:px-[80px]">
-          <nav className="flex items-center justify-between gap-3 sm:gap-6">
-            <a href="#inicio" className="flex shrink-0 items-center">
-              <img
-                src={asset("/ig/logo-paolini.png")}
-                alt="Automotores Paolini"
-                className="h-5 w-auto max-w-[188px] object-contain object-left sm:h-7 sm:max-w-none"
-              />
-            </a>
+      <div className="relative z-10 flex flex-1 flex-col justify-end px-5 pb-8 pt-8 sm:px-8 lg:px-[80px] lg:pb-12 lg:pt-0">
+        <div className="mx-auto w-full max-w-[1440px]">
+          <p className="flex items-center gap-2 font-sans text-[11px] uppercase tracking-[0.16em] text-[#E0323F] sm:text-[13px] sm:tracking-[0.2em]">
+            <span className="h-[6px] w-[6px] rounded-full bg-[#E0323F]" />
+            La Falda, Córdoba · Multimarca
+          </p>
 
-            <ul className="hidden items-center gap-8 lg:flex">
-              {NAV_LINKS.map((link) => (
-                <li key={link.label}>
-                  <a
-                    href={link.href}
-                    data-pa-ink
-                    className="pa-ink font-sans text-[15px] transition-opacity hover:opacity-70"
-                    style={{ letterSpacing: "-0.32px" }}
-                  >
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
+          <h1 className="mt-4 max-w-[760px] font-display text-[34px] font-medium uppercase leading-[1.05] tracking-[0.03em] text-white sm:text-[46px] lg:text-[64px]">
+            Encontrá el auto que va con tu camino
+          </h1>
 
-            <div className="flex shrink-0 items-center gap-3 sm:gap-5">
-              <a
-                href="#contacto"
-                data-pa-ink
-                className="pa-ink hidden font-sans text-[15px] transition-opacity hover:opacity-70 sm:inline"
-                style={{ letterSpacing: "-0.32px" }}
-              >
-                Financiación
-              </a>
-              <a
-                href="https://wa.me/5493548468411"
-                target="_blank"
-                rel="noreferrer"
-                className="flex h-11 w-11 items-center justify-center gap-2 rounded-lg bg-white shadow-[0_4px_16px_rgba(0,0,0,0.18)] transition-transform hover:-translate-y-0.5 sm:h-12 sm:w-auto sm:px-5"
-              >
-                <WhatsAppIcon className="h-[18px] w-[18px] text-[#272835]" />
-                <span className="hidden font-sans text-[15px] font-medium text-[#272835] sm:inline">
-                  Contacto
-                </span>
-                <span className="sr-only sm:hidden">Contacto por WhatsApp</span>
-              </a>
-              <MobileMenu />
-            </div>
-          </nav>
-        </header>
+          <p className="mt-5 max-w-[520px] font-sans text-[16px] leading-[26px] text-[#B9BBC5] sm:text-[18px] sm:leading-[29px]">
+            Decenas de vehículos 0km y usados certificados, con precio
+            transparente y financiación a medida. Porque comprar tu auto tiene
+            que ser una alegría.
+          </p>
 
-        {/* Bottom CTA area */}
-        <div className="absolute inset-x-0 bottom-0 w-full px-5 pb-8 sm:px-8 sm:pb-10 lg:px-[80px] lg:pb-14">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between lg:gap-12">
-            <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-end">
-              <p
-                data-pa-ink
-                className="pa-ink max-w-[414px] font-sans text-[20px] leading-[30px]"
-              >
-                Elegí entre decenas de vehículos 0km y usados certificados, con
-                precio transparente y financiación a medida. Porque comprar tu
-                auto tiene que ser una alegría.
-              </p>
-              <a
-                href="#vehiculos"
-                className="flex h-12 shrink-0 items-center gap-2 rounded-lg border border-[#EEEFF2] bg-white px-5 shadow-[0_4px_16px_rgba(0,0,0,0.18)] transition-transform hover:-translate-y-0.5"
-              >
-                <ArrowRightIcon className="h-[18px] w-[18px] text-[#272835]" />
-                <span className="font-sans text-[15px] font-medium text-[#272835]">
-                  Ver vehículos
-                </span>
-              </a>
-            </div>
-
-            <h1
-              data-pa-ink
-              className="pa-ink max-w-[520px] font-display text-[30px] font-medium uppercase leading-[1.08] tracking-[0.04em] sm:text-[38px] md:text-[44px] lg:text-[48px]"
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <a
+              href="#vehiculos"
+              className="flex items-center justify-center gap-2 rounded-lg bg-white px-6 py-3.5 shadow-[0_6px_24px_rgba(0,0,0,0.35)] transition-transform hover:-translate-y-0.5"
             >
-              Encontrá el auto que va con tu camino
-            </h1>
+              <ArrowRightIcon className="h-[18px] w-[18px] text-[#272835]" />
+              <span className="font-sans text-[15px] font-medium text-[#272835]">
+                Ver vehículos
+              </span>
+            </a>
+            <a
+              href="https://wa.me/5493548468411"
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center justify-center gap-2 rounded-lg border border-white/25 px-6 py-3.5 backdrop-blur-sm transition-colors hover:border-white/60 hover:bg-white/5"
+            >
+              <WhatsAppIcon className="h-[18px] w-[18px] text-white" />
+              <span className="font-sans text-[15px] font-medium text-white">
+                Consultar por WhatsApp
+              </span>
+            </a>
           </div>
+
+          <dl className="mt-9 grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10 sm:grid-cols-3">
+            {STATS.map(([title, detail]) => (
+              <div key={title} className="bg-[#050507]/80 px-5 py-4 backdrop-blur-sm">
+                <dt className="font-sans text-[12px] uppercase tracking-[0.16em] text-[#E0323F]">
+                  {title}
+                </dt>
+                <dd className="mt-1 font-sans text-[14px] leading-[20px] text-white/85">
+                  {detail}
+                </dd>
+              </div>
+            ))}
+          </dl>
         </div>
-      </BlobRevealHero>
-    </div>
+      </div>
+    </section>
   );
 }
