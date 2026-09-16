@@ -17,7 +17,7 @@ const SERVICES = [
   {
     n: '04',
     title: 'Más de 30 años en La Falda',
-    body: 'Tres décadas comprando y vendiendo autos en el mismo lugar, sobre Av. España.',
+    body: 'Tres décadas comprando y vendiendo autos en el mismo lugar.',
   },
 ]
 
