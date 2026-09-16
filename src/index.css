@@ -25,3 +25,53 @@ body {
   outline-offset: 3px;
   border-radius: 2px;
 }
+
+/* El hero apila volanta, titular, texto, botones y datos. De lg para arriba la
+   foto pasa a ser el fondo absoluto y la barra superior también es absolute,
+   así que la pila arranca pegada al borde de arriba: en una pantalla ancha
+   pero baja (un 1280x720, o la ventana a media altura) no entraba y el
+   titular terminaba debajo del logo.
+
+   Se arregla en dos pasos: la pila se reserva el alto de la barra, y cuando
+   además sobra poco alto se achica para que el hero siga entrando de una sin
+   obligar a scrollear para ver los botones. */
+@media (min-width: 1024px) {
+  .pa-hero .pa-hero__body {
+    padding-top: 118px;
+  }
+}
+
+@media (min-width: 1024px) and (max-height: 820px) {
+  .pa-hero .pa-hero__body {
+    padding-top: 100px;
+    padding-bottom: 28px;
+  }
+  .pa-hero .pa-hero__title {
+    font-size: 44px;
+    margin-top: 10px;
+    max-width: 620px;
+  }
+  .pa-hero .pa-hero__lead {
+    font-size: 16px;
+    line-height: 24px;
+    max-width: 620px;
+    margin-top: 14px;
+  }
+  .pa-hero .pa-hero__cta {
+    margin-top: 20px;
+  }
+  .pa-hero .pa-hero__stats {
+    margin-top: 22px;
+  }
+}
+
+/* Por debajo de ~620px de alto ya no alcanza con achicar: los datos de abajo
+   se van y quedan titular, texto y botones, que es lo que tiene que estar. */
+@media (min-width: 1024px) and (max-height: 620px) {
+  .pa-hero .pa-hero__title {
+    font-size: 38px;
+  }
+  .pa-hero .pa-hero__stats {
+    display: none;
+  }
+}
