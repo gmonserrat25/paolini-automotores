@@ -1,13 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { CONTACT } from "../data/vehicles";
+import { CONTACT, NAV_LINKS } from "../data/vehicles";
 import { asset } from "../lib/asset";
 import { ArrowRightIcon, WhatsAppIcon } from "./Icons";
 
-const ITEMS = [
-  { label: "0km", href: "#vehiculos" },
-  { label: "Usados seleccionados", href: "#vehiculos" },
-  { label: "Contacto", href: "#contacto" },
-];
+const ITEMS = NAV_LINKS;
 
 export default function MobileMenu() {
   const [open, setOpen] = useState(false);
