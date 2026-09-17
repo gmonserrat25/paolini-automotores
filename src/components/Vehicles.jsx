@@ -36,11 +36,13 @@ function VehicleCard({ vehicle }) {
         </button>
       </header>
 
-      <div className="mt-4 h-[168px] w-full overflow-hidden">
+      {/* En la maqueta el auto flota sobre un piso que se aclara hacia abajo,
+          no es una foto que llene el rectángulo. */}
+      <div className="relative mt-4 h-[168px] w-full overflow-hidden bg-gradient-to-b from-[#1A1A1A] via-[#242220] to-[#3B342F]">
         <img
-          src={vehicle.image}
+          src={vehicle.cut}
           alt={`${vehicle.brand} ${vehicle.model} en Automotores Paolini`}
-          className="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.04]"
+          className="absolute bottom-[14%] left-1/2 max-h-[78%] w-[82%] -translate-x-1/2 object-contain transition-transform duration-500 hover:scale-[1.05]"
           loading="lazy"
         />
       </div>

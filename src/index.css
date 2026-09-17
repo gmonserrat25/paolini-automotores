@@ -1,7 +1,11 @@
 /* Saira Italic stands in for the logo's oblique squared lettering (the real
    logo only exists at low resolution, so it cannot be scaled up cleanly).
-   Jost carries display headings, Archivo the body copy. */
-@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Jost:wght@300;400;500;600;700&family=Saira:ital,wght@1,700;1,800&display=swap');
+
+   Los titulares van en Poppins y no en la Jost que usaba el sitio anterior:
+   la maqueta que copiamos tiene una geométrica de O redonda y trazo parejo,
+   y la Jost, más angosta y con menos peso, no daba ese golpe. Archivo sigue
+   llevando el texto corrido. */
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Poppins:wght@500;600;700&family=Saira:ital,wght@1,700;1,800&display=swap');
 
 @tailwind base;
 @tailwind components;
