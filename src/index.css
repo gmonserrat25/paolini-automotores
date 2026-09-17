@@ -18,6 +18,22 @@ html {
   scroll-padding-top: 88px;
 }
 
+/* Nada de movimiento horizontal en la página.
+
+   En el celular, al deslizar el dedo de costado sobre la tira de marcas o
+   sobre las fotos del carrusel, el gesto terminaba llegándole a la página:
+   la pantalla se corría y aparecía una franja negra al costado (el rebote
+   del navegador). `overscroll-behavior-x: none` corta ese rebote y `clip`
+   se asegura de que no haya nada para correr.
+
+   Va `clip` y no `hidden` a propósito: `hidden` convertiría a la página en
+   un contenedor de scroll y la barra de arriba dejaría de quedarse fija. */
+html,
+body {
+  overflow-x: clip;
+  overscroll-behavior-x: none;
+}
+
 body {
   margin: 0;
   background: #050505;
@@ -50,9 +66,13 @@ body {
 }
 
 /* La tira de marcas se puede arrastrar en el celular; la barra de scroll
-   nativa cortaría la línea de logos por la mitad. */
+   nativa cortaría la línea de logos por la mitad.
+
+   `overscroll-behavior-x: contain` es lo que hace que al llegar al final de
+   la tira el gesto se quede ahí en vez de arrastrar la página. */
 .pa-rail {
   scrollbar-width: none;
+  overscroll-behavior-x: contain;
 }
 
 .pa-rail::-webkit-scrollbar {
