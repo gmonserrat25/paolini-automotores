@@ -1,37 +1,37 @@
+import { useState } from 'react'
+import TopNav from './components/TopNav'
 import Hero from './components/Hero'
-import HeroVertex from './components/HeroVertex'
+import BrandStrip from './components/BrandStrip'
 import Vehicles from './components/Vehicles'
-import Showroom from './components/Showroom'
-import Services from './components/Services'
-import Contact from './components/Contact'
+import Banner from './components/Banner'
+import Companion from './components/Companion'
+import Financiacion from './components/Financiacion'
+import Buscador from './components/Buscador'
 import Footer from './components/Footer'
 
-/* El hero de la casa es el de la foto del salón (opción A) y es el que ve
-   cualquiera que entre al sitio. La opción B —el arco 3D con el stock, estilo
-   Vertex— queda detrás de ?hero=b para poder mostrarla sin cambiar la portada:
-     sin nada  -> opción A, la foto del salón a pantalla completa
-     ?hero=a   -> lo mismo, escrito explícito para la página de comparación
-     ?hero=b   -> opción B, el arco 3D
-   Cuando se decida, esto vuelve a ser un único import. */
-const HEROES = { a: Hero, b: HeroVertex }
+/* El orden de las secciones es el mismo de la maqueta que copiamos: hero,
+   tira de marcas, destacados, bloque a sangre, carrusel en abanico, la
+   sección de financiación (en el original, la de la app) y el buscador.
 
-function pickHero() {
-  if (typeof window === 'undefined') return Hero
-  const key = new URLSearchParams(window.location.search).get('hero')
-  return HEROES[key] || Hero
-}
-
-const SelectedHero = pickHero()
-
+   La marca elegida vive acá y no adentro de la tira porque el listado de
+   vehículos es el que tiene que reaccionar: al tocar una marca, la tira la
+   marca como activa y abajo quedan sólo los autos de esa marca. */
 export default function App() {
+  const [marca, setMarca] = useState(null)
+
   return (
-    <main className="min-h-screen bg-[#010101]">
-      <SelectedHero />
-      <Vehicles />
-      <Showroom />
-      <Services />
-      <Contact />
+    <div className="min-h-screen bg-[#050505]">
+      <TopNav />
+      <main>
+        <Hero />
+        <BrandStrip marca={marca} onSelect={setMarca} />
+        <Vehicles marca={marca} onLimpiar={() => setMarca(null)} />
+        <Banner />
+        <Companion />
+        <Financiacion />
+        <Buscador />
+      </main>
       <Footer />
-    </main>
+    </div>
   )
 }

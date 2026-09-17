@@ -1,71 +1,139 @@
-import { VEHICLES, CONTACT } from '../data/vehicles'
-import { ArrowRightIcon } from './Icons'
+import { useState } from 'react'
+import { VEHICLES, WHATSAPP_URL } from '../data/vehicles'
+import { FuelIcon, GearboxIcon, HeartIcon, SeatsIcon } from './Icons'
+import { Corner, Cta, SectionTitle } from './Ui'
 
-export default function Vehicles() {
+const SPEC_ICONS = [FuelIcon, GearboxIcon, SeatsIcon]
+
+function VehicleCard({ vehicle }) {
+  const [liked, setLiked] = useState(false)
+
+  const consulta = `${WHATSAPP_URL}?text=${encodeURIComponent(
+    `Hola Paolini, quiero consultar por el ${vehicle.brand} ${vehicle.model}.`,
+  )}`
+
   return (
-    <section id="vehiculos" className="bg-[#010101] px-5 py-24 sm:px-8 lg:px-[80px]">
-      <div className="mx-auto max-w-[1440px]">
-        <div className="flex flex-col gap-6 border-b border-white/10 pb-10 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <p
-              className="font-sans text-[13px] uppercase tracking-[0.18em] text-[#E0323F]"
-            >
-              Stock disponible
-            </p>
-            <h2 className="mt-3 max-w-[620px] font-display text-[30px] font-medium uppercase leading-[1.1] tracking-[0.04em] text-white sm:text-[38px] lg:text-[46px]">
-              0km y usados certificados
-            </h2>
-          </div>
-          <p className="max-w-[414px] font-sans text-[17px] leading-[27px] text-[#9A9CA8]">
-            Multimarca, con garantía y papeles al día. Tomamos tu usado como
-            parte de pago y trabajamos financiación en cuotas.
+    <article className="relative flex flex-col overflow-hidden rounded-[10px] bg-gradient-to-b from-[#1D1D1D] to-[#131313]">
+      <header className="flex items-start justify-between gap-3 px-5 pt-5">
+        <div>
+          <h3 className="font-sans text-[18px] font-semibold leading-tight text-white">
+            {vehicle.model}
+          </h3>
+          <p className="mt-1 font-sans text-[13px] text-white/55">
+            {vehicle.brand} · {vehicle.type}
           </p>
         </div>
+        <button
+          type="button"
+          onClick={() => setLiked((v) => !v)}
+          aria-pressed={liked}
+          className={`shrink-0 transition-colors ${liked ? 'text-[#E0323F]' : 'text-white/45 hover:text-white'}`}
+        >
+          <HeartIcon className="h-[22px] w-[22px]" filled={liked} />
+          <span className="sr-only">
+            {liked ? 'Quitar de favoritos' : 'Guardar'} {vehicle.model}
+          </span>
+        </button>
+      </header>
 
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {VEHICLES.map((v) => (
-            <article
-              key={v.id}
-              className="group overflow-hidden rounded-2xl border border-white/10 bg-[#0B0B0E] transition-colors hover:border-white/25"
+      <div className="mt-4 h-[168px] w-full overflow-hidden">
+        <img
+          src={vehicle.image}
+          alt={`${vehicle.brand} ${vehicle.model} en Automotores Paolini`}
+          className="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.04]"
+          loading="lazy"
+        />
+      </div>
+
+      <div className="flex items-center gap-4 border-t border-white/[0.06] px-5 py-4 sm:gap-5">
+        {vehicle.specs.map((spec, i) => {
+          const Icon = SPEC_ICONS[i]
+          return (
+            <span
+              key={spec}
+              className="flex items-center gap-1.5 font-sans text-[13px] text-white/75"
             >
-              <div className="relative aspect-[4/3] overflow-hidden">
-                <img
-                  src={v.image}
-                  alt={`${v.brand} ${v.model}`}
-                  loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <span className="absolute left-4 top-4 rounded-full bg-[#E0323F] px-3 py-1 font-sans text-[12px] font-medium text-white">
-                  {v.tag}
-                </span>
-              </div>
-              <div className="flex items-end justify-between gap-4 p-6">
-                <div>
-                  <p className="font-sans text-[13px] uppercase tracking-[0.14em] text-[#7A7C88]">
-                    {v.brand}
-                  </p>
-                  <h3 className="mt-1 font-display text-[22px] font-medium uppercase leading-tight tracking-[0.03em] text-white">
-                    {v.model}
-                  </h3>
-                  <p className="mt-2 font-sans text-[14px] text-[#9A9CA8]">
-                    {v.detail}
-                  </p>
-                </div>
-                <a
-                  href={`https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(
-                    `Hola Paolini, quiero consultar por el ${v.brand} ${v.model}`,
-                  )}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label={`Consultar por ${v.brand} ${v.model}`}
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-white/15 text-white transition-colors hover:bg-white hover:text-[#272835]"
-                >
-                  <ArrowRightIcon className="h-[18px] w-[18px]" />
-                </a>
-              </div>
-            </article>
-          ))}
+              <Icon className="h-[17px] w-[17px] text-white/45" />
+              {spec}
+            </span>
+          )
+        })}
+      </div>
+
+      <div className="mt-auto flex items-center justify-between gap-3 px-5 pb-5">
+        <p className="font-sans text-[19px] font-semibold text-white">
+          {vehicle.price}
+          <span className="font-normal text-white/50"> / precio</span>
+        </p>
+        <Cta href={consulta} size="sm" target="_blank" rel="noreferrer">
+          Consultar
+        </Cta>
+      </div>
+
+      <Corner className="h-6 w-6" />
+    </article>
+  )
+}
+
+/* "POPULAR CAR" de la referencia: título a la izquierda, botón a la derecha y
+   la grilla de tarjetas debajo.
+
+   Cuando se toca una marca en la tira de arriba, esta sección pasa a ser el
+   listado de esa marca: cambia el título, aparece el conteo y el botón de la
+   derecha vuelve a mostrar todo el stock. */
+export default function Vehicles({ marca = null, onLimpiar }) {
+  const listado = marca ? VEHICLES.filter((v) => v.brand === marca) : VEHICLES
+
+  const consultaMarca = `${WHATSAPP_URL}?text=${encodeURIComponent(
+    `Hola Paolini, ¿qué tienen disponible de ${marca}?`,
+  )}`
+
+  return (
+    <section id="vehiculos" className="bg-[#050505] py-16 lg:py-24">
+      <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-[60px]">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <SectionTitle>
+              {marca ? `Vehículos ${marca}` : 'Vehículos destacados'}
+            </SectionTitle>
+            {marca ? (
+              <p className="mt-2 font-sans text-[14px] text-white/55">
+                {listado.length === 0
+                  ? `Ahora mismo no tenemos ningún ${marca} publicado`
+                  : `${listado.length} ${listado.length === 1 ? 'vehículo' : 'vehículos'} de ${marca} en el salón`}
+              </p>
+            ) : null}
+          </div>
+
+          {marca ? (
+            <Cta onClick={onLimpiar}>Ver todos</Cta>
+          ) : (
+            <Cta href={WHATSAPP_URL} target="_blank" rel="noreferrer">
+              Ver todos
+            </Cta>
+          )}
         </div>
+
+        {listado.length === 0 ? (
+          <div className="mt-8 rounded-[10px] border border-white/10 bg-gradient-to-b from-[#1D1D1D] to-[#131313] px-6 py-12 text-center lg:mt-10">
+            <p className="mx-auto max-w-[460px] font-sans text-[15px] leading-[26px] text-white/65">
+              No tenemos ningún {marca} publicado en este momento, pero
+              conseguimos unidades de cualquier marca. Decinos qué buscás y lo
+              rastreamos.
+            </p>
+            <div className="mt-6 flex justify-center">
+              <Cta href={consultaMarca} target="_blank" rel="noreferrer">
+                Consultar por {marca}
+              </Cta>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:mt-10 lg:grid-cols-3 lg:gap-6">
+            {listado.map((vehicle) => (
+              <VehicleCard key={vehicle.id} vehicle={vehicle} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   )

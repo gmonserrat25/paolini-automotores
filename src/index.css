@@ -1,7 +1,7 @@
 /* Saira Italic stands in for the logo's oblique squared lettering (the real
    logo only exists at low resolution, so it cannot be scaled up cleanly).
    Jost carries display headings, Archivo the body copy. */
-@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Jost:wght@300;400;500;600&family=Saira:ital,wght@1,700;1,800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Jost:wght@300;400;500;600;700&family=Saira:ital,wght@1,700;1,800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -9,11 +9,14 @@
 
 html {
   scroll-behavior: smooth;
+  /* La barra de arriba es fija: sin esto, saltar a una sección con el menú
+     deja el título tapado debajo de la barra. */
+  scroll-padding-top: 88px;
 }
 
 body {
   margin: 0;
-  background: #010101;
+  background: #050505;
   font-family: 'Archivo', ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -26,52 +29,47 @@ body {
   border-radius: 2px;
 }
 
-/* El hero apila volanta, titular, texto, botones y datos. De lg para arriba la
-   foto pasa a ser el fondo absoluto y la barra superior también es absolute,
-   así que la pila arranca pegada al borde de arriba: en una pantalla ancha
-   pero baja (un 1280x720, o la ventana a media altura) no entraba y el
-   titular terminaba debajo del logo.
+/* La palabra gigante que corre en vertical por el borde izquierdo del hero,
+   leyéndose de abajo hacia arriba.
 
-   Se arregla en dos pasos: la pila se reserva el alto de la barra, y cuando
-   además sobra poco alto se achica para que el hero siga entrando de una sin
-   obligar a scrollear para ver los botones. */
-@media (min-width: 1024px) {
-  .pa-hero .pa-hero__body {
-    padding-top: 118px;
-  }
+   Se gira con `transform` y no con `writing-mode: vertical-rl`: en modo
+   vertical el `top`/`left` de un absoluto se resuelve contra otros bordes y
+   la palabra terminaba colgando fuera de la franja. Girando la caja, el
+   centrado es el de siempre. */
+.pa-vertical {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform-origin: center;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  white-space: nowrap;
 }
 
-@media (min-width: 1024px) and (max-height: 820px) {
-  .pa-hero .pa-hero__body {
-    padding-top: 100px;
-    padding-bottom: 28px;
-  }
-  .pa-hero .pa-hero__title {
-    font-size: 44px;
-    margin-top: 10px;
-    max-width: 620px;
-  }
-  .pa-hero .pa-hero__lead {
-    font-size: 16px;
-    line-height: 24px;
-    max-width: 620px;
-    margin-top: 14px;
-  }
-  .pa-hero .pa-hero__cta {
-    margin-top: 20px;
-  }
-  .pa-hero .pa-hero__stats {
-    margin-top: 22px;
-  }
+/* La tira de marcas se puede arrastrar en el celular; la barra de scroll
+   nativa cortaría la línea de logos por la mitad. */
+.pa-rail {
+  scrollbar-width: none;
 }
 
-/* Por debajo de ~620px de alto ya no alcanza con achicar: los datos de abajo
-   se van y quedan titular, texto y botones, que es lo que tiene que estar. */
-@media (min-width: 1024px) and (max-height: 620px) {
-  .pa-hero .pa-hero__title {
-    font-size: 38px;
+.pa-rail::-webkit-scrollbar {
+  display: none;
+}
+
+/* Las fotos del abanico se acomodan con transform y opacidad desde el
+   componente; la transición va acá para no repetirla en cada una. */
+.pa-fan {
+  transition:
+    transform 500ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 500ms ease,
+    filter 500ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
   }
-  .pa-hero .pa-hero__stats {
-    display: none;
+
+  .pa-fan {
+    transition: none;
   }
 }
