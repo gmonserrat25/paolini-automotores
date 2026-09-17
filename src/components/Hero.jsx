@@ -24,17 +24,13 @@ export default function Hero() {
       </div>
 
       <div className="relative lg:ml-[132px]">
-        {/* Foto. Banda superior en el celular, fondo de la mitad derecha en
-            escritorio. */}
-        <div className="relative h-[240px] w-full sm:h-[300px] lg:absolute lg:inset-y-0 lg:left-auto lg:right-0 lg:h-full lg:w-[62%]">
-          <img
-            src={asset('/ig/hero-208-salon.jpg')}
-            alt="Peugeot 208 0km en el salón de Automotores Paolini, La Falda"
-            className="h-full w-full object-cover object-[60%_46%]"
-            fetchPriority="high"
-          />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-[#0B0B0B]/25 to-transparent lg:bg-gradient-to-r lg:from-[#0B0B0B] lg:via-[#0B0B0B]/55 lg:to-transparent" />
-        </div>
+        {/* Piso de estudio detrás del auto. Va suelto y antes de las franjas
+            para que la diagonal le pase por encima al fondo pero por debajo
+            del auto, que es el orden que tiene la maqueta. */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 top-0 h-[250px] bg-[radial-gradient(75%_65%_at_62%_38%,#232323_0%,#101010_55%,#0B0B0B_100%)] sm:h-[320px] lg:inset-y-0 lg:left-auto lg:right-0 lg:h-full lg:w-[64%]"
+        />
 
         {/* Franjas diagonales. Las oscuras son las de la izquierda; la roja es
             la que en el diseño original va en amarillo. Van después de la foto
@@ -48,6 +44,22 @@ export default function Hero() {
           <div className="absolute -inset-y-[40%] left-[21%] w-[2.5%] -skew-x-[38deg] bg-[#1C1C1C]" />
           <div className="absolute -inset-y-[40%] left-[25%] w-[1%] -skew-x-[38deg] bg-[#1C1C1C]" />
           <div className="absolute -inset-y-[40%] left-[52%] w-[4.2%] -skew-x-[38deg] bg-[#E0323F]" />
+        </div>
+
+        {/* El auto recortado, flotando sobre el piso y por delante de la
+            diagonal. */}
+        <div className="relative h-[250px] w-full sm:h-[320px] lg:absolute lg:inset-y-0 lg:left-auto lg:right-0 lg:h-full lg:w-[64%]">
+          <div
+            aria-hidden="true"
+            className="absolute bottom-[14%] left-1/2 h-[7%] w-[62%] -translate-x-1/2 rounded-[50%] bg-black/70 blur-xl"
+          />
+          <img
+            src={asset('/ig/recortes/hero-208-salon.webp')}
+            alt="Peugeot 208 0km en Automotores Paolini, La Falda"
+            className="absolute bottom-[10%] left-1/2 w-[86%] max-w-[620px] -translate-x-1/2 drop-shadow-[0_24px_40px_rgba(0,0,0,0.55)] lg:bottom-[14%] lg:w-[80%] lg:max-w-[680px]"
+            fetchPriority="high"
+          />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-transparent to-transparent lg:bg-gradient-to-r lg:from-[#0B0B0B]/90 lg:via-transparent lg:to-transparent" />
         </div>
 
         <div className="relative mx-auto flex max-w-[1308px] flex-col justify-center px-5 pb-16 pt-10 sm:px-8 lg:min-h-[640px] lg:px-14 lg:pb-24 lg:pt-24">

@@ -14,6 +14,7 @@ export const VEHICLES = [
     price: 'A consultar',
     specs: ['Nafta', 'Automática', '5 plazas'],
     image: asset('/ig/car-tcross.jpg'),
+    cut: asset('/ig/recortes/car-tcross.webp'),
   },
   {
     id: 'peugeot-208-gt',
@@ -25,6 +26,7 @@ export const VEHICLES = [
     price: 'A consultar',
     specs: ['Nafta', 'Automática', '5 plazas'],
     image: asset('/ig/car-peugeot208gt.jpg'),
+    cut: asset('/ig/recortes/car-peugeot208gt.webp'),
   },
   {
     id: 'amarok',
@@ -36,6 +38,7 @@ export const VEHICLES = [
     price: 'A consultar',
     specs: ['Diésel', 'Manual', '5 plazas'],
     image: asset('/ig/car-amarok.jpg'),
+    cut: asset('/ig/recortes/car-amarok.webp'),
   },
   {
     id: 'byd-atto2',
@@ -47,6 +50,7 @@ export const VEHICLES = [
     price: 'A consultar',
     specs: ['Eléctrico', 'Automática', '5 plazas'],
     image: asset('/ig/car-byd-atto2.jpg'),
+    cut: asset('/ig/recortes/car-byd-atto2.webp'),
   },
   {
     id: 'peugeot-208',
@@ -58,6 +62,7 @@ export const VEHICLES = [
     price: 'A consultar',
     specs: ['Nafta', 'Manual', '5 plazas'],
     image: asset('/ig/car-peugeot208.jpg'),
+    cut: asset('/ig/recortes/car-peugeot208.webp'),
   },
   {
     id: 'hibrido',
@@ -69,6 +74,7 @@ export const VEHICLES = [
     price: 'A consultar',
     specs: ['Híbrido', 'Automática', '5 plazas'],
     image: asset('/ig/car-hibrido.jpg'),
+    cut: asset('/ig/recortes/car-hibrido.webp'),
   },
 ]
 

@@ -1,10 +1,10 @@
 import { useRef } from 'react'
 import { BRANDS, VEHICLES } from '../data/vehicles'
+import BrandLogo from './BrandLogos'
 import { ChevronLeftIcon, ChevronRightIcon } from './Icons'
 
-/* La tira de marcas que va debajo del hero. La referencia usa los logos de
-   cada fábrica en gris y pinta de color el que está activo; acá van como
-   palabra, que es lo que se puede mostrar sin usar logos ajenos.
+/* La tira de marcas que va debajo del hero: el emblema de cada fábrica en
+   gris con su nombre debajo, y el activo en rojo, igual que la maqueta.
 
    Cada marca es un enlace a #vehiculos: al tocarla, el listado de abajo
    queda con los autos de esa marca y la página baja hasta ahí. Va como <a>
@@ -46,13 +46,16 @@ export default function BrandStrip({ marca, onSelect }) {
                   href="#vehiculos"
                   onClick={() => onSelect(brand)}
                   aria-current={activa ? 'true' : undefined}
-                  className={`block whitespace-nowrap font-wordmark text-[16px] uppercase tracking-[0.18em] transition-colors sm:text-[18px] ${
+                  className={`flex flex-col items-center gap-2 transition-colors ${
                     activa
                       ? 'text-[#E0323F]'
                       : 'text-white/25 hover:text-white/55'
                   }`}
                 >
-                  {brand}
+                  <BrandLogo marca={brand} className="h-7 w-7 shrink-0" />
+                  <span className="whitespace-nowrap font-wordmark text-[11px] uppercase tracking-[0.18em]">
+                    {brand}
+                  </span>
                   <span className="sr-only">
                     {conStock.has(brand)
                       ? ' — ver los vehículos de esta marca'
