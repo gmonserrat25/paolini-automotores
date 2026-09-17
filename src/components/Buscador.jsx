@@ -124,19 +124,13 @@ export default function Buscador() {
 
           {destacado ? (
             <figure className="relative mx-auto max-w-[840px]">
-              {/* Sombra en el piso: el auto va recortado, sin marco, como en
-                  la maqueta. */}
-              <span
-                aria-hidden="true"
-                className="absolute bottom-[14%] left-1/2 h-[26px] w-[62%] -translate-x-1/2 rounded-[50%] bg-black/60 blur-xl"
-              />
               <img
-                src={destacado.cut}
+                src={destacado.image}
                 alt={`${destacado.brand} ${destacado.model} disponible en Automotores Paolini`}
-                className="relative mx-auto h-[190px] w-auto max-w-full object-contain drop-shadow-[0_22px_34px_rgba(0,0,0,0.5)] sm:h-[280px] lg:h-[330px]"
+                className="h-[200px] w-full rounded-[14px] object-cover sm:h-[300px] lg:h-[360px]"
                 loading="lazy"
               />
-              <figcaption className="relative mt-4 text-center font-sans text-[14px] text-white/60">
+              <figcaption className="mt-4 text-center font-sans text-[14px] text-white/60">
                 <span className="font-semibold text-white">
                   {destacado.brand} {destacado.model}
                 </span>{' '}
