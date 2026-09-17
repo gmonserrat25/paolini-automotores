@@ -76,23 +76,64 @@ function VehicleCard({ vehicle }) {
 }
 
 /* "POPULAR CAR" de la referencia: título a la izquierda, botón a la derecha y
-   la grilla de tarjetas debajo. */
-export default function Vehicles() {
+   la grilla de tarjetas debajo.
+
+   Cuando se toca una marca en la tira de arriba, esta sección pasa a ser el
+   listado de esa marca: cambia el título, aparece el conteo y el botón de la
+   derecha vuelve a mostrar todo el stock. */
+export default function Vehicles({ marca = null, onLimpiar }) {
+  const listado = marca ? VEHICLES.filter((v) => v.brand === marca) : VEHICLES
+
+  const consultaMarca = `${WHATSAPP_URL}?text=${encodeURIComponent(
+    `Hola Paolini, ¿qué tienen disponible de ${marca}?`,
+  )}`
+
   return (
     <section id="vehiculos" className="bg-[#050505] py-16 lg:py-24">
       <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-[60px]">
-        <div className="flex items-center justify-between gap-4">
-          <SectionTitle>Vehículos destacados</SectionTitle>
-          <Cta href={WHATSAPP_URL} target="_blank" rel="noreferrer">
-            Ver todos
-          </Cta>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <SectionTitle>
+              {marca ? `Vehículos ${marca}` : 'Vehículos destacados'}
+            </SectionTitle>
+            {marca ? (
+              <p className="mt-2 font-sans text-[14px] text-white/55">
+                {listado.length === 0
+                  ? `Ahora mismo no tenemos ningún ${marca} publicado`
+                  : `${listado.length} ${listado.length === 1 ? 'vehículo' : 'vehículos'} de ${marca} en el salón`}
+              </p>
+            ) : null}
+          </div>
+
+          {marca ? (
+            <Cta onClick={onLimpiar}>Ver todos</Cta>
+          ) : (
+            <Cta href={WHATSAPP_URL} target="_blank" rel="noreferrer">
+              Ver todos
+            </Cta>
+          )}
         </div>
 
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:mt-10 lg:grid-cols-3 lg:gap-6">
-          {VEHICLES.map((vehicle) => (
-            <VehicleCard key={vehicle.id} vehicle={vehicle} />
-          ))}
-        </div>
+        {listado.length === 0 ? (
+          <div className="mt-8 rounded-[10px] border border-white/10 bg-gradient-to-b from-[#1D1D1D] to-[#131313] px-6 py-12 text-center lg:mt-10">
+            <p className="mx-auto max-w-[460px] font-sans text-[15px] leading-[26px] text-white/65">
+              No tenemos ningún {marca} publicado en este momento, pero
+              conseguimos unidades de cualquier marca. Decinos qué buscás y lo
+              rastreamos.
+            </p>
+            <div className="mt-6 flex justify-center">
+              <Cta href={consultaMarca} target="_blank" rel="noreferrer">
+                Consultar por {marca}
+              </Cta>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:mt-10 lg:grid-cols-3 lg:gap-6">
+            {listado.map((vehicle) => (
+              <VehicleCard key={vehicle.id} vehicle={vehicle} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   )

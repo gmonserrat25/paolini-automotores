@@ -17,11 +17,15 @@ const ICON_SIZES = {
 }
 
 /* Botón principal: pastilla roja con la flechita diagonal metida en un
-   cuadradito negro a la izquierda. */
+   cuadradito negro a la izquierda. Sin `href` sale como <button>, que es lo
+   que corresponde cuando la acción no lleva a ningún lado. */
 export function Cta({ href, children, size = 'md', className = '', ...rest }) {
+  const Tag = href ? 'a' : 'button'
+
   return (
-    <a
+    <Tag
       href={href}
+      type={href ? undefined : 'button'}
       className={`group inline-flex shrink-0 items-center rounded-[6px] bg-gradient-to-br from-[#FF4552] to-[#C4212D] font-sans font-medium text-white shadow-[0_6px_20px_rgba(224,50,63,0.28)] transition-transform hover:-translate-y-0.5 ${SIZES[size]} ${className}`.trim()}
       {...rest}
     >
@@ -31,7 +35,7 @@ export function Cta({ href, children, size = 'md', className = '', ...rest }) {
         <ArrowUpRightIcon className="h-[11px] w-[11px] text-white transition-transform group-hover:translate-x-[1px] group-hover:-translate-y-[1px]" />
       </span>
       {children}
-    </a>
+    </Tag>
   )
 }
 
