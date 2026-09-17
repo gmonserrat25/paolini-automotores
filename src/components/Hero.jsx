@@ -5,16 +5,19 @@ import { Cta } from './Ui'
 
 /* Hero de la referencia: la palabra gigante en vertical pegada al borde
    izquierdo, las franjas diagonales cruzando el fondo, el titular en dos
-   renglones a la izquierda y el auto ocupando la mitad derecha. La cuña de
-   la esquina inferior derecha lleva las redes.
+   renglones a la izquierda y la foto del salón detrás. La cuña de la esquina
+   inferior derecha lleva las redes.
 
-   En el celular no hay lugar para el cruce de diagonales sobre la foto, así
-   que la foto pasa a ser una banda arriba y el texto baja al negro. */
+   La foto va entera, sin recortar: el bloque toma la proporción del original
+   (1080x542) en lugar de un alto fijo, así el `object-cover` no tiene nada
+   que sacar. En escritorio el texto se superpone; en el celular la franja
+   quedaría de 200px de alto y no entraría nada encima, así que ahí la foto es
+   una banda y el texto baja al negro. */
 export default function Hero() {
   return (
     <section
       id="inicio"
-      className="relative isolate w-full overflow-hidden bg-[#0B0B0B] lg:min-h-[640px]"
+      className="relative isolate w-full overflow-hidden bg-[#0B0B0B]"
     >
       {/* Palabra fantasma del borde izquierdo. */}
       <div className="pointer-events-none absolute inset-y-0 left-0 hidden w-[132px] select-none overflow-hidden bg-[#141414] lg:block">
@@ -23,35 +26,33 @@ export default function Hero() {
         </span>
       </div>
 
-      <div className="relative lg:ml-[132px]">
-        {/* Foto. Banda superior en el celular, fondo de la mitad derecha en
-            escritorio. */}
-        <div className="relative h-[240px] w-full sm:h-[300px] lg:absolute lg:inset-y-0 lg:left-auto lg:right-0 lg:h-full lg:w-[62%]">
+      <div className="relative lg:ml-[132px] lg:aspect-[1080/542]">
+        <div className="relative aspect-[1080/542] w-full lg:absolute lg:inset-0 lg:aspect-auto">
           <img
             src={asset('/ig/hero-208-salon.jpg')}
             alt="Peugeot 208 0km en el salón de Automotores Paolini, La Falda"
-            className="h-full w-full object-cover object-[60%_46%]"
+            className="h-full w-full object-cover"
             fetchPriority="high"
           />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-[#0B0B0B]/25 to-transparent lg:bg-gradient-to-r lg:from-[#0B0B0B] lg:via-[#0B0B0B]/55 lg:to-transparent" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-[#0B0B0B]/40 to-transparent lg:bg-gradient-to-r lg:from-[#0B0B0B] lg:via-[#0B0B0B]/62 lg:to-transparent" />
         </div>
 
         {/* Franjas diagonales. Las oscuras son las de la izquierda; la roja es
             la que en el diseño original va en amarillo. Van después de la foto
             en el marcado porque la diagonal tiene que cruzar por delante de
-            ella, como en la maqueta: si van antes, la foto se las come.
+            ella, como en la maqueta.
 
             Debajo de lg no van: ahí el texto ocupa todo el ancho y la
             diagonal le cruzaba el titular y el botón por la mitad. */}
         <div className="pointer-events-none absolute inset-0 hidden overflow-hidden lg:block">
-          <div className="absolute -inset-y-[40%] left-[4%] w-[15%] -skew-x-[38deg] bg-[#141414]" />
-          <div className="absolute -inset-y-[40%] left-[21%] w-[2.5%] -skew-x-[38deg] bg-[#1C1C1C]" />
-          <div className="absolute -inset-y-[40%] left-[25%] w-[1%] -skew-x-[38deg] bg-[#1C1C1C]" />
-          <div className="absolute -inset-y-[40%] left-[52%] w-[4.2%] -skew-x-[38deg] bg-[#E0323F]" />
+          <div className="absolute -inset-y-[40%] left-[4%] w-[15%] -skew-x-[38deg] bg-[#141414]/70" />
+          <div className="absolute -inset-y-[40%] left-[21%] w-[2.5%] -skew-x-[38deg] bg-[#1C1C1C]/70" />
+          <div className="absolute -inset-y-[40%] left-[25%] w-[1%] -skew-x-[38deg] bg-[#1C1C1C]/70" />
+          <div className="absolute -inset-y-[40%] left-[41%] w-[3.4%] -skew-x-[38deg] bg-[#E0323F]" />
         </div>
 
-        <div className="relative mx-auto flex max-w-[1308px] flex-col justify-center px-5 pb-16 pt-10 sm:px-8 lg:min-h-[640px] lg:px-14 lg:pb-24 lg:pt-24">
-          <h1 className="max-w-[680px] font-display text-[34px] font-semibold uppercase leading-[1.06] tracking-[-0.01em] text-white sm:text-[46px] lg:text-[56px]">
+        <div className="relative mx-auto flex max-w-[1308px] flex-col justify-center px-5 pb-16 pt-10 sm:px-8 lg:absolute lg:inset-0 lg:px-14 lg:py-10">
+          <h1 className="max-w-[680px] font-display text-[34px] font-semibold uppercase leading-[1.06] tracking-[-0.01em] text-white sm:text-[46px] lg:text-[44px] xl:text-[56px]">
             Te acercamos
             <br />
             al auto que buscás

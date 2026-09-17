@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { VEHICLES, WHATSAPP_URL } from '../data/vehicles'
 import { ChevronLeftIcon, ChevronRightIcon, SeatsIcon } from './Icons'
 import { Cta } from './Ui'
@@ -19,8 +19,40 @@ function offsetFor(index, active, total) {
 export default function Companion() {
   const [active, setActive] = useState(0)
   const total = VEHICLES.length
+  const arrastre = useRef(null)
 
   const move = (dir) => setActive((i) => (i + dir + total) % total)
+
+  /* En el celular lo natural es deslizar el dedo sobre las fotos. Sin esto,
+     ese gesto se lo comía la página: la pantalla se corría de costado y
+     asomaba una franja negra. Ahora el deslizamiento cambia de auto, y el
+     `touch-action: pan-y` del contenedor deja pasar sólo el scroll vertical. */
+  const onPointerDown = (e) => {
+    arrastre.current = { x: e.clientX, y: e.clientY, deslizo: false }
+  }
+
+  const onPointerUp = (e) => {
+    const inicio = arrastre.current
+    if (!inicio) return
+
+    const dx = e.clientX - inicio.x
+    const dy = e.clientY - inicio.y
+    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) {
+      inicio.deslizo = true
+      move(dx < 0 ? 1 : -1)
+    }
+  }
+
+  /* Cada foto es un botón que trae su auto al frente. Si el dedo terminó el
+     deslizamiento encima de una, el click llegaría igual y la elegiría a ella,
+     pisando el movimiento del carrusel. */
+  const onCardClick = (i) => {
+    if (arrastre.current?.deslizo) {
+      arrastre.current = null
+      return
+    }
+    setActive(i)
+  }
 
   return (
     <section className="overflow-hidden bg-[#050505] py-16 lg:py-24">
@@ -37,7 +69,11 @@ export default function Companion() {
         </div>
 
         {/* Abanico */}
-        <div className="relative mt-12 h-[230px] sm:h-[280px] lg:h-[320px]">
+        <div
+          className="relative mt-12 h-[230px] touch-pan-y select-none sm:h-[280px] lg:h-[320px]"
+          onPointerDown={onPointerDown}
+          onPointerUp={onPointerUp}
+        >
           {VEHICLES.map((vehicle, i) => {
             const offset = offsetFor(i, active, total)
             const distance = Math.abs(offset)
@@ -47,7 +83,7 @@ export default function Companion() {
               <button
                 key={vehicle.id}
                 type="button"
-                onClick={() => setActive(i)}
+                onClick={() => onCardClick(i)}
                 aria-current={offset === 0}
                 className="pa-fan absolute left-1/2 top-1/2 h-[190px] w-[300px] overflow-hidden rounded-[14px] sm:h-[235px] sm:w-[380px] lg:h-[270px] lg:w-[440px]"
                 style={{
