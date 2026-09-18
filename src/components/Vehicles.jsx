@@ -5,8 +5,10 @@ import { Corner, Cta, SectionTitle } from './Ui'
 
 const SPEC_ICONS = [FuelIcon, GearboxIcon, SeatsIcon]
 
-function VehicleCard({ vehicle }) {
-  const [liked, setLiked] = useState(false)
+function VehicleCard({ vehicle, destacado = false }) {
+  /* La maqueta muestra la primera tarjeta con el corazón marcado, para que se
+     vea de entrada que se pueden guardar. Es sólo eso: un clic lo apaga. */
+  const [liked, setLiked] = useState(destacado)
 
   const consulta = `${WHATSAPP_URL}?text=${encodeURIComponent(
     `Hola Paolini, quiero consultar por el ${vehicle.brand} ${vehicle.model}.`,
@@ -129,8 +131,8 @@ export default function Vehicles({ marca = null, onLimpiar }) {
           </div>
         ) : (
           <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:mt-10 lg:grid-cols-3 lg:gap-6">
-            {listado.map((vehicle) => (
-              <VehicleCard key={vehicle.id} vehicle={vehicle} />
+            {listado.map((vehicle, i) => (
+              <VehicleCard key={vehicle.id} vehicle={vehicle} destacado={i === 0} />
             ))}
           </div>
         )}

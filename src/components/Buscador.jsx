@@ -38,10 +38,15 @@ function Select({ label, value, options, onChange }) {
   )
 }
 
+/* El combustible es el primero de los tres datos de la ficha de cada
+   vehículo, el mismo que muestran las tarjetas. */
+const combustibleDe = (v) => v.specs[0]
+
 export default function Buscador() {
   const [tipo, setTipo] = useState(TODOS)
   const [marca, setMarca] = useState(TODOS)
   const [modelo, setModelo] = useState(TODOS)
+  const [combustible, setCombustible] = useState(TODOS)
 
   const tipos = useMemo(
     () => [TODOS, ...new Set(VEHICLES.map((v) => v.type))],
@@ -51,10 +56,16 @@ export default function Buscador() {
     () => [TODOS, ...new Set(VEHICLES.map((v) => v.brand))],
     [],
   )
+  const combustibles = useMemo(
+    () => [TODOS, ...new Set(VEHICLES.map(combustibleDe))],
+    [],
+  )
 
   const porTipoYMarca = VEHICLES.filter(
     (v) =>
-      (tipo === TODOS || v.type === tipo) && (marca === TODOS || v.brand === marca),
+      (tipo === TODOS || v.type === tipo) &&
+      (marca === TODOS || v.brand === marca) &&
+      (combustible === TODOS || combustibleDe(v) === combustible),
   )
   const modelos = [TODOS, ...new Set(porTipoYMarca.map((v) => v.model))]
   const encontrados = porTipoYMarca.filter(
@@ -70,6 +81,7 @@ export default function Buscador() {
     tipo === TODOS ? null : tipo,
     marca === TODOS ? null : marca,
     modeloVigente === TODOS ? null : modeloVigente,
+    combustible === TODOS ? null : combustible,
   ].filter(Boolean)
 
   const consulta = `${WHATSAPP_URL}?text=${encodeURIComponent(
@@ -85,7 +97,7 @@ export default function Buscador() {
           Encontrá tu próximo auto
         </h2>
 
-        <div className="mx-auto mt-8 flex w-full max-w-[720px] items-center gap-1 rounded-full bg-[#141414] p-1.5 sm:gap-0">
+        <div className="mx-auto mt-8 flex w-full max-w-[800px] items-center gap-1 rounded-full bg-[#141414] p-1.5 sm:gap-0">
           <div className="flex min-w-0 flex-1 divide-x divide-white/10">
             <Select label="Tipo" value={tipo} options={tipos} onChange={setTipo} />
             <Select label="Marca" value={marca} options={marcas} onChange={setMarca} />
@@ -94,6 +106,12 @@ export default function Buscador() {
               value={modeloVigente}
               options={modelos}
               onChange={setModelo}
+            />
+            <Select
+              label="Combustible"
+              value={combustible}
+              options={combustibles}
+              onChange={setCombustible}
             />
           </div>
           <a

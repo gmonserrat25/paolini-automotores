@@ -45,12 +45,20 @@ export default function Hero() {
             en el marcado porque la diagonal tiene que cruzar por delante de
             ella, como en la maqueta.
 
+            Las oscuras se pintan con negro translúcido y no con un gris
+            fijo: sobre la foto, un gris casi negro no se distingue del fondo
+            y las tres franjas desaparecían: quedaba sólo la roja y el hero
+            perdía la textura que tiene la maqueta. Oscureciendo la foto, en
+            cambio, se ven igual de bien sobre la parte clara y sobre la
+            oscura.
+
             Debajo de lg no van: ahí el texto ocupa todo el ancho y la
             diagonal le cruzaba el titular y el botón por la mitad. */}
         <div className="pointer-events-none absolute inset-0 hidden overflow-hidden lg:block">
-          <div className="absolute -inset-y-[40%] left-[4%] w-[15%] -skew-x-[38deg] bg-[#141414]/70" />
-          <div className="absolute -inset-y-[40%] left-[21%] w-[2.5%] -skew-x-[38deg] bg-[#1C1C1C]/70" />
-          <div className="absolute -inset-y-[40%] left-[25%] w-[1%] -skew-x-[38deg] bg-[#1C1C1C]/70" />
+          <div className="absolute -inset-y-[40%] left-[4%] w-[15%] -skew-x-[38deg] bg-black/45" />
+          <div className="absolute -inset-y-[40%] left-[21%] w-[2.5%] -skew-x-[38deg] bg-black/35" />
+          <div className="absolute -inset-y-[40%] left-[25%] w-[1%] -skew-x-[38deg] bg-black/35" />
+          <div className="absolute -inset-y-[40%] left-[30%] w-[0.6%] -skew-x-[38deg] bg-white/10" />
           <div className="absolute -inset-y-[40%] left-[41%] w-[3.4%] -skew-x-[38deg] bg-[#E0323F]" />
         </div>
 
