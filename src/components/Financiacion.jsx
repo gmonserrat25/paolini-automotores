@@ -31,7 +31,7 @@ export default function Financiacion() {
   return (
     <section
       id="financiacion"
-      className="relative isolate overflow-hidden bg-[#0A0A0A] py-16 lg:py-24"
+      className="pa-asfalto relative isolate overflow-hidden bg-[#0A0A0A] py-16 lg:py-24"
     >
       <div
         aria-hidden="true"
