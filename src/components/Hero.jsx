@@ -9,7 +9,7 @@ import { Cta } from './Ui'
    inferior derecha lleva las redes.
 
    La foto va entera, sin recortar: el bloque toma la proporción del original
-   (1080x542) en lugar de un alto fijo, así el `object-cover` no tiene nada
+   (1080x533) en lugar de un alto fijo, así el `object-cover` no tiene nada
    que sacar. En escritorio el texto se superpone; en el celular la franja
    quedaría de 200px de alto y no entraría nada encima, así que ahí la foto es
    una banda y el texto baja al negro. */
@@ -26,15 +26,18 @@ export default function Hero() {
         </span>
       </div>
 
-      <div className="relative lg:ml-[132px] lg:aspect-[1080/542]">
-        <div className="relative aspect-[1080/542] w-full lg:absolute lg:inset-0 lg:aspect-auto">
+      <div className="relative lg:ml-[132px] lg:aspect-[1080/533]">
+        <div className="relative aspect-[1080/533] w-full lg:absolute lg:inset-0 lg:aspect-auto">
           <img
-            src={asset('/ig/hero-208-salon.jpg')}
-            alt="Peugeot 208 0km en el salón de Automotores Paolini, La Falda"
+            src={asset('/ig/car-amarok.jpg')}
+            alt="Volkswagen Amarok en el salón de Automotores Paolini, La Falda"
             className="h-full w-full object-cover"
             fetchPriority="high"
           />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-[#0B0B0B]/40 to-transparent lg:bg-gradient-to-r lg:from-[#0B0B0B] lg:via-[#0B0B0B]/62 lg:to-transparent" />
+          {/* La Amarok es clara y ocupa todo el cuadro, así que el velo tiene
+              que ser más cargado que con la foto anterior: sin esto el titular
+              blanco se pierde contra la chapa beige. */}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-[#0B0B0B]/55 to-[#0B0B0B]/20 lg:bg-gradient-to-r lg:from-[#0B0B0B] lg:via-[#0B0B0B]/80 lg:to-[#0B0B0B]/15" />
         </div>
 
         {/* Franjas diagonales. Las oscuras son las de la izquierda; la roja es
