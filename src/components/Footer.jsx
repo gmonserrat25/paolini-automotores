@@ -44,7 +44,7 @@ export default function Footer() {
           <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)_minmax(0,0.8fr)_minmax(0,0.9fr)_minmax(0,1.3fr)] lg:gap-8">
             <div className="max-w-[320px]">
               <img
-                src={asset('/ig/logo-paolini.png')}
+                src={asset('/ig/logo-paolini.svg')}
                 alt="Automotores Paolini"
                 className="h-6 w-auto max-w-[220px] object-contain object-left"
               />

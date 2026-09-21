@@ -19,14 +19,18 @@ export default function Hero() {
       id="inicio"
       className="relative isolate w-full overflow-hidden bg-[#0B0B0B]"
     >
-      {/* Logo fantasma del borde izquierdo. Va el PNG de la marca y no un
+      {/* Logo fantasma del borde izquierdo. Va el logo de la marca y no un
           texto: el nombre tiene su propio lettering y escribirlo con una
           fuente parecida es una imitación. Es decorativo — el nombre ya lo
           dan la barra de arriba y el titular —, así que va con `alt` vacío
-          para que el lector de pantalla no lo lea tres veces. */}
+          para que el lector de pantalla no lo lea tres veces.
+
+          Acá se nota que el logo sea SVG: es el lugar donde más se agranda
+          y el PNG que había antes, que era la ampliación de un original
+          chico, llegaba lavado. */}
       <div className="pa-vertical pointer-events-none absolute inset-y-0 left-0 hidden w-[132px] select-none overflow-hidden bg-[#141414] lg:block">
         <img
-          src={asset('/ig/logo-paolini.png')}
+          src={asset('/ig/logo-paolini.svg')}
           alt=""
           aria-hidden="true"
           className="opacity-[0.15]"

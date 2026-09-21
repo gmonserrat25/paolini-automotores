@@ -139,7 +139,7 @@ export default function Buscador() {
               que se veía antes. Lo que sobra se va fuera de la pantalla y lo
               recorta el `overflow-x: clip` del body. */}
           <img
-            src={asset('/ig/logo-paolini.png')}
+            src={asset('/ig/logo-paolini.svg')}
             alt=""
             aria-hidden="true"
             className="pointer-events-none absolute left-0 top-2 w-[300px] max-w-none -translate-x-1/2 select-none opacity-[0.06] sm:w-[520px] lg:w-[700px]"

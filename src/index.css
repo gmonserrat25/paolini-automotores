@@ -1,7 +1,11 @@
 /* Ninguna de estas fuentes escribe "Paolini": el nombre de la marca siempre
-   sale del PNG del logo, que es el lettering real. Antes las palabras
-   fantasma del hero y del buscador iban en Poppins, que es parecida pero no
-   es la marca.
+   sale del logo, que es el lettering real. Antes las palabras fantasma del
+   hero y del buscador iban en Poppins, que es parecida pero no es la marca.
+
+   El logo es un SVG trazado a partir del PNG original — ver
+   `scripts/vectorizar-logo.py`. El PNG tenía 2827px de ancho pero era la
+   ampliación de algo mucho más chico: bordes ondulados y curvas con bultos,
+   que es justo lo que se veía en el hero.
 
    Los titulares van en Poppins y no en la Jost que usaba el sitio anterior:
    la maqueta que copiamos tiene una geométrica de O redonda y trazo parejo,

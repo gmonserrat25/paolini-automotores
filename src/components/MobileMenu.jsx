@@ -64,7 +64,7 @@ export default function MobileMenu() {
         >
           <div className="flex items-center justify-between px-5 py-6 sm:px-8">
             <img
-              src={asset("/ig/logo-paolini.png")}
+              src={asset("/ig/logo-paolini.svg")}
               alt="Automotores Paolini"
               className="h-5 w-auto max-w-[188px] object-contain object-left"
             />
