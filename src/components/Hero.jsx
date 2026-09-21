@@ -19,11 +19,18 @@ export default function Hero() {
       id="inicio"
       className="relative isolate w-full overflow-hidden bg-[#0B0B0B]"
     >
-      {/* Palabra fantasma del borde izquierdo. */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 hidden w-[132px] select-none overflow-hidden bg-[#141414] lg:block">
-        <span className="pa-vertical font-display text-[118px] font-semibold uppercase leading-none tracking-[0.02em] text-white/[0.13]">
-          Paolini
-        </span>
+      {/* Logo fantasma del borde izquierdo. Va el PNG de la marca y no un
+          texto: el nombre tiene su propio lettering y escribirlo con una
+          fuente parecida es una imitación. Es decorativo — el nombre ya lo
+          dan la barra de arriba y el titular —, así que va con `alt` vacío
+          para que el lector de pantalla no lo lea tres veces. */}
+      <div className="pa-vertical pointer-events-none absolute inset-y-0 left-0 hidden w-[132px] select-none overflow-hidden bg-[#141414] lg:block">
+        <img
+          src={asset('/ig/logo-paolini.png')}
+          alt=""
+          aria-hidden="true"
+          className="opacity-[0.15]"
+        />
       </div>
 
       <div className="relative lg:ml-[132px] lg:aspect-[1080/533]">
