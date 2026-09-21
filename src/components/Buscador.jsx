@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { asset } from '../lib/asset'
 import { VEHICLES, WHATSAPP_URL } from '../data/vehicles'
 import { SearchIcon } from './Icons'
 
@@ -127,12 +128,22 @@ export default function Buscador() {
 
         {/* Auto grande con la palabra fantasma detrás. */}
         <div className="relative mt-10 lg:mt-14">
-          <span
+          {/* El nombre de la marca siempre es el logo, nunca una fuente que
+              se le parezca.
+
+              El logo es la tira completa ("AUTOMOTORES" chico y después
+              "PAOLINI" grande), y de acá sólo asoma la franja que queda a la
+              izquierda de la foto. Anclado por su borde izquierdo asomaba el
+              "AUTOMOTORES", que es la mitad chica; el `-translate-x-1/2` lo
+              corre hasta que la palabra grande cae en esa franja, que es lo
+              que se veía antes. Lo que sobra se va fuera de la pantalla y lo
+              recorta el `overflow-x: clip` del body. */}
+          <img
+            src={asset('/ig/logo-paolini.png')}
+            alt=""
             aria-hidden="true"
-            className="pointer-events-none absolute -left-8 top-2 select-none font-display text-[84px] font-semibold uppercase leading-none tracking-[-0.02em] text-white/[0.05] sm:text-[130px] lg:-left-14 lg:text-[170px]"
-          >
-            Paolini
-          </span>
+            className="pointer-events-none absolute left-0 top-2 w-[300px] max-w-none -translate-x-1/2 select-none opacity-[0.06] sm:w-[520px] lg:w-[700px]"
+          />
           <span
             aria-hidden="true"
             className="pointer-events-none absolute -right-8 bottom-0 hidden select-none font-display text-[130px] font-semibold uppercase leading-none tracking-[-0.02em] text-white/[0.05] lg:block lg:-right-14 lg:text-[170px]"

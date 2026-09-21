@@ -1,5 +1,7 @@
-/* Saira Italic stands in for the logo's oblique squared lettering (the real
-   logo only exists at low resolution, so it cannot be scaled up cleanly).
+/* Ninguna de estas fuentes escribe "Paolini": el nombre de la marca siempre
+   sale del PNG del logo, que es el lettering real. Antes las palabras
+   fantasma del hero y del buscador iban en Poppins, que es parecida pero no
+   es la marca.
 
    Los titulares van en Poppins y no en la Jost que usaba el sitio anterior:
    la maqueta que copiamos tiene una geométrica de O redonda y trazo parejo,
@@ -49,20 +51,32 @@ body {
   border-radius: 2px;
 }
 
-/* La palabra gigante que corre en vertical por el borde izquierdo del hero,
+/* El logo gigante que corre en vertical por el borde izquierdo del hero,
    leyéndose de abajo hacia arriba.
 
    Se gira con `transform` y no con `writing-mode: vertical-rl`: en modo
    vertical el `top`/`left` de un absoluto se resuelve contra otros bordes y
-   la palabra terminaba colgando fuera de la franja. Girando la caja, el
-   centrado es el de siempre. */
+   la marca terminaba colgando fuera de la franja. Girando la caja, el
+   centrado es el de siempre.
+
+   Al girar -90deg el ancho del elemento es lo que se ve como alto, así que
+   el logo se mide en `cqh` (1% del alto de la franja): ocupa siempre la
+   misma proporción sin importar cuánto mida el hero, que cambia de alto con
+   el ancho de la ventana porque el bloque de la foto va por proporción. Eso
+   necesita que la franja sea un contenedor de consulta con `size`, que puede
+   serlo porque tiene ancho fijo y `inset-y-0` le da el alto. */
 .pa-vertical {
+  container-type: size;
+}
+
+.pa-vertical img {
   position: absolute;
   left: 50%;
   top: 50%;
+  width: 82cqh;
+  max-width: none;
   transform-origin: center;
   transform: translate(-50%, -50%) rotate(-90deg);
-  white-space: nowrap;
 }
 
 /* La tira de marcas se puede arrastrar en el celular; la barra de scroll
