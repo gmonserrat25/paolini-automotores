@@ -129,15 +129,20 @@ export default function Buscador() {
         {/* Auto grande con la palabra fantasma detrás. */}
         <div className="relative mt-10 lg:mt-14">
           {/* El nombre de la marca siempre es el logo, nunca una fuente que
-              se le parezca. Como el logo es la tira entera y no la palabra
-              sola, es mucho más ancho y bajo que el texto que había acá: se
-              mide por ancho y queda como una banda fantasma cruzando el
-              bloque, en lugar de una palabra suelta en la esquina. */}
+              se le parezca.
+
+              El logo es la tira completa ("AUTOMOTORES" chico y después
+              "PAOLINI" grande), y de acá sólo asoma la franja que queda a la
+              izquierda de la foto. Anclado por su borde izquierdo asomaba el
+              "AUTOMOTORES", que es la mitad chica; el `-translate-x-1/2` lo
+              corre hasta que la palabra grande cae en esa franja, que es lo
+              que se veía antes. Lo que sobra se va fuera de la pantalla y lo
+              recorta el `overflow-x: clip` del body. */}
           <img
             src={asset('/ig/logo-paolini.png')}
             alt=""
             aria-hidden="true"
-            className="pointer-events-none absolute -left-8 top-2 w-[300px] max-w-none select-none opacity-[0.06] sm:w-[480px] lg:-left-14 lg:w-[620px]"
+            className="pointer-events-none absolute left-0 top-2 w-[300px] max-w-none -translate-x-1/2 select-none opacity-[0.06] sm:w-[520px] lg:w-[700px]"
           />
           <span
             aria-hidden="true"
