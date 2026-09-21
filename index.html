@@ -12,14 +12,40 @@
       name="description"
       content="Automotores Paolini, La Falda. Vehículos 0km y usados certificados, multimarca, con financiación, gestoría propia y toma de usados. Av. España 601."
     />
+    <!-- La tarjeta que se ve al pegar el link en WhatsApp o en una red.
+
+         La imagen va con la URL entera y escrita a mano, no con una ruta
+         del sitio: quien arma la vista previa es un servidor de WhatsApp o
+         de Facebook, que no tiene forma de resolver una ruta relativa. Vite
+         reescribe la ruta con la base y queda bien para el navegador, pero
+         eso no alcanza para un scraper externo.
+
+         `og-paolini.png` la genera `scripts/generar-og.py` a partir del
+         trazado del logo. Antes acá estaba `hero-poster.jpg`, que era un
+         Porsche naranja que había quedado de otro proyecto: el link se
+         compartía con un auto que no es de Paolini. -->
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Automotores Paolini" />
     <meta property="og:title" content="Automotores Paolini — La Falda, Córdoba" />
     <meta
       property="og:description"
       content="0km y usados certificados, financiación y gestoría propia. Av. España 601, La Falda."
     />
-    <meta property="og:image" content="/hero-poster.jpg" />
+    <meta
+      property="og:url"
+      content="https://gmonserrat25.github.io/paolini-automotores/"
+    />
+    <meta
+      property="og:image"
+      content="https://gmonserrat25.github.io/paolini-automotores/og-paolini.png"
+    />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Automotores Paolini" />
     <meta property="og:locale" content="es_AR" />
+    <!-- Sin esto, X y algún otro cliente muestran la miniatura chica. -->
+    <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
     <div id="root"></div>
