@@ -3,7 +3,7 @@
 Sitio de [Automotores Paolini](https://www.instagram.com/paoliniautomotores/),
 concesionaria multimarca de Av. España 601, La Falda, Córdoba.
 
-Publicado en **https://gmonserrat25.github.io/paolini-automotores/**
+Publicado en **https://paoliniautomotores.com/** (Vercel).
 
 ## Correr en local
 
@@ -14,9 +14,15 @@ npm run dev
 
 ## Publicar
 
-Cada push a `main` dispara el workflow de GitHub Pages
-(`.github/workflows/deploy.yml`), que construye con `GITHUB_PAGES=true` para
-que los assets cuelguen del subdirectorio del repo.
+El proyecto de Vercel (`paolini-automotores`) no está conectado al repo, así
+que se publica a mano desde `main` con la CLI de Vercel:
+
+```bash
+npm run deploy   # vercel --prod
+```
+
+El DNS del dominio está en Cloudflare: `A @ 76.76.21.21` y
+`CNAME www cname.vercel-dns.com`, sin proxy. Vercel redirige `www` a la raíz.
 
 ## Cómo está armado
 
