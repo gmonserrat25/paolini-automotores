@@ -2,10 +2,11 @@
    sale del logo, que es el lettering real. Antes las palabras fantasma del
    hero y del buscador iban en Poppins, que es parecida pero no es la marca.
 
-   El logo es un SVG trazado a partir del PNG original — ver
-   `scripts/vectorizar-logo.py`. El PNG tenía 2827px de ancho pero era la
-   ampliación de algo mucho más chico: bordes ondulados y curvas con bultos,
-   que es justo lo que se veía en el hero.
+   El logo es un SVG construido letra por letra con geometría y ajustado
+   contra el encabezado de los flyers de Instagram, que es el único lugar
+   donde aparece — ver `scripts/logo/construir.py`. Antes era el trazado de
+   un PNG ampliado desde algo mucho más chico, y heredaba sus bordes
+   ondulados y letras deformes.
 
    Los titulares van en Poppins y no en la Jost que usaba el sitio anterior:
    la maqueta que copiamos tiene una geométrica de O redonda y trazo parejo,
