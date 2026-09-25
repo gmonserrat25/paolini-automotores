@@ -25,9 +25,9 @@ export default function Hero() {
           dan la barra de arriba y el titular —, así que va con `alt` vacío
           para que el lector de pantalla no lo lea tres veces.
 
-          Acá se nota que el logo sea SVG: es el lugar donde más se agranda
-          y el PNG que había antes, que era la ampliación de un original
-          chico, llegaba lavado. */}
+          Acá se nota que el logo sea un vector limpio: es el lugar donde
+          más se agranda, y cualquier imprecisión del contorno salta a la
+          vista. */}
       <div className="pa-vertical pointer-events-none absolute inset-y-0 left-0 hidden w-[132px] select-none overflow-hidden bg-[#141414] lg:block">
         <img
           src={asset('/ig/logo-paolini.svg')}

@@ -3,7 +3,7 @@
 Es la tarjeta que aparece cuando se pega el link en un chat, así que tiene
 que decir de quién es el sitio de un vistazo: fondo de marca, la diagonal
 roja del hero y el logo en el medio. El logo se rasteriza desde el mismo
-trazado vectorial que usa la página, así que sale nítido.
+SVG que usa la página (public/ig/logo-paolini.svg), así que sale nítido.
 
 1200x630 es la medida que piden Facebook y WhatsApp para la tarjeta grande.
 
@@ -11,18 +11,15 @@ Uso: python3 scripts/generar-og.py [salida.png]
 """
 import math
 import os
+import re
 import struct
 import sys
 import zlib
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import importlib
-T = importlib.import_module('vectorizar-logo')
-
 W, H = 1200, 630
 FONDO = (11, 11, 11)
 ROJO = (224, 50, 63)
-LOGO_PNG = 'assets-src/logo/logo-paolini.png'
+LOGO_SVG = 'public/ig/logo-paolini.svg'
 SS = 4          # submuestreo vertical, para que los bordes no queden dentados
 SESGO = math.tan(math.radians(38))   # el mismo ángulo que las franjas del hero
 
@@ -82,6 +79,20 @@ def rellenar(buf, poligonos, color, alpha=1.0):
         buf[i + 2] = int(buf[i + 2] + (cb - buf[i + 2]) * a)
 
 
+def leer_logo(path):
+    """(ancho, alto, [(color, bucles)]) del SVG del logo. Sus trazados son
+    sólo polígonos (M x,y x,y ... Z), así que alcanza con leer los números."""
+    svg = open(path).read()
+    _, _, lw, lh = map(float, re.search(r'viewBox="([^"]+)"', svg).group(1).split())
+    capas = []
+    for color, d in re.findall(r'<path fill="#([0-9A-Fa-f]{6})"[^>]* d="([^"]+)"', svg):
+        rgb = tuple(int(color[i:i + 2], 16) for i in (0, 2, 4))
+        bucles = [[tuple(map(float, par.split(','))) for par in b.split()]
+                  for b in re.findall(r'M([^Z]+)Z', d)]
+        capas.append((rgb, bucles))
+    return lw, lh, capas
+
+
 def escalar(loops, k, dx, dy):
     return [[(x * k + dx, y * k + dy) for x, y in pol] for pol in loops]
 
@@ -106,8 +117,7 @@ def write_png(path, buf):
 def main():
     dst = sys.argv[1] if len(sys.argv) > 1 else 'public/og-paolini.png'
 
-    lw, lh, lpx = T.read_png(LOGO_PNG)
-    blancos, rojos, _ = T.trace(lpx, lw, lh, 5.0)
+    lw, lh, capas = leer_logo(LOGO_SVG)
 
     buf = bytearray()
     for _ in range(W * H):
@@ -125,8 +135,8 @@ def main():
     k = ancho / lw
     dx = (W - ancho) / 2
     dy = (H - lh * k) / 2
-    rellenar(buf, escalar(blancos, k, dx, dy), (255, 255, 255))
-    rellenar(buf, escalar(rojos, k, dx, dy), ROJO)
+    for color, bucles in capas:
+        rellenar(buf, escalar(bucles, k, dx, dy), color)
 
     write_png(dst, buf)
     print('%s  %dx%d  %d bytes' % (dst, W, H, os.path.getsize(dst)))
