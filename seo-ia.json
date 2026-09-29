@@ -1,0 +1,20 @@
+{
+  "url": "https://paoliniautomotores.com",
+  "nombre": "Automotores Paolini",
+  "tipo": "AutoDealer",
+  "rubro": "Concesionaria multimarca de autos 0km y usados certificados",
+  "descripcion": "Automotores Paolini es una concesionaria multimarca de La Falda, Córdoba. Vende autos 0km y usados certificados, arma la financiación con el banco o la marca y toma tu usado como parte de pago.",
+  "direccion": {"calle": "Av. España 601", "ciudad": "La Falda", "provincia": "Córdoba", "cp": "", "pais": "AR"},
+  "telefono": "+54 3548 468411",
+  "email": "paoliniautomotores@yahoo.com.ar",
+  "horarios": [
+    {"dias": ["Monday","Tuesday","Wednesday","Thursday","Friday"], "abre": "09:00", "cierra": "13:00"},
+    {"dias": ["Monday","Tuesday","Wednesday","Thursday","Friday"], "abre": "17:00", "cierra": "21:00"},
+    {"dias": ["Saturday"], "abre": "09:00", "cierra": "13:00"}
+  ],
+  "horarios_texto": "Lunes a viernes de 9 a 13 y de 17 a 21; sábados de 9 a 13; domingos cerrado",
+  "sameAs": ["https://www.instagram.com/paoliniautomotores/"],
+  "mapa": "https://maps.google.com/?q=Av.%20Espa%C3%B1a%20601%2C%20La%20Falda%2C%20C%C3%B3rdoba",
+  "imagen": "https://paoliniautomotores.com/og-paolini.png",
+  "paginas": []
+}
