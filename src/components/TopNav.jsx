@@ -33,7 +33,7 @@ export default function TopNav() {
         </ul>
 
         <div className="flex shrink-0 items-center gap-3">
-          <Cta href={WHATSAPP_URL} target="_blank" rel="noreferrer" icon={<WhatsAppIcon className="h-[20px] w-[20px]" />} className="hidden sm:inline-flex">
+          <Cta href={WHATSAPP_URL} target="_blank" rel="noreferrer" icon={<WhatsAppIcon className="h-[22px] w-[22px]" />} className="hidden sm:inline-flex">
             WhatsApp
           </Cta>
           <a

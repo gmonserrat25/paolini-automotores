@@ -44,7 +44,7 @@ export default function Banner() {
           </div>
 
           <div className="mt-9">
-            <Cta href={WHATSAPP_URL} target="_blank" rel="noreferrer" icon={<WhatsAppIcon className="h-[20px] w-[20px]" />}>
+            <Cta href={WHATSAPP_URL} target="_blank" rel="noreferrer" icon={<WhatsAppIcon className="h-[22px] w-[22px]" />}>
               WhatsApp
             </Cta>
           </div>

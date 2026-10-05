@@ -23,12 +23,12 @@ function Item({ href, children }) {
       {href ? (
         <a
           href={href}
-          className="font-sans text-[14px] text-white/75 transition-colors hover:text-white"
+          className="font-sans text-[13px] text-white/55 transition-colors hover:text-white"
         >
           {children}
         </a>
       ) : (
-        <span className="font-sans text-[14px] text-white/75">{children}</span>
+        <span className="font-sans text-[13px] text-white/55">{children}</span>
       )}
     </li>
   )
@@ -48,7 +48,7 @@ export default function Footer() {
                 alt="Automotores Paolini"
                 className="h-6 w-auto max-w-[220px] object-contain object-left"
               />
-              <p className="mt-5 font-sans text-[14px] leading-[22px] text-white/70">
+              <p className="mt-5 font-sans text-[13px] leading-[22px] text-white/50">
                 Concesionaria multimarca en el centro de La Falda. 0km y usados
                 certificados, financiación a medida y tu usado como parte de
                 pago. Precio claro y la misma cara atendiendo de este lado del
@@ -88,7 +88,7 @@ export default function Footer() {
               </h3>
               <ul className="mt-4 space-y-2">
                 {CONTACT.hours.map(([dia, horario]) => (
-                  <li key={dia} className="font-sans text-[14px] text-white/75">
+                  <li key={dia} className="font-sans text-[13px] text-white/55">
                     {dia}: {horario}
                   </li>
                 ))}
@@ -100,7 +100,7 @@ export default function Footer() {
                     href={MAPS}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-start gap-2 font-sans text-[14px] text-white/75 transition-colors hover:text-white"
+                    className="flex items-start gap-2 font-sans text-[13px] text-white/55 transition-colors hover:text-white"
                   >
                     <PinIcon className="mt-[2px] h-[15px] w-[15px] shrink-0 text-[#D52B38]" />
                     {CONTACT.address}
@@ -109,7 +109,7 @@ export default function Footer() {
                 <li>
                   <a
                     href={`tel:+${CONTACT.whatsapp}`}
-                    className="flex items-center gap-2 font-sans text-[14px] text-white/75 transition-colors hover:text-white"
+                    className="flex items-center gap-2 font-sans text-[13px] text-white/55 transition-colors hover:text-white"
                   >
                     <PhoneIcon className="h-[15px] w-[15px] shrink-0 text-[#D52B38]" />
                     {CONTACT.phone}
@@ -118,7 +118,7 @@ export default function Footer() {
                 <li>
                   <a
                     href={`mailto:${CONTACT.email}`}
-                    className="flex items-center gap-2 break-all font-sans text-[14px] text-white/75 transition-colors hover:text-white"
+                    className="flex items-center gap-2 break-all font-sans text-[13px] text-white/55 transition-colors hover:text-white"
                   >
                     <MailIcon className="h-[15px] w-[15px] shrink-0 text-[#D52B38]" />
                     {CONTACT.email}
@@ -154,7 +154,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 flex flex-col gap-3 border-t border-white/10 py-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="font-sans text-[13px] text-white/70">
+          <p className="font-sans text-[12px] text-white/35">
             © {new Date().getFullYear()} Automotores Paolini · La Falda, Córdoba
           </p>
           <ul className="flex flex-wrap gap-5">

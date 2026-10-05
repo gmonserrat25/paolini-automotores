@@ -18,7 +18,7 @@ function Badge({ href, icon, small, big }) {
     >
       {icon}
       <span className="flex flex-col leading-none">
-        <span className="font-sans text-[11px] uppercase tracking-[0.06em] text-white/90">
+        <span className="font-sans text-[9px] uppercase tracking-[0.08em] text-white/80">
           {small}
         </span>
         <span className="mt-[3px] font-sans text-[14px] font-semibold">{big}</span>
@@ -41,7 +41,7 @@ export default function Financiacion() {
       <div className="mx-auto flex max-w-[1440px] flex-col items-center gap-12 px-5 sm:px-8 lg:flex-row lg:justify-between lg:px-[60px]">
         <div className="max-w-[520px]">
           <h2 className="font-display text-[26px] font-semibold uppercase leading-[1.14] tracking-[-0.01em] text-white sm:text-[34px] lg:text-[40px]">
-            Un auto para cada camino, una cuota para cada bolsillo
+            Financiación y tu usado como parte de pago
           </h2>
 
           <p className="mt-5 font-sans text-[15px] leading-[26px] text-white/65">
@@ -93,7 +93,7 @@ export default function Financiacion() {
             </div>
 
             <div className="px-4 pb-1">
-              <p className="font-sans text-[10px] text-[#6B6B6B]">
+              <p className="font-sans text-[9px] text-[#8A8A8A]">
                 Av. España 601, La Falda
               </p>
               <div className="mt-1.5 h-[3px] w-full overflow-hidden rounded-full bg-[#E6E6E6]">

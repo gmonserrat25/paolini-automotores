@@ -16,7 +16,7 @@ function VehicleCard({ vehicle }) {
           <h3 className="font-sans text-[18px] font-semibold leading-tight text-white">
             {vehicle.model}
           </h3>
-          <p className="mt-1 font-sans text-[14px] text-white/70">
+          <p className="mt-1 font-sans text-[13px] text-white/55">
             {vehicle.brand} · {vehicle.type}
           </p>
         </div>
@@ -37,7 +37,7 @@ function VehicleCard({ vehicle }) {
           return (
             <span
               key={spec}
-              className="flex items-center gap-1.5 font-sans text-[14px] text-white/80"
+              className="flex items-center gap-1.5 font-sans text-[13px] text-white/75"
             >
               <Icon className="h-[17px] w-[17px] text-white/45" />
               {spec}
@@ -47,7 +47,7 @@ function VehicleCard({ vehicle }) {
       </div>
 
       <div className="mt-auto flex items-center justify-between gap-3 px-5 pb-5">
-        <p className="font-sans text-[16px] font-semibold text-white">
+        <p className="font-sans text-[19px] font-semibold text-white">
           {vehicle.tag}
         </p>
         <Cta
@@ -103,7 +103,7 @@ export default function Vehicles({ marca = null, onLimpiar }) {
               href={WHATSAPP_URL}
               target="_blank"
               rel="noreferrer"
-              icon={<WhatsAppIcon className="h-[20px] w-[20px]" />}
+              icon={<WhatsAppIcon className="h-[22px] w-[22px]" />}
             >
               Consultar stock
             </Cta>
@@ -122,7 +122,7 @@ export default function Vehicles({ marca = null, onLimpiar }) {
                 href={consultaMarca}
                 target="_blank"
                 rel="noreferrer"
-                icon={<WhatsAppIcon className="h-[20px] w-[20px]" />}
+                icon={<WhatsAppIcon className="h-[22px] w-[22px]" />}
               >
                 Consultar por {marca}
               </Cta>

@@ -80,7 +80,7 @@ export default function Hero() {
             al auto que buscás
           </h1>
 
-          <p className="mt-6 max-w-[440px] font-sans text-[16px] leading-[26px] text-white/80">
+          <p className="mt-6 max-w-[440px] font-sans text-[14px] leading-[24px] text-white/70 sm:text-[15px] sm:leading-[26px]">
             Ya sea que vengas a comprar tu primer 0km, a ver los usados
             certificados o a que te asesoremos con la financiación, en Paolini
             está todo en un mismo lugar. Multimarca, en el centro de La Falda,
