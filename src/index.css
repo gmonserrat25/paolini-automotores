@@ -51,7 +51,7 @@ body {
 /* El anillo azul del navegador no pega con la paleta; este además se ve sobre
    fondo negro y sobre las fotos del hero. */
 :focus-visible {
-  outline: 2px solid #e0323f;
+  outline: 2px solid #D52B38;
   outline-offset: 3px;
   border-radius: 2px;
 }

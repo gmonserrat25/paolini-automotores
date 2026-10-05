@@ -14,11 +14,11 @@ function Badge({ href, icon, small, big }) {
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="flex items-center gap-2.5 rounded-[6px] bg-gradient-to-br from-[#FF4552] to-[#C4212D] px-3.5 py-2 text-white transition-transform hover:-translate-y-0.5"
+      className="flex items-center gap-2.5 rounded-[6px] bg-[#D52B38] px-3.5 py-2 text-white transition-colors hover:bg-[#B9222E]"
     >
       {icon}
       <span className="flex flex-col leading-none">
-        <span className="font-sans text-[9px] uppercase tracking-[0.08em] text-white/80">
+        <span className="font-sans text-[11px] uppercase tracking-[0.06em] text-white/90">
           {small}
         </span>
         <span className="mt-[3px] font-sans text-[14px] font-semibold">{big}</span>
@@ -54,7 +54,7 @@ export default function Financiacion() {
             <Badge
               href={WHATSAPP_URL}
               icon={<WhatsAppIcon className="h-6 w-6" />}
-              small="Escribinos por"
+              small="Consultá por"
               big="WhatsApp"
             />
             <Badge
@@ -75,7 +75,7 @@ export default function Financiacion() {
               <span>▮▮▮</span>
             </div>
 
-            <div className="relative m-2.5 overflow-hidden rounded-[18px] bg-gradient-to-br from-[#FF5560] to-[#C4212D] px-4 pb-0 pt-4">
+            <div className="relative m-2.5 overflow-hidden rounded-[18px] bg-gradient-to-br from-[#E8404D] to-[#B9222E] px-4 pb-0 pt-4">
               <span className="inline-block rounded-full bg-black/25 px-2 py-[3px] font-sans text-[9px] uppercase tracking-[0.1em] text-white">
                 Disponible
               </span>
@@ -93,11 +93,11 @@ export default function Financiacion() {
             </div>
 
             <div className="px-4 pb-1">
-              <p className="font-sans text-[9px] text-[#8A8A8A]">
-                Actualizado hoy · Av. España 601, La Falda
+              <p className="font-sans text-[10px] text-[#6B6B6B]">
+                Av. España 601, La Falda
               </p>
               <div className="mt-1.5 h-[3px] w-full overflow-hidden rounded-full bg-[#E6E6E6]">
-                <span className="block h-full w-[72%] rounded-full bg-[#E0323F]" />
+                <span className="block h-full w-[72%] rounded-full bg-[#D52B38]" />
               </div>
               <div className="mt-2 flex items-baseline justify-between font-sans text-[10px] text-[#111]">
                 <span className="text-[#8A8A8A]">Financiación</span>
@@ -112,7 +112,7 @@ export default function Financiacion() {
               <FuelIcon className="h-[17px] w-[17px]" />
               <GearboxIcon className="h-[17px] w-[17px]" />
               <SeatsIcon className="h-[17px] w-[17px]" />
-              <WhatsAppIcon className="h-[17px] w-[17px] text-[#E0323F]" />
+              <WhatsAppIcon className="h-[17px] w-[17px] text-[#D52B38]" />
             </div>
           </div>
         </div>

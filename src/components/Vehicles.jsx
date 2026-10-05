@@ -1,48 +1,32 @@
-import { useState } from 'react'
 import { VEHICLES, WHATSAPP_URL } from '../data/vehicles'
-import { FuelIcon, GearboxIcon, HeartIcon, SeatsIcon } from './Icons'
+import { FuelIcon, GearboxIcon, WhatsAppIcon } from './Icons'
 import { Corner, Cta, SectionTitle } from './Ui'
 
-const SPEC_ICONS = [FuelIcon, GearboxIcon, SeatsIcon]
+const SPEC_ICONS = [FuelIcon, GearboxIcon]
 
-function VehicleCard({ vehicle, destacado = false }) {
-  /* La maqueta muestra la primera tarjeta con el corazón marcado, para que se
-     vea de entrada que se pueden guardar. Es sólo eso: un clic lo apaga. */
-  const [liked, setLiked] = useState(destacado)
-
+function VehicleCard({ vehicle }) {
   const consulta = `${WHATSAPP_URL}?text=${encodeURIComponent(
     `Hola Paolini, quiero consultar por el ${vehicle.brand} ${vehicle.model}.`,
   )}`
 
   return (
     <article className="relative flex flex-col overflow-hidden rounded-[10px] bg-gradient-to-b from-[#1D1D1D] to-[#131313]">
-      <header className="flex items-start justify-between gap-3 px-5 pt-5">
+      <header className="px-5 pt-5">
         <div>
           <h3 className="font-sans text-[18px] font-semibold leading-tight text-white">
             {vehicle.model}
           </h3>
-          <p className="mt-1 font-sans text-[13px] text-white/55">
+          <p className="mt-1 font-sans text-[14px] text-white/70">
             {vehicle.brand} · {vehicle.type}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setLiked((v) => !v)}
-          aria-pressed={liked}
-          className={`shrink-0 transition-colors ${liked ? 'text-[#E0323F]' : 'text-white/45 hover:text-white'}`}
-        >
-          <HeartIcon className="h-[22px] w-[22px]" filled={liked} />
-          <span className="sr-only">
-            {liked ? 'Quitar de favoritos' : 'Guardar'} {vehicle.model}
-          </span>
-        </button>
       </header>
 
       <div className="mt-4 h-[168px] w-full overflow-hidden">
         <img
           src={vehicle.image}
           alt={`${vehicle.brand} ${vehicle.model} en Automotores Paolini`}
-          className="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.04]"
+          className="h-full w-full object-cover"
           loading="lazy"
         />
       </div>
@@ -53,7 +37,7 @@ function VehicleCard({ vehicle, destacado = false }) {
           return (
             <span
               key={spec}
-              className="flex items-center gap-1.5 font-sans text-[13px] text-white/75"
+              className="flex items-center gap-1.5 font-sans text-[14px] text-white/80"
             >
               <Icon className="h-[17px] w-[17px] text-white/45" />
               {spec}
@@ -63,11 +47,16 @@ function VehicleCard({ vehicle, destacado = false }) {
       </div>
 
       <div className="mt-auto flex items-center justify-between gap-3 px-5 pb-5">
-        <p className="font-sans text-[19px] font-semibold text-white">
-          {vehicle.price}
-          <span className="font-normal text-white/50"> / precio</span>
+        <p className="font-sans text-[16px] font-semibold text-white">
+          {vehicle.tag}
         </p>
-        <Cta href={consulta} size="sm" target="_blank" rel="noreferrer">
+        <Cta
+          href={consulta}
+          size="sm"
+          target="_blank"
+          rel="noreferrer"
+          icon={<WhatsAppIcon className="h-[18px] w-[18px]" />}
+        >
           Consultar
         </Cta>
       </div>
@@ -110,8 +99,13 @@ export default function Vehicles({ marca = null, onLimpiar }) {
           {marca ? (
             <Cta onClick={onLimpiar}>Ver todos</Cta>
           ) : (
-            <Cta href={WHATSAPP_URL} target="_blank" rel="noreferrer">
-              Ver todos
+            <Cta
+              href={WHATSAPP_URL}
+              target="_blank"
+              rel="noreferrer"
+              icon={<WhatsAppIcon className="h-[20px] w-[20px]" />}
+            >
+              Consultar stock
             </Cta>
           )}
         </div>
@@ -124,15 +118,20 @@ export default function Vehicles({ marca = null, onLimpiar }) {
               rastreamos.
             </p>
             <div className="mt-6 flex justify-center">
-              <Cta href={consultaMarca} target="_blank" rel="noreferrer">
+              <Cta
+                href={consultaMarca}
+                target="_blank"
+                rel="noreferrer"
+                icon={<WhatsAppIcon className="h-[20px] w-[20px]" />}
+              >
                 Consultar por {marca}
               </Cta>
             </div>
           </div>
         ) : (
           <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:mt-10 lg:grid-cols-3 lg:gap-6">
-            {listado.map((vehicle, i) => (
-              <VehicleCard key={vehicle.id} vehicle={vehicle} destacado={i === 0} />
+            {listado.map((vehicle) => (
+              <VehicleCard key={vehicle.id} vehicle={vehicle} />
             ))}
           </div>
         )}

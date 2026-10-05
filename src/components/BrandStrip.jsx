@@ -38,13 +38,13 @@ export default function BrandStrip({ marca, onSelect }) {
           ref={railRef}
           className="pa-rail flex flex-1 items-center gap-8 overflow-x-auto sm:justify-between sm:gap-4"
         >
-          {BRANDS.map((brand, i) => {
+          {BRANDS.map((brand) => {
             /* La maqueta nunca muestra la tira apagada entera: siempre hay
                una marca pintada. Mientras no se haya elegido ninguna, la
                primera va en rojo nada más que por eso. La que está filtrando
                de verdad se distingue por la línea de abajo. */
             const filtrando = brand === marca
-            const pintada = filtrando || (!marca && i === 0)
+            const pintada = filtrando
 
             return (
               <li key={brand}>
@@ -53,13 +53,13 @@ export default function BrandStrip({ marca, onSelect }) {
                   onClick={() => onSelect(brand)}
                   aria-current={filtrando ? 'true' : undefined}
                   className={`flex flex-col items-center gap-2 transition-colors ${
-                    pintada ? 'text-[#E0323F]' : 'text-white/25 hover:text-white/55'
+                    pintada ? 'text-[#D52B38]' : 'text-white/70 hover:text-white'
                   }`}
                 >
                   <BrandLogo marca={brand} className="h-7 w-7 shrink-0" />
                   <span
-                    className={`whitespace-nowrap border-b-2 pb-1 font-wordmark text-[11px] uppercase tracking-[0.18em] ${
-                      filtrando ? 'border-[#E0323F]' : 'border-transparent'
+                    className={`whitespace-nowrap border-b-2 pb-1 font-wordmark text-[12px] uppercase tracking-[0.14em] ${
+                      filtrando ? 'border-[#D52B38]' : 'border-transparent'
                     }`}
                   >
                     {brand}

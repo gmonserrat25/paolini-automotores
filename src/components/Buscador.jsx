@@ -119,7 +119,7 @@ export default function Buscador() {
             href={consulta}
             target="_blank"
             rel="noreferrer"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#FF4552] to-[#C4212D] text-white transition-transform hover:scale-105"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#D52B38] text-white transition-colors hover:bg-[#B9222E]"
           >
             <SearchIcon className="h-[18px] w-[18px]" />
             <span className="sr-only">Consultar esta búsqueda por WhatsApp</span>

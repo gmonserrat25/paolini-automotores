@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { VEHICLES, WHATSAPP_URL } from '../data/vehicles'
-import { ChevronLeftIcon, ChevronRightIcon, SeatsIcon } from './Icons'
+import { ChevronLeftIcon, ChevronRightIcon, SeatsIcon, WhatsAppIcon } from './Icons'
 import { Cta } from './Ui'
 
 /* El carrusel en abanico de la referencia: la foto del medio grande y las de
@@ -63,8 +63,8 @@ export default function Companion() {
         </h2>
 
         <div className="mt-7 flex justify-center">
-          <Cta href={WHATSAPP_URL} target="_blank" rel="noreferrer">
-            Pedí tu turno
+          <Cta href={WHATSAPP_URL} target="_blank" rel="noreferrer" icon={<WhatsAppIcon className="h-[20px] w-[20px]" />}>
+            WhatsApp
           </Cta>
         </div>
 
@@ -136,7 +136,7 @@ export default function Companion() {
                 type="button"
                 onClick={() => setActive(i)}
                 className={`h-[7px] rounded-full transition-all ${
-                  i === active ? 'w-[7px] bg-[#E0323F]' : 'w-[7px] bg-white/25 hover:bg-white/50'
+                  i === active ? 'w-[7px] bg-[#D52B38]' : 'w-[7px] bg-white/25 hover:bg-white/50'
                 }`}
               >
                 <span className="sr-only">

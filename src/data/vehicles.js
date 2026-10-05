@@ -12,7 +12,7 @@ export const VEHICLES = [
     tag: '0km',
     detail: 'SUV · Automática',
     price: 'A consultar',
-    specs: ['Nafta', 'Automática', '5 plazas'],
+    specs: ['Nafta', 'Automática'],
     image: asset('/ig/car-tcross.jpg'),
   },
   {
@@ -23,7 +23,7 @@ export const VEHICLES = [
     tag: '0km',
     detail: 'Hatchback · Full',
     price: 'A consultar',
-    specs: ['Nafta', 'Automática', '5 plazas'],
+    specs: ['Nafta', 'Automática'],
     image: asset('/ig/car-peugeot208gt.jpg'),
   },
   {
@@ -34,7 +34,7 @@ export const VEHICLES = [
     tag: 'Entrega inmediata',
     detail: 'Pick-up 4x4 · Diésel',
     price: 'A consultar',
-    specs: ['Diésel', 'Manual', '5 plazas'],
+    specs: ['Diésel', 'Manual'],
     image: asset('/ig/car-amarok.jpg'),
   },
   {
@@ -45,7 +45,7 @@ export const VEHICLES = [
     tag: 'Eléctrico',
     detail: 'SUV · 100% eléctrico',
     price: 'A consultar',
-    specs: ['Eléctrico', 'Automática', '5 plazas'],
+    specs: ['Eléctrico', 'Automática'],
     image: asset('/ig/car-byd-atto2.jpg'),
   },
   {
@@ -56,7 +56,7 @@ export const VEHICLES = [
     tag: 'Entrega inmediata',
     detail: 'Hatchback · Nafta',
     price: 'A consultar',
-    specs: ['Nafta', 'Manual', '5 plazas'],
+    specs: ['Nafta', 'Manual'],
     image: asset('/ig/car-peugeot208.jpg'),
   },
   {
@@ -67,7 +67,7 @@ export const VEHICLES = [
     tag: 'Novedad',
     detail: '1.100 km de autonomía',
     price: 'A consultar',
-    specs: ['Híbrido', 'Automática', '5 plazas'],
+    specs: ['Híbrido', 'Automática'],
     image: asset('/ig/car-hibrido.jpg'),
   },
 ]

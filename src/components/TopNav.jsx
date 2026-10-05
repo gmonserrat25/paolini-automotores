@@ -1,6 +1,7 @@
 import { asset } from '../lib/asset'
 import { NAV_LINKS, WHATSAPP_URL } from '../data/vehicles'
 import MobileMenu from './MobileMenu'
+import { WhatsAppIcon } from './Icons'
 import { Cta } from './Ui'
 
 /* La barra negra de arriba de la referencia: logo a la izquierda, los enlaces
@@ -8,13 +9,13 @@ import { Cta } from './Ui'
    larga y el botón de WhatsApp es el que tiene que estar siempre a mano. */
 export default function TopNav() {
   return (
-    <header className="sticky top-0 z-50 w-full bg-[#080808]">
+    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#080808]">
       <nav className="mx-auto flex h-[68px] max-w-[1440px] items-center justify-between gap-4 px-5 sm:px-8 lg:h-[76px] lg:px-[60px]">
         <a href="#inicio" className="flex shrink-0 items-center">
           <img
             src={asset('/ig/logo-paolini.svg')}
             alt="Automotores Paolini"
-            className="h-5 w-auto max-w-[180px] object-contain object-left sm:h-6 sm:max-w-[220px]"
+            className="h-6 w-auto max-w-[200px] object-contain object-left sm:h-7 sm:max-w-[260px]"
           />
         </a>
 
@@ -32,9 +33,18 @@ export default function TopNav() {
         </ul>
 
         <div className="flex shrink-0 items-center gap-3">
-          <Cta href={WHATSAPP_URL} target="_blank" rel="noreferrer" className="hidden sm:inline-flex">
-            Pedí tu turno
+          <Cta href={WHATSAPP_URL} target="_blank" rel="noreferrer" icon={<WhatsAppIcon className="h-[20px] w-[20px]" />} className="hidden sm:inline-flex">
+            WhatsApp
           </Cta>
+          <a
+            href={WHATSAPP_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="flex h-11 w-11 items-center justify-center rounded-[6px] bg-[#D52B38] text-white transition-colors hover:bg-[#B9222E] sm:hidden"
+          >
+            <WhatsAppIcon className="h-[22px] w-[22px]" />
+            <span className="sr-only">Escribir por WhatsApp</span>
+          </a>
           <MobileMenu />
         </div>
       </nav>
