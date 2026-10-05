@@ -51,8 +51,8 @@ export const VEHICLES = [
     type: 'Hatchback',
     tag: 'Entrega inmediata',
     specs: ['Nafta', 'Manual'],
-    image: asset('/ig/peugeot208.webp'),
-    pos: '50% 55%',
+    image: asset('/ig/peugeot208-trasera.webp'),
+    pos: '50% 28%',
   },
   {
     id: 'hibrido',
@@ -139,7 +139,7 @@ export function estadoDelLocal(ahora = new Date()) {
    exportara la barra los tres archivos se importarían en círculo. */
 export const NAV_LINKS = [
   { label: 'Nosotros', href: '#nosotros' },
-  { label: 'Vehículos', href: '#vehiculos' },
+  { label: 'Stock', href: '#vehiculos' },
   { label: 'Financiación', href: '#financiacion' },
   { label: 'Contacto', href: '#contacto' },
 ]

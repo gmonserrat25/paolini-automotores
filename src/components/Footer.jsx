@@ -27,8 +27,7 @@ export default function Footer() {
               className="h-7 w-auto max-w-[240px] object-contain object-left"
             />
             <p className="mt-5 max-w-[420px] font-sans text-[15px] leading-[24px] text-white/75">
-              Concesionaria multimarca en el centro de La Falda. Precio claro y
-              la misma cara atendiendo de este lado del mostrador.
+              Concesionaria multimarca en el centro de La Falda.
             </p>
 
             <ul className="mt-6 space-y-3">
@@ -45,7 +44,7 @@ export default function Footer() {
               </li>
               <li>
                 <a href={CONTACT.instagram} target="_blank" rel="noreferrer" className={TEXTO}>
-                  Instagram: @paoliniautomotores
+                  @paoliniautomotores
                 </a>
               </li>
             </ul>
