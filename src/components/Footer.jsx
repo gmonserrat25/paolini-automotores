@@ -102,7 +102,7 @@ export default function Footer() {
                     rel="noreferrer"
                     className="flex items-start gap-2 font-sans text-[13px] text-white/55 transition-colors hover:text-white"
                   >
-                    <PinIcon className="mt-[2px] h-[15px] w-[15px] shrink-0 text-[#E0323F]" />
+                    <PinIcon className="mt-[2px] h-[15px] w-[15px] shrink-0 text-[#D52B38]" />
                     {CONTACT.address}
                   </a>
                 </li>
@@ -111,7 +111,7 @@ export default function Footer() {
                     href={`tel:+${CONTACT.whatsapp}`}
                     className="flex items-center gap-2 font-sans text-[13px] text-white/55 transition-colors hover:text-white"
                   >
-                    <PhoneIcon className="h-[15px] w-[15px] shrink-0 text-[#E0323F]" />
+                    <PhoneIcon className="h-[15px] w-[15px] shrink-0 text-[#D52B38]" />
                     {CONTACT.phone}
                   </a>
                 </li>
@@ -120,7 +120,7 @@ export default function Footer() {
                     href={`mailto:${CONTACT.email}`}
                     className="flex items-center gap-2 break-all font-sans text-[13px] text-white/55 transition-colors hover:text-white"
                   >
-                    <MailIcon className="h-[15px] w-[15px] shrink-0 text-[#E0323F]" />
+                    <MailIcon className="h-[15px] w-[15px] shrink-0 text-[#D52B38]" />
                     {CONTACT.email}
                   </a>
                 </li>
@@ -134,7 +134,7 @@ export default function Footer() {
                   href={CONTACT.instagram}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex h-9 w-9 items-center justify-center rounded-[6px] bg-white/8 text-white/70 transition-colors hover:bg-[#E0323F] hover:text-white"
+                  className="flex h-9 w-9 items-center justify-center rounded-[6px] bg-white/8 text-white/70 transition-colors hover:bg-[#D52B38] hover:text-white"
                 >
                   <InstagramIcon className="h-[17px] w-[17px]" />
                   <span className="sr-only">Instagram</span>
@@ -143,7 +143,7 @@ export default function Footer() {
                   href={WHATSAPP_URL}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex h-9 w-9 items-center justify-center rounded-[6px] bg-white/8 text-white/70 transition-colors hover:bg-[#E0323F] hover:text-white"
+                  className="flex h-9 w-9 items-center justify-center rounded-[6px] bg-white/8 text-white/70 transition-colors hover:bg-[#D52B38] hover:text-white"
                 >
                   <WhatsAppIcon className="h-[17px] w-[17px]" />
                   <span className="sr-only">WhatsApp</span>

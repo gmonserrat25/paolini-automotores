@@ -1,0 +1,24 @@
+{
+  "url": "https://paoliniautomotores.com",
+  "nombre": "Automotores Paolini",
+  "tipo": "AutoDealer",
+  "rubro": "Concesionaria multimarca de autos 0 km y usados",
+  "descripcion": "Concesionaria multimarca en el centro de La Falda, Córdoba. Autos 0 km y usados de Volkswagen, Peugeot y BYD, financiación y tu usado como parte de pago. Hace más de treinta años en Av. España.",
+  "direccion": {"calle": "Av. España 601", "ciudad": "La Falda", "provincia": "Córdoba", "cp": "5172", "pais": "AR"},
+  "telefono": "+54 9 3548 468411",
+  "email": "paoliniautomotores@yahoo.com.ar",
+  "horarios": [
+    {"dias": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], "abre": "09:00", "cierra": "13:00"},
+    {"dias": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], "abre": "17:00", "cierra": "21:00"},
+    {"dias": ["Saturday"], "abre": "09:00", "cierra": "13:00"}
+  ],
+  "horarios_texto": "Lunes a viernes de 9 a 13 y de 17 a 21; sábados de 9 a 13; domingos cerrado",
+  "sameAs": ["https://www.instagram.com/paoliniautomotores/"],
+  "mapa": "https://maps.google.com/?q=Av.+Espa%C3%B1a+601,+La+Falda,+C%C3%B3rdoba",
+  "imagen": "https://paoliniautomotores.com/og-paolini.png",
+  "paginas": [
+    {"titulo": "Vehículos", "url": "/#vehiculos", "nota": "Stock publicado con consulta por WhatsApp"},
+    {"titulo": "Financiación", "url": "/#financiacion", "nota": "Financiación con banco o marca y usado como parte de pago"}
+  ],
+  "faq": []
+}

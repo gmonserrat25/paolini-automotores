@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { CONTACT, NAV_LINKS } from "../data/vehicles";
 import { asset } from "../lib/asset";
-import { ArrowRightIcon, WhatsAppIcon } from "./Icons";
+import { WhatsAppIcon } from "./Icons";
 
 const ITEMS = NAV_LINKS;
 
@@ -100,7 +100,6 @@ export default function MobileMenu() {
                 className="group flex items-center justify-between border-b border-white/10 py-5 font-display text-[26px] font-medium uppercase tracking-[0.04em] text-white sm:text-[32px]"
               >
                 {item.label}
-                <ArrowRightIcon className="h-[18px] w-[18px] text-[#E0323F] transition-transform group-hover:translate-x-1" />
               </a>
             ))}
 

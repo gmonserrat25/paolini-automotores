@@ -16,24 +16,29 @@ const ICON_SIZES = {
   md: 'h-[22px] w-[22px] rounded-[4px]',
 }
 
-/* Botón principal: pastilla roja con la flechita diagonal metida en un
-   cuadradito negro a la izquierda. Sin `href` sale como <button>, que es lo
-   que corresponde cuando la acción no lleva a ningún lado. */
-export function Cta({ href, children, size = 'md', className = '', ...rest }) {
+/* Botón principal: pastilla roja plana (sin sombra de color ni gradiente; el
+   hover se resuelve con el color). Por defecto lleva la flechita diagonal
+   metida en un cuadradito negro a la izquierda; cuando la acción es escribir
+   por WhatsApp se pasa `icon` con el ícono de WhatsApp. Sin `href` sale como
+   <button>, que es lo que corresponde cuando la acción no lleva a ningún
+   lado. */
+export function Cta({ href, children, size = 'md', icon = null, className = '', ...rest }) {
   const Tag = href ? 'a' : 'button'
 
   return (
     <Tag
       href={href}
       type={href ? undefined : 'button'}
-      className={`group inline-flex shrink-0 items-center rounded-[6px] bg-gradient-to-br from-[#FF4552] to-[#C4212D] font-sans font-medium text-white shadow-[0_6px_20px_rgba(224,50,63,0.28)] transition-transform hover:-translate-y-0.5 ${SIZES[size]} ${className}`.trim()}
+      className={`group inline-flex shrink-0 items-center rounded-[6px] bg-[#D52B38] font-sans font-medium text-white transition-colors hover:bg-[#B9222E] active:bg-[#A31E29] ${SIZES[size]} ${className}`.trim()}
       {...rest}
     >
-      <span
-        className={`flex items-center justify-center bg-[#0A0A0A] ${ICON_SIZES[size]}`}
-      >
-        <ArrowUpRightIcon className="h-[11px] w-[11px] text-white transition-transform group-hover:translate-x-[1px] group-hover:-translate-y-[1px]" />
-      </span>
+      {icon ?? (
+        <span
+          className={`flex items-center justify-center bg-[#0A0A0A] ${ICON_SIZES[size]}`}
+        >
+          <ArrowUpRightIcon className="h-[11px] w-[11px] text-white" />
+        </span>
+      )}
       {children}
     </Tag>
   )
@@ -52,7 +57,7 @@ export function Corner({ position = 'br', className = '' }) {
   return (
     <span
       aria-hidden="true"
-      className={`pointer-events-none absolute bg-[#E0323F] ${geometry[position]} ${className}`.trim()}
+      className={`pointer-events-none absolute bg-[#D52B38] ${geometry[position]} ${className}`.trim()}
     />
   )
 }

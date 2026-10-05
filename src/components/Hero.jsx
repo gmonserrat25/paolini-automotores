@@ -70,7 +70,7 @@ export default function Hero() {
           <div className="absolute -inset-y-[40%] left-[21%] w-[2.5%] -skew-x-[38deg] bg-black/35" />
           <div className="absolute -inset-y-[40%] left-[25%] w-[1%] -skew-x-[38deg] bg-black/35" />
           <div className="absolute -inset-y-[40%] left-[30%] w-[0.6%] -skew-x-[38deg] bg-white/10" />
-          <div className="absolute -inset-y-[40%] left-[41%] w-[3.4%] -skew-x-[38deg] bg-[#E0323F]" />
+          <div className="absolute -inset-y-[40%] left-[45%] w-[3.4%] -skew-x-[38deg] bg-[#D52B38]" />
         </div>
 
         <div className="relative mx-auto flex max-w-[1308px] flex-col justify-center px-5 pb-16 pt-10 sm:px-8 lg:absolute lg:inset-0 lg:px-14 lg:py-10">
@@ -93,7 +93,7 @@ export default function Hero() {
         </div>
 
         {/* Cuña inferior derecha con las redes. */}
-        <div className="pointer-events-none absolute bottom-0 right-0 hidden h-[42%] w-[16%] bg-[#E0323F] [clip-path:polygon(100%_0,100%_100%,0_100%)] lg:block" />
+        <div className="pointer-events-none absolute bottom-0 right-0 hidden h-[42%] w-[16%] bg-[#D52B38] [clip-path:polygon(100%_0,100%_100%,0_100%)] lg:block" />
         <div className="absolute bottom-7 right-7 hidden flex-col items-center gap-3 lg:flex">
           <span aria-hidden="true" className="h-8 w-px bg-black/40" />
           <a

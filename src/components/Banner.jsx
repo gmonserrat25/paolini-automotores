@@ -1,6 +1,6 @@
 import { asset } from '../lib/asset'
 import { WHATSAPP_URL } from '../data/vehicles'
-import { ShieldIcon } from './Icons'
+import { ShieldIcon, WhatsAppIcon } from './Icons'
 import { Corner, Cta } from './Ui'
 
 /* El bloque a sangre con la foto de fondo, la ficha de tres datos y el botón,
@@ -30,7 +30,7 @@ export default function Banner() {
           </h2>
 
           <div className="mt-8 flex flex-wrap items-center gap-x-10 gap-y-6">
-            <span className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-white/5 text-[#E0323F]">
+            <span className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-white/5 text-[#D52B38]">
               <ShieldIcon className="h-6 w-6" />
             </span>
             {DATOS.map(([label, value]) => (
@@ -44,8 +44,8 @@ export default function Banner() {
           </div>
 
           <div className="mt-9">
-            <Cta href={WHATSAPP_URL} target="_blank" rel="noreferrer">
-              Pedí tu turno
+            <Cta href={WHATSAPP_URL} target="_blank" rel="noreferrer" icon={<WhatsAppIcon className="h-[22px] w-[22px]" />}>
+              WhatsApp
             </Cta>
           </div>
         </div>
