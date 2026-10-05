@@ -6,7 +6,6 @@ export default {
       fontFamily: {
         sans: ['Archivo', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         display: ['Poppins', 'Futura', 'ui-sans-serif', 'sans-serif'],
-        wordmark: ['Saira', 'Eurostile', 'ui-sans-serif', 'sans-serif'],
       },
     },
   },

@@ -1,18 +1,8 @@
-/* Ninguna de estas fuentes escribe "Paolini": el nombre de la marca siempre
-   sale del logo, que es el lettering real. Antes las palabras fantasma del
-   hero y del buscador iban en Poppins, que es parecida pero no es la marca.
-
-   El logo es un SVG construido letra por letra con geometría y ajustado
-   contra el encabezado de los flyers de Instagram, que es el único lugar
-   donde aparece — ver `scripts/logo/construir.py`. Antes era el trazado de
-   un PNG ampliado desde algo mucho más chico, y heredaba sus bordes
-   ondulados y letras deformes.
-
-   Los titulares van en Poppins y no en la Jost que usaba el sitio anterior:
-   la maqueta que copiamos tiene una geométrica de O redonda y trazo parejo,
-   y la Jost, más angosta y con menos peso, no daba ese golpe. Archivo sigue
-   llevando el texto corrido. */
-@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Poppins:wght@500;600;700&family=Saira:ital,wght@1,700;1,800&display=swap');
+/* Los titulares van en Poppins (geométrica, de O redonda y trazo parejo) y
+   el texto corrido en Archivo. Ninguna de las dos escribe "Paolini": el
+   nombre de la marca siempre sale del logo, que es el lettering real (un SVG
+   construido con geometría, ver `scripts/logo/construir.py`). */
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -25,13 +15,9 @@ html {
   scroll-padding-top: 88px;
 }
 
-/* Nada de movimiento horizontal en la página.
-
-   En el celular, al deslizar el dedo de costado sobre la tira de marcas o
-   sobre las fotos del carrusel, el gesto terminaba llegándole a la página:
-   la pantalla se corría y aparecía una franja negra al costado (el rebote
-   del navegador). `overscroll-behavior-x: none` corta ese rebote y `clip`
-   se asegura de que no haya nada para correr.
+/* Nada de movimiento horizontal en la página: `overscroll-behavior-x: none`
+   corta el rebote del navegador al deslizar de costado y `clip` se asegura
+   de que no haya nada para correr.
 
    Va `clip` y no `hidden` a propósito: `hidden` convertiría a la página en
    un contenedor de scroll y la barra de arriba dejaría de quedarse fija. */
@@ -49,91 +35,15 @@ body {
 }
 
 /* El anillo azul del navegador no pega con la paleta; este además se ve sobre
-   fondo negro y sobre las fotos del hero. */
+   fondo negro y sobre las fotos. */
 :focus-visible {
-  outline: 2px solid #e0323f;
+  outline: 2px solid #d52b38;
   outline-offset: 3px;
   border-radius: 2px;
-}
-
-/* El logo gigante que corre en vertical por el borde izquierdo del hero,
-   leyéndose de abajo hacia arriba.
-
-   Se gira con `transform` y no con `writing-mode: vertical-rl`: en modo
-   vertical el `top`/`left` de un absoluto se resuelve contra otros bordes y
-   la marca terminaba colgando fuera de la franja. Girando la caja, el
-   centrado es el de siempre.
-
-   Al girar -90deg el ancho del elemento es lo que se ve como alto, así que
-   el logo se mide en `cqh` (1% del alto de la franja): ocupa siempre la
-   misma proporción sin importar cuánto mida el hero, que cambia de alto con
-   el ancho de la ventana porque el bloque de la foto va por proporción. Eso
-   necesita que la franja sea un contenedor de consulta con `size`, que puede
-   serlo porque tiene ancho fijo y `inset-y-0` le da el alto. */
-.pa-vertical {
-  container-type: size;
-}
-
-.pa-vertical img {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 82cqh;
-  max-width: none;
-  transform-origin: center;
-  transform: translate(-50%, -50%) rotate(-90deg);
-}
-
-/* La tira de marcas se puede arrastrar en el celular; la barra de scroll
-   nativa cortaría la línea de logos por la mitad.
-
-   `overscroll-behavior-x: contain` es lo que hace que al llegar al final de
-   la tira el gesto se quede ahí en vez de arrastrar la página. */
-.pa-rail {
-  scrollbar-width: none;
-  overscroll-behavior-x: contain;
-}
-
-.pa-rail::-webkit-scrollbar {
-  display: none;
-}
-
-/* El grano de asfalto del fondo de la sección de financiación.
-
-   En la maqueta ahí hay una foto de asfalto; no tenemos ninguna del salón
-   que sirva, y un degradado liso dejaba esa franja muerta al lado del resto.
-   El grano lo genera un SVG con `feTurbulence`, así que no suma ni una
-   petición ni un kilobyte de imagen.
-
-   Va en `screen` y no en `overlay`: sobre un fondo casi negro, `overlay`
-   deja el negro como está y el grano no aparecía por ningún lado. `screen`
-   sólo aclara, que es justo lo que hace falta acá. */
-.pa-asfalto::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  opacity: 0.16;
-  mix-blend-mode: screen;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23g)'/%3E%3C/svg%3E");
-}
-
-/* Las fotos del abanico se acomodan con transform y opacidad desde el
-   componente; la transición va acá para no repetirla en cada una. */
-.pa-fan {
-  transition:
-    transform 500ms cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 500ms ease,
-    filter 500ms ease;
 }
 
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
-  }
-
-  .pa-fan {
-    transition: none;
   }
 }

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { CONTACT, NAV_LINKS } from "../data/vehicles";
 import { asset } from "../lib/asset";
-import { ArrowRightIcon, WhatsAppIcon } from "./Icons";
+import { WhatsAppIcon } from "./Icons";
 
 const ITEMS = NAV_LINKS;
 
@@ -60,7 +60,7 @@ export default function MobileMenu() {
       {open ? (
         <div
           id="menu-paolini"
-          className="fixed inset-0 z-50 flex flex-col bg-[#0A0A0C] lg:hidden"
+          className="fixed inset-0 z-50 flex flex-col bg-[#0A0A0A] lg:hidden"
         >
           <div className="flex items-center justify-between px-5 py-6 sm:px-8">
             <img
@@ -97,15 +97,14 @@ export default function MobileMenu() {
                 key={item.label}
                 href={item.href}
                 onClick={() => setOpen(false)}
-                className="group flex items-center justify-between border-b border-white/10 py-5 font-display text-[26px] font-medium uppercase tracking-[0.04em] text-white sm:text-[32px]"
+                className="flex items-center justify-between border-b border-white/10 py-5 font-display text-[26px] font-medium tracking-[0.01em] text-white sm:text-[32px]"
               >
                 {item.label}
-                <ArrowRightIcon className="h-[18px] w-[18px] text-[#E0323F] transition-transform group-hover:translate-x-1" />
               </a>
             ))}
 
             <div className="py-6">
-              <p className="font-sans text-[13px] uppercase tracking-[0.16em] text-[#7A7C88]">
+              <p className="font-sans text-[13px] uppercase tracking-[0.16em] text-white/70">
                 Nuestras redes
               </p>
               <div className="mt-4 flex flex-wrap gap-3">
@@ -130,7 +129,7 @@ export default function MobileMenu() {
             </div>
           </nav>
 
-          <div className="px-5 pb-10 font-sans text-[14px] leading-[22px] text-[#7A7C88] sm:px-8">
+          <div className="px-5 pb-10 font-sans text-[14px] leading-[22px] text-white/70 sm:px-8">
             <p className="m-0">{CONTACT.address}</p>
             <p className="m-0">Lun a vie 9–13 y 17–21 · Sáb 9–13</p>
           </div>
