@@ -45,7 +45,7 @@ export default function Hero() {
               {CONTACT.phone}
             </Cta>
             <Cta href="#vehiculos" variant="secondary">
-              Ver vehículos
+              Ver stock
             </Cta>
           </div>
         </div>
