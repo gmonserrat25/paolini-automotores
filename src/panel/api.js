@@ -1,12 +1,24 @@
 import { VEHICLES } from '../data/vehicles'
 import {
+  AGENDA,
+  BUSQUEDAS,
   CONDICION,
   CONSULTAS,
   CONSULTAS_MENSUALES,
   CONSULTAS_SEMANALES,
+  EMBUDO_ORIGEN,
   ESTADOS,
+  ESTADOS_CONSULTA,
   ESTADO_INICIAL,
+  FICHA,
   HISTORIAL,
+  MES_ANTERIOR,
+  OBJETIVO_VENTAS,
+  ORIGEN_VENTA,
+  PRESUPUESTOS_MES,
+  SIMULACIONES,
+  TASACIONES,
+  VENTAS_FUERA_CATALOGO,
 } from './mock'
 
 /* La capa de datos del panel.
@@ -21,6 +33,8 @@ const espera = (ms = LATENCIA) => new Promise((resolver) => setTimeout(resolver,
 
 /* Hace de base de datos mientras no haya una. */
 const estados = { ...ESTADO_INICIAL }
+const estadosConsulta = Object.fromEntries(CONSULTAS.map((c) => [c.id, c.estado]))
+const tasacionesContactadas = Object.fromEntries(TASACIONES.map((t) => [t.id, t.contactada]))
 
 const diaCorto = new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'short' })
 const mesCorto = new Intl.DateTimeFormat('es-AR', { month: 'short' })
@@ -61,11 +75,22 @@ export async function cargarPanel() {
   await espera()
   const hoy = new Date()
 
-  const stock = VEHICLES.map((v) => ({
-    ...v,
-    condicion: CONDICION[v.id],
-    estado: estados[v.id],
-  }))
+  /* Las ventas se cuentan dentro del mes: el mock habla de "hace N días" y
+     si hoy es el 3, una venta de hace 6 días cae en el mes pasado. */
+  const diasDelMes = hoy.getDate() - 1
+  const dentroDelMes = (dias) => Math.min(dias, diasDelMes)
+
+  const stock = VEHICLES.map((v) => {
+    const ficha = FICHA[v.id]
+    return {
+      ...v,
+      ...ficha,
+      condicion: CONDICION[v.id],
+      estado: estados[v.id],
+      origenVenta: ORIGEN_VENTA[v.id] ?? 'mostrador',
+      vendidoHaceDias: ficha.vendidoHaceDias === undefined ? undefined : dentroDelMes(ficha.vendidoHaceDias),
+    }
+  })
 
   const consultas = CONSULTAS.map((c) => {
     const auto = VEHICLES.find((v) => v.id === c.vehiculoId)
@@ -74,13 +99,37 @@ export async function cargarPanel() {
       nombre: c.nombre,
       telefono: c.telefono,
       vehiculo: `${auto.brand} ${auto.model}`,
+      origen: c.origen,
+      estado: estadosConsulta[c.id],
       fecha: new Date(hoy.getTime() - c.haceMin * 60_000),
     }
+  })
+
+  const tasaciones = TASACIONES.map((t) => ({
+    ...t,
+    contactada: tasacionesContactadas[t.id],
+    fecha: new Date(hoy.getTime() - t.haceMin * 60_000),
+  }))
+
+  const agenda = AGENDA.map((a) => {
+    const auto = VEHICLES.find((v) => v.id === a.vehiculoId)
+    const [h, m] = a.hora.split(':').map(Number)
+    const cuando = new Date(hoy)
+    cuando.setHours(h, m, 0, 0)
+    return { ...a, vehiculo: `${auto.brand} ${auto.model}`, cuando }
   })
 
   return {
     stock,
     consultas,
+    tasaciones,
+    agenda,
+    busquedas: BUSQUEDAS,
+    simulaciones: SIMULACIONES,
+    ventasExtra: VENTAS_FUERA_CATALOGO.map((v) => ({ ...v, haceDias: dentroDelMes(v.haceDias) })),
+    objetivoVentas: OBJETIVO_VENTAS,
+    mesAnterior: MES_ANTERIOR,
+    embudo: { origen: EMBUDO_ORIGEN, presupuestos: PRESUPUESTOS_MES },
     historial: HISTORIAL,
     series: { mensual: serieSemanal(hoy), anual: serieAnual(hoy) },
   }
@@ -92,4 +141,19 @@ export async function guardarEstado(id, estado) {
   await espera(250)
   estados[id] = estado
   return { id, estado }
+}
+
+/* PATCH /consultas/:id */
+export async function guardarEstadoConsulta(id, estado) {
+  if (!ESTADOS_CONSULTA.includes(estado)) throw new Error(`Estado de consulta desconocido: ${estado}`)
+  await espera(250)
+  estadosConsulta[id] = estado
+  return { id, estado }
+}
+
+/* PATCH /tasaciones/:id */
+export async function guardarTasacion(id, contactada) {
+  await espera(250)
+  tasacionesContactadas[id] = contactada
+  return { id, contactada }
 }

@@ -73,3 +73,11 @@ export const IconoAlerta = (p) => (
     <path d="M10 8.4v3.6M10 14.2v.05" />
   </Icono>
 )
+
+export const IconoVentas = (p) => (
+  <Icono {...p}>
+    <path d="M3 16.5h14" />
+    <path d="M4.5 13.5V10M9 13.5V6.5M13.5 13.5V8.5" />
+    <path d="m4 6.5 4-3 3 2 5-3" />
+  </Icono>
+)

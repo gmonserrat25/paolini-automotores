@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import BrandLogo from '../components/BrandLogos'
-import { IconoBuscar, IconoCheck, IconoFlecha } from './icons'
-import { ESTADOS, ESTADO_LABEL } from './mock'
+import { MARGEN, esVieja, pesos, pesosCorto } from './calculos'
+import { IconoBuscar } from './icons'
+import MenuEstado from './MenuEstado'
+import { DIAS_ALERTA, ESTADOS, ESTADO_LABEL } from './mock'
 
 /* Cada estado se distingue por el punto, no por un color más: disponible es
    blanco, reservado lleva el rojo (pide atención) y vendido queda apagado. */
@@ -11,63 +13,18 @@ const PUNTO = {
   vendido: 'bg-white/30',
 }
 
+const OPCIONES = ESTADOS.map((e) => ({ id: e, label: ESTADO_LABEL[e], punto: PUNTO[e] }))
+
 function EstadoMenu({ unidad, onCambiar }) {
-  const [abierto, setAbierto] = useState(false)
-  const caja = useRef(null)
-
-  useEffect(() => {
-    if (!abierto) return undefined
-    const fuera = (e) => !caja.current?.contains(e.target) && setAbierto(false)
-    const esc = (e) => e.key === 'Escape' && setAbierto(false)
-    document.addEventListener('pointerdown', fuera)
-    document.addEventListener('keydown', esc)
-    return () => {
-      document.removeEventListener('pointerdown', fuera)
-      document.removeEventListener('keydown', esc)
-    }
-  }, [abierto])
-
   return (
-    <div ref={caja} className="relative">
-      <button
-        type="button"
-        aria-haspopup="listbox"
-        aria-expanded={abierto}
-        aria-label={`Estado de ${unidad.brand} ${unidad.model}: ${ESTADO_LABEL[unidad.estado]}. Cambiar`}
-        onClick={() => setAbierto((a) => !a)}
-        className="flex w-full items-center gap-2 rounded-full border border-white/[0.08] px-3 py-1.5 text-[13px] transition-colors hover:border-white/20 hover:bg-white/[0.03] md:w-[142px]"
-      >
-        <span className={`h-2 w-2 rounded-full ${PUNTO[unidad.estado]}`} />
-        <span className={`flex-1 text-left ${unidad.estado === 'vendido' ? 'text-white/60' : ''}`}>
-          {ESTADO_LABEL[unidad.estado]}
-        </span>
-        <IconoFlecha className="h-4 w-4 text-white/60" />
-      </button>
-
-      {abierto && (
-        <ul
-          role="listbox"
-          className="p-menu absolute right-0 z-20 mt-1.5 w-[168px] rounded-2xl border border-white/[0.08] bg-[#151516] p-1.5 shadow-[0_8px_24px_rgb(0_0_0/0.4)]"
-        >
-          {ESTADOS.map((e) => (
-            <li key={e} role="option" aria-selected={unidad.estado === e}>
-              <button
-                type="button"
-                onClick={() => {
-                  setAbierto(false)
-                  if (e !== unidad.estado) onCambiar(unidad.id, e)
-                }}
-                className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] transition-colors hover:bg-white/[0.06]"
-              >
-                <span className={`h-2 w-2 rounded-full ${PUNTO[e]}`} />
-                <span className="flex-1">{ESTADO_LABEL[e]}</span>
-                {unidad.estado === e && <IconoCheck className="h-4 w-4 text-white/60" />}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <MenuEstado
+      valor={unidad.estado}
+      opciones={OPCIONES}
+      onCambiar={(e) => onCambiar(unidad.id, e)}
+      etiquetaAria={`Estado de ${unidad.brand} ${unidad.model}`}
+      className="w-full md:w-[142px]"
+      apagado={unidad.estado === 'vendido'}
+    />
   )
 }
 
@@ -88,9 +45,26 @@ function Chip({ activo, onClick, children }) {
   )
 }
 
+const COLUMNAS = 'md:grid-cols-[64px_1.4fr_1fr_1fr_1.2fr_142px]'
+
+/* Cuánto lleva la unidad en el salón. Pasados los 60 días el número se pinta
+   en rojo y lo dice con texto, no sólo con el color. */
+function Dias({ unidad }) {
+  if (unidad.estado === 'vendido') {
+    return <p className="text-sm text-white/60">Vendida en {unidad.diasEnStock} días</p>
+  }
+  const vieja = esVieja(unidad)
+  return (
+    <p className={`text-sm tabular-nums ${vieja ? 'text-[#FF6B76]' : ''}`}>
+      {unidad.diasEnStock} días
+      {vieja && <span className="block text-xs">Pasó los {DIAS_ALERTA}</span>}
+    </p>
+  )
+}
+
 const sinTildes = (t) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
-export default function TablaStock({ stock, busqueda, marca, onMarca, onCambiar, onLimpiarBusqueda }) {
+export default function TablaStock({ stock, busqueda, marca, onMarca, soloViejas, onSoloViejas, onCambiar, onLimpiarBusqueda }) {
   const [estado, setEstado] = useState(null)
   const marcas = [...new Set(stock.map((v) => v.brand))]
 
@@ -99,13 +73,15 @@ export default function TablaStock({ stock, busqueda, marca, onMarca, onCambiar,
     (v) =>
       (!marca || v.brand === marca) &&
       (!estado || v.estado === estado) &&
+      (!soloViejas || esVieja(v)) &&
       (!q || sinTildes(`${v.brand} ${v.model} ${v.type} ${v.tag}`).includes(q)),
   )
-  const hayFiltros = Boolean(marca || estado || q)
+  const hayFiltros = Boolean(marca || estado || soloViejas || q)
 
   const limpiar = () => {
     onMarca(null)
     setEstado(null)
+    onSoloViejas(false)
     onLimpiarBusqueda()
   }
 
@@ -137,6 +113,11 @@ export default function TablaStock({ stock, busqueda, marca, onMarca, onCambiar,
             </Chip>
           ))}
         </div>
+        <div className="flex items-center gap-2" role="group" aria-label="Filtrar por antigüedad">
+          <span className="w-14 shrink-0 text-xs text-white/60">Días</span>
+          <Chip activo={!soloViejas} onClick={() => onSoloViejas(false)}>Todas</Chip>
+          <Chip activo={soloViejas} onClick={() => onSoloViejas(!soloViejas)}>Más de {DIAS_ALERTA} días</Chip>
+        </div>
       </div>
 
       {visibles.length === 0 ? (
@@ -158,18 +139,19 @@ export default function TablaStock({ stock, busqueda, marca, onMarca, onCambiar,
         </div>
       ) : (
         <div className="mt-4">
-          <div className="hidden grid-cols-[64px_1.6fr_1fr_1.2fr_142px] gap-4 border-b border-white/[0.08] px-3 pb-2.5 text-xs text-white/60 md:grid">
+          <div className={`${COLUMNAS} hidden gap-4 border-b border-white/[0.08] px-3 pb-2.5 text-xs text-white/60 md:grid`}>
             <span>Foto</span>
             <span>Modelo</span>
-            <span>Tipo</span>
             <span>Etiqueta</span>
+            <span>Días en stock</span>
+            <span>Precio y margen</span>
             <span>Estado</span>
           </div>
           <ul>
             {visibles.map((v) => (
               <li
                 key={v.id}
-                className="grid grid-cols-[56px_1fr] items-center gap-x-4 gap-y-3 rounded-2xl px-3 py-3 transition-colors hover:bg-white/[0.03] md:grid-cols-[64px_1.6fr_1fr_1.2fr_142px]"
+                className={`${COLUMNAS} grid grid-cols-[56px_1fr] items-center gap-x-4 gap-y-3 rounded-2xl px-3 py-3 transition-colors hover:bg-white/[0.03]`}
               >
                 <img
                   src={v.image}
@@ -183,16 +165,23 @@ export default function TablaStock({ stock, busqueda, marca, onMarca, onCambiar,
                     {v.brand}
                   </p>
                   <p className="truncate text-sm font-medium">{v.model}</p>
-                  <p className="text-xs text-white/60 md:hidden">
-                    {v.type} · {v.tag}
+                  <p className="text-xs text-white/60">
+                    {v.type}
+                    <span className="md:hidden"> · {v.tag}</span>
                   </p>
                 </div>
-                <p className="hidden text-sm text-white/80 md:block">{v.type}</p>
                 <p className="hidden md:block">
                   <span className="rounded-full border border-white/[0.1] px-2.5 py-1 text-xs text-white/80">
                     {v.tag}
                   </span>
                 </p>
+                <div className="col-span-2 flex items-baseline justify-between gap-4 md:contents">
+                  <Dias unidad={v} />
+                  <div className="text-right md:text-left">
+                    <p className="text-sm tabular-nums">{pesos(v.precioVenta)}</p>
+                    <p className="text-xs tabular-nums text-white/60">Margen {pesosCorto(MARGEN(v))}</p>
+                  </div>
+                </div>
                 <div className="col-span-2 md:col-span-1">
                   <EstadoMenu unidad={v} onCambiar={onCambiar} />
                 </div>

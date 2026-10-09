@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { cargarPanel, guardarEstado } from './api'
+import { cargarPanel, guardarEstado, guardarEstadoConsulta, guardarTasacion } from './api'
 
 const reduceMotion = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -83,20 +83,38 @@ export function usePanel() {
     return () => clearTimeout(t)
   }, [aviso])
 
-  const cambiarEstado = useCallback((id, nuevo) => {
+  /* Cambia una fila de una lista del panel al instante y la devuelve a como
+     estaba si el guardado falla. `lista` es la clave de `datos` donde vive. */
+  const cambiar = useCallback((lista, id, cambio, guardar) => {
     let anterior
     setDatos((d) => {
-      anterior = d.stock.find((v) => v.id === id).estado
-      return { ...d, stock: d.stock.map((v) => (v.id === id ? { ...v, estado: nuevo } : v)) }
+      anterior = d[lista].find((f) => f.id === id)
+      return { ...d, [lista]: d[lista].map((f) => (f.id === id ? { ...f, ...cambio } : f)) }
     })
-    guardarEstado(id, nuevo).catch(() => {
-      setDatos((d) => ({
-        ...d,
-        stock: d.stock.map((v) => (v.id === id ? { ...v, estado: anterior } : v)),
-      }))
+    guardar().catch(() => {
+      setDatos((d) => ({ ...d, [lista]: d[lista].map((f) => (f.id === id ? anterior : f)) }))
       setAviso('No se pudo guardar el cambio. Volvió al estado anterior.')
     })
   }, [])
 
-  return { estado, datos, aviso, recargar, cambiarEstado }
+  /* Una unidad que pasa a "Vendido" entra en las ventas de hoy. */
+  const cambiarEstado = useCallback(
+    (id, nuevo) =>
+      cambiar('stock', id, { estado: nuevo, vendidoHaceDias: nuevo === 'vendido' ? 0 : undefined }, () =>
+        guardarEstado(id, nuevo),
+      ),
+    [cambiar],
+  )
+
+  const cambiarEstadoConsulta = useCallback(
+    (id, nuevo) => cambiar('consultas', id, { estado: nuevo }, () => guardarEstadoConsulta(id, nuevo)),
+    [cambiar],
+  )
+
+  const marcarTasacion = useCallback(
+    (id, contactada) => cambiar('tasaciones', id, { contactada }, () => guardarTasacion(id, contactada)),
+    [cambiar],
+  )
+
+  return { estado, datos, aviso, recargar, cambiarEstado, cambiarEstadoConsulta, marcarTasacion }
 }

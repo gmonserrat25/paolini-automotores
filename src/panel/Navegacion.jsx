@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { IconoAuto, IconoBuscar, IconoConsultas, IconoResumen, IconoSitio } from './icons'
+import { IconoAuto, IconoBuscar, IconoConsultas, IconoResumen, IconoSitio, IconoVentas } from './icons'
 
 const SECCIONES = [
   { id: 'resumen', etiqueta: 'Resumen', Icono: IconoResumen },
+  { id: 'ventas', etiqueta: 'Ventas', Icono: IconoVentas },
   { id: 'stock', etiqueta: 'Stock', Icono: IconoAuto },
   { id: 'consultas', etiqueta: 'Consultas', Icono: IconoConsultas },
 ]
