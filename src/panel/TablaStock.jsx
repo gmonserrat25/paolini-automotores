@@ -53,6 +53,7 @@ function Dias({ unidad }) {
   if (unidad.estado === 'vendido') {
     return <p className="text-sm text-white/60">Vendida en {unidad.diasEnStock} días</p>
   }
+  if (unidad.diasEnStock == null) return <p className="text-sm text-white/60">Sin cargar</p>
   const vieja = esVieja(unidad)
   return (
     <p className={`text-sm tabular-nums ${vieja ? 'text-[#FF6B76]' : ''}`}>
@@ -166,7 +167,7 @@ export default function TablaStock({ stock, busqueda, marca, onMarca, soloViejas
                   </p>
                   <p className="truncate text-sm font-medium">{v.model}</p>
                   <p className="text-xs text-white/60">
-                    {v.type}
+                    {v.patente ? `${v.patente} · ${v.color}` : v.type}
                     <span className="md:hidden"> · {v.tag}</span>
                   </p>
                 </div>
@@ -179,7 +180,9 @@ export default function TablaStock({ stock, busqueda, marca, onMarca, soloViejas
                   <Dias unidad={v} />
                   <div className="text-right md:text-left">
                     <p className="text-sm tabular-nums">{pesos(v.precioVenta)}</p>
-                    <p className="text-xs tabular-nums text-white/60">Margen {pesosCorto(MARGEN(v))}</p>
+                    <p className="text-xs tabular-nums text-white/60">
+                      {MARGEN(v) == null ? 'Margen sin cargar' : `Margen ${pesosCorto(MARGEN(v))}`}
+                    </p>
                   </div>
                 </div>
                 <div className="col-span-2 md:col-span-1">

@@ -18,8 +18,10 @@ export function pesosCorto(n) {
   return `$ ${(n / 1_000_000).toFixed(1).replace('.', ',')} M`
 }
 
-export const COSTO_TOTAL = (v) => v.costo + v.preparacion
-export const MARGEN = (v) => v.precioVenta - COSTO_TOTAL(v)
+/* Las unidades cargadas desde el Excel no traen costo: se cuentan en cero y el
+   margen queda sin calcular. */
+export const COSTO_TOTAL = (v) => (v.costo ?? 0) + (v.preparacion ?? 0)
+export const MARGEN = (v) => (v.costo == null ? null : v.precioVenta - COSTO_TOTAL(v))
 
 export const enStock = (stock) => stock.filter((v) => v.estado !== 'vendido')
 export const esVieja = (v) => v.estado !== 'vendido' && v.diasEnStock >= DIAS_ALERTA

@@ -1,4 +1,5 @@
 import { VEHICLES } from '../data/vehicles'
+import inventario from '../data/inventario.json'
 import {
   AGENDA,
   BUSQUEDAS,
@@ -91,6 +92,25 @@ export async function cargarPanel() {
       vendidoHaceDias: ficha.vendidoHaceDias === undefined ? undefined : dentroDelMes(ficha.vendidoHaceDias),
     }
   })
+
+  /* Los autos cargados desde el Excel y las fotos (scripts/cargar-autos). No
+     traen costo ni días en stock: el Excel no los tiene. */
+  const cargados = inventario.autos.map((a) => ({
+    id: a.patente.replace(/\s/g, '').toLowerCase(),
+    brand: a.marca[0] + a.marca.slice(1).toLowerCase(),
+    model: a.modelo,
+    type: a.tipo,
+    tag: `${a.anio} · ${a.km.toLocaleString('es-AR')} km`,
+    specs: [a.combustible],
+    image: a.foto,
+    patente: a.patente,
+    color: a.color,
+    condicion: 'usado',
+    estado: estados[a.patente.replace(/\s/g, '').toLowerCase()] ?? 'disponible',
+    origenVenta: 'mostrador',
+    precioVenta: a.precio,
+  }))
+  stock.push(...cargados)
 
   const consultas = CONSULTAS.map((c) => {
     const auto = VEHICLES.find((v) => v.id === c.vehiculoId)
