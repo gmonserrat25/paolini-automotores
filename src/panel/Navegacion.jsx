@@ -1,11 +1,12 @@
-import { useState } from 'react'
-import { IconoAuto, IconoBuscar, IconoConsultas, IconoResumen, IconoSitio, IconoVentas } from './icons'
+import { useEffect, useState } from 'react'
+import { IconoAuto, IconoCarga, IconoBuscar, IconoConsultas, IconoResumen, IconoSitio, IconoVentas } from './icons'
 
 const SECCIONES = [
   { id: 'resumen', etiqueta: 'Resumen', Icono: IconoResumen },
   { id: 'ventas', etiqueta: 'Ventas', Icono: IconoVentas },
   { id: 'stock', etiqueta: 'Stock', Icono: IconoAuto },
   { id: 'consultas', etiqueta: 'Consultas', Icono: IconoConsultas },
+  { id: 'carga', etiqueta: 'Carga', Icono: IconoCarga },
 ]
 
 const ITEM =
@@ -26,7 +27,14 @@ function Tip({ children }) {
 
 /* Barra lateral de íconos; en el celular pasa a barra inferior. */
 export default function Navegacion() {
-  const [activa, setActiva] = useState('resumen')
+  const [activa, setActiva] = useState(() => (window.location.hash === '#carga' ? 'carga' : 'resumen'))
+
+  /* El botón "atrás" también cambia de pantalla. */
+  useEffect(() => {
+    const alCambiar = () => window.location.hash === '#carga' && setActiva('carga')
+    window.addEventListener('hashchange', alCambiar)
+    return () => window.removeEventListener('hashchange', alCambiar)
+  }, [])
 
   return (
     <nav

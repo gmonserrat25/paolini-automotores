@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { cargarPanel, guardarEstado, guardarEstadoConsulta, guardarTasacion } from './api'
+import { agregarUnidades as guardarUnidades, cargarPanel, guardarEstado, guardarEstadoConsulta, guardarTasacion } from './api'
 
 const reduceMotion = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -116,5 +116,18 @@ export function usePanel() {
     [cambiar],
   )
 
-  return { estado, datos, aviso, recargar, cambiarEstado, cambiarEstadoConsulta, marcarTasacion }
+  /* Suma al stock las unidades que armó la pantalla Carga. */
+  const agregarUnidades = useCallback(async (filas) => {
+    try {
+      const nuevas = await guardarUnidades(filas)
+      setDatos((d) => ({ ...d, stock: [...d.stock, ...nuevas] }))
+      setAviso(`Se cargaron ${nuevas.length} ${nuevas.length === 1 ? 'auto' : 'autos'} al stock.`)
+      return true
+    } catch {
+      setAviso('No se pudo cargar al stock. Probá de nuevo.')
+      return false
+    }
+  }, [])
+
+  return { estado, datos, aviso, recargar, agregarUnidades, cambiarEstado, cambiarEstadoConsulta, marcarTasacion }
 }

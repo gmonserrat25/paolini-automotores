@@ -24,6 +24,14 @@ export const IconoResumen = (p) => (
   </Icono>
 )
 
+export const IconoCarga = (p) => (
+  <Icono {...p}>
+    <path d="M10 13V3.5" />
+    <path d="m6.5 6.75 3.5-3.5 3.5 3.5" />
+    <path d="M3.5 12.5v2.2a1.6 1.6 0 0 0 1.6 1.6h9.8a1.6 1.6 0 0 0 1.6-1.6v-2.2" />
+  </Icono>
+)
+
 export const IconoAuto = (p) => (
   <Icono {...p}>
     <path d="M3.2 11.2 4.6 7.4a1.6 1.6 0 0 1 1.5-1.05h7.8a1.6 1.6 0 0 1 1.5 1.05l1.4 3.8" />

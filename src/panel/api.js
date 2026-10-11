@@ -29,6 +29,11 @@ import {
    (GET del panel completo y PATCH del estado de una unidad): la forma de lo
    que devuelven es lo único que el resto del panel conoce. */
 
+/* Los autos, consultas, tasaciones y ventas de relleno con los que se armó el
+   panel el viernes. Apagado: el panel muestra sólo los autos cargados de
+   verdad. Se prende para ver el panel "lleno" en una demo. */
+const RELLENO = false
+
 const LATENCIA = 550
 const espera = (ms = LATENCIA) => new Promise((resolver) => setTimeout(resolver, ms))
 
@@ -71,6 +76,38 @@ function serieAnual(hoy) {
   })
 }
 
+const idDe = (patente) => patente.replace(/\s/g, '').toLowerCase()
+
+/* Una fila del Excel + su foto, con la forma de una unidad del stock. */
+function armarUnidad(fila, foto) {
+  return {
+    id: idDe(fila.patente),
+    brand: fila.marca[0] + fila.marca.slice(1).toLowerCase(),
+    model: fila.modelo,
+    type: fila.tipo ?? 'Auto',
+    tag: `${fila.anio} · ${fila.km.toLocaleString('es-AR')} km`,
+    specs: [fila.combustible ?? 'Nafta'],
+    image: foto,
+    patente: fila.patente,
+    color: fila.color,
+    condicion: 'usado',
+    estado: estados[idDe(fila.patente)] ?? 'disponible',
+    origenVenta: 'mostrador',
+    precioVenta: fila.precio,
+  }
+}
+
+/* Lo que se cargó desde la pantalla Carga en esta sesión. */
+const agregadas = []
+
+/* POST /stock */
+export async function agregarUnidades(filas) {
+  await espera(250)
+  const nuevas = filas.map(({ fila, foto }) => armarUnidad(fila, foto))
+  agregadas.push(...nuevas)
+  return nuevas
+}
+
 /* GET /panel */
 export async function cargarPanel() {
   await espera()
@@ -81,7 +118,7 @@ export async function cargarPanel() {
   const diasDelMes = hoy.getDate() - 1
   const dentroDelMes = (dias) => Math.min(dias, diasDelMes)
 
-  const stock = VEHICLES.map((v) => {
+  const stock = (RELLENO ? VEHICLES : []).map((v) => {
     const ficha = FICHA[v.id]
     return {
       ...v,
@@ -93,26 +130,12 @@ export async function cargarPanel() {
     }
   })
 
-  /* Los autos cargados desde el Excel y las fotos (scripts/cargar-autos). No
-     traen costo ni días en stock: el Excel no los tiene. */
-  const cargados = inventario.autos.map((a) => ({
-    id: a.patente.replace(/\s/g, '').toLowerCase(),
-    brand: a.marca[0] + a.marca.slice(1).toLowerCase(),
-    model: a.modelo,
-    type: a.tipo,
-    tag: `${a.anio} · ${a.km.toLocaleString('es-AR')} km`,
-    specs: [a.combustible],
-    image: a.foto,
-    patente: a.patente,
-    color: a.color,
-    condicion: 'usado',
-    estado: estados[a.patente.replace(/\s/g, '').toLowerCase()] ?? 'disponible',
-    origenVenta: 'mostrador',
-    precioVenta: a.precio,
-  }))
+  /* Los autos cargados desde el Excel y las fotos (scripts/cargar-autos y la
+     sección Carga). No traen costo ni días en stock: el Excel no los tiene. */
+  const cargados = [...inventario.autos.map((a) => armarUnidad(a, a.foto)), ...agregadas]
   stock.push(...cargados)
 
-  const consultas = CONSULTAS.map((c) => {
+  const consultas = (RELLENO ? CONSULTAS : []).map((c) => {
     const auto = VEHICLES.find((v) => v.id === c.vehiculoId)
     return {
       id: c.id,
@@ -125,13 +148,13 @@ export async function cargarPanel() {
     }
   })
 
-  const tasaciones = TASACIONES.map((t) => ({
+  const tasaciones = (RELLENO ? TASACIONES : []).map((t) => ({
     ...t,
     contactada: tasacionesContactadas[t.id],
     fecha: new Date(hoy.getTime() - t.haceMin * 60_000),
   }))
 
-  const agenda = AGENDA.map((a) => {
+  const agenda = (RELLENO ? AGENDA : []).map((a) => {
     const auto = VEHICLES.find((v) => v.id === a.vehiculoId)
     const [h, m] = a.hora.split(':').map(Number)
     const cuando = new Date(hoy)
@@ -144,9 +167,9 @@ export async function cargarPanel() {
     consultas,
     tasaciones,
     agenda,
-    busquedas: BUSQUEDAS,
-    simulaciones: SIMULACIONES,
-    ventasExtra: VENTAS_FUERA_CATALOGO.map((v) => ({ ...v, haceDias: dentroDelMes(v.haceDias) })),
+    busquedas: RELLENO ? BUSQUEDAS : [],
+    simulaciones: RELLENO ? SIMULACIONES : [],
+    ventasExtra: (RELLENO ? VENTAS_FUERA_CATALOGO : []).map((v) => ({ ...v, haceDias: dentroDelMes(v.haceDias) })),
     objetivoVentas: OBJETIVO_VENTAS,
     mesAnterior: MES_ANTERIOR,
     embudo: { origen: EMBUDO_ORIGEN, presupuestos: PRESUPUESTOS_MES },

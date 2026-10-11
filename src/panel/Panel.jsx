@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import './panel.css'
 import Agenda from './Agenda'
 import Atencion from './Atencion'
+import CargaAutos from './CargaAutos'
 import { ConsultasPorSemana, GraficosEsqueleto, StockPorMarca } from './Graficos'
 import { IconoAlerta } from './icons'
 import Metricas, { MetricasEsqueleto } from './Metricas'
@@ -35,6 +36,22 @@ function useFichaInterna() {
 function saludo(hora) {
   if (hora < 12) return 'Buen día'
   return hora < 20 ? 'Buenas tardes' : 'Buenas noches'
+}
+
+/* "Carga" es una pantalla aparte: se elige con #carga en la dirección. */
+function useVista() {
+  const [vista, setVista] = useState(() => (window.location.hash === '#carga' ? 'carga' : 'panel'))
+  useEffect(() => {
+    const alCambiar = () => {
+      const hash = window.location.hash.slice(1)
+      setVista(hash === 'carga' ? 'carga' : 'panel')
+      window.scrollTo(0, 0)
+      if (hash && hash !== 'carga') irA(hash)
+    }
+    window.addEventListener('hashchange', alCambiar)
+    return () => window.removeEventListener('hashchange', alCambiar)
+  }, [])
+  return vista
 }
 
 /* Lleva al lector hasta una sección, sin animar si pidió menos movimiento. */
@@ -75,7 +92,8 @@ function ErrorPanel({ onReintentar }) {
 
 export default function Panel() {
   useFichaInterna()
-  const { estado, datos, aviso, recargar, cambiarEstado, cambiarEstadoConsulta, marcarTasacion } = usePanel()
+  const { estado, datos, aviso, recargar, agregarUnidades, cambiarEstado, cambiarEstadoConsulta, marcarTasacion } = usePanel()
+  const vista = useVista()
   const [busqueda, setBusqueda] = useState('')
   const [marca, setMarca] = useState(null)
   const [soloViejas, setSoloViejas] = useState(false)
@@ -100,9 +118,9 @@ export default function Panel() {
       <div className="pb-24 md:pb-8 md:pl-[72px]">
         <Topbar busqueda={busqueda} onBusqueda={setBusqueda} />
 
-        <main className="grid gap-5 px-4 md:px-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <main className={`grid gap-5 px-4 md:px-6 ${vista === 'panel' ? 'xl:grid-cols-[minmax(0,1fr)_340px]' : ''}`}>
           <div className="min-w-0 space-y-4">
-            <Encabezado />
+            {vista === 'panel' && <Encabezado />}
 
             {estado === 'error' && <ErrorPanel onReintentar={recargar} />}
 
@@ -114,7 +132,13 @@ export default function Panel() {
               </>
             )}
 
-            {listo && (
+            {listo && vista === 'carga' && (
+              <div className="pt-1">
+                <CargaAutos stock={datos.stock} onAgregar={agregarUnidades} />
+              </div>
+            )}
+
+            {listo && vista === 'panel' && (
               <>
                 <Atencion
                   stock={datos.stock}
@@ -152,7 +176,7 @@ export default function Panel() {
             )}
           </div>
 
-          {estado !== 'error' && (
+          {estado !== 'error' && vista === 'panel' && (
             <aside className="space-y-4">
               {listo ? (
                 <>
