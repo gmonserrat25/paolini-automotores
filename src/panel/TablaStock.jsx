@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import BrandLogo from '../components/BrandLogos'
 import { MARGEN, esVieja, pesos, pesosCorto } from './calculos'
+import ConfirmarEliminar from './ConfirmarEliminar'
 import { IconoBuscar } from './icons'
 import MenuEstado from './MenuEstado'
 import { DIAS_ALERTA, ESTADOS, ESTADO_LABEL } from './mock'
@@ -15,11 +16,14 @@ const PUNTO = {
 
 const OPCIONES = ESTADOS.map((e) => ({ id: e, label: ESTADO_LABEL[e], punto: PUNTO[e] }))
 
-function EstadoMenu({ unidad, onCambiar }) {
+/* "Eliminar" sólo se ofrece en los autos reales (los de la base, que tienen
+   patente); es para cuando se cargó uno por error. */
+function EstadoMenu({ unidad, onCambiar, onEliminar }) {
   return (
     <MenuEstado
       valor={unidad.estado}
       opciones={OPCIONES}
+      accionExtra={unidad.patente ? { label: 'Eliminar…', onClick: () => onEliminar(unidad) } : null}
       onCambiar={(e) => onCambiar(unidad.id, e)}
       etiquetaAria={`Estado de ${unidad.brand} ${unidad.model}`}
       className="w-full md:w-[142px]"
@@ -65,8 +69,20 @@ function Dias({ unidad }) {
 
 const sinTildes = (t) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
-export default function TablaStock({ stock, busqueda, marca, onMarca, soloViejas, onSoloViejas, onCambiar, onLimpiarBusqueda }) {
+export default function TablaStock({
+  stock,
+  busqueda,
+  marca,
+  onMarca,
+  soloViejas,
+  onSoloViejas,
+  onCambiar,
+  onEliminar,
+  onLimpiarBusqueda,
+}) {
   const [estado, setEstado] = useState(null)
+  const [porEliminar, setPorEliminar] = useState(null)
+  const [eliminando, setEliminando] = useState(false)
   const marcas = [...new Set(stock.map((v) => v.brand))]
 
   const q = sinTildes(busqueda.trim())
@@ -186,12 +202,26 @@ export default function TablaStock({ stock, busqueda, marca, onMarca, soloViejas
                   </div>
                 </div>
                 <div className="col-span-2 md:col-span-1">
-                  <EstadoMenu unidad={v} onCambiar={onCambiar} />
+                  <EstadoMenu unidad={v} onCambiar={onCambiar} onEliminar={setPorEliminar} />
                 </div>
               </li>
             ))}
           </ul>
         </div>
+      )}
+
+      {porEliminar && (
+        <ConfirmarEliminar
+          unidad={porEliminar}
+          eliminando={eliminando}
+          onCancelar={() => setPorEliminar(null)}
+          onConfirmar={async () => {
+            setEliminando(true)
+            const ok = await onEliminar(porEliminar)
+            setEliminando(false)
+            if (ok) setPorEliminar(null)
+          }}
+        />
       )}
     </section>
   )

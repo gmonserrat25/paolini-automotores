@@ -4,7 +4,15 @@ import { IconoCheck, IconoFlecha } from './icons'
 /* El menú desplegable de estado que usan la tabla de stock y la lista de
    consultas. Cada estado se distingue por el punto, no por un color más:
    `punto` es la clase de fondo de ese estado. */
-export default function MenuEstado({ valor, opciones, onCambiar, etiquetaAria, className = '', apagado = false }) {
+export default function MenuEstado({
+  valor,
+  opciones,
+  onCambiar,
+  etiquetaAria,
+  className = '',
+  apagado = false,
+  accionExtra = null,
+}) {
   const [abierto, setAbierto] = useState(false)
   const caja = useRef(null)
   const actual = opciones.find((o) => o.id === valor)
@@ -57,6 +65,22 @@ export default function MenuEstado({ valor, opciones, onCambiar, etiquetaAria, c
               </button>
             </li>
           ))}
+          {accionExtra && (
+            /* Una acción que no es un estado (p. ej. eliminar): va aparte, debajo
+               de una línea, para que no se confunda con las opciones. */
+            <li role="none" className="mt-1.5 border-t border-white/[0.08] pt-1.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setAbierto(false)
+                  accionExtra.onClick()
+                }}
+                className="flex w-full items-center rounded-xl px-3 py-2 text-left text-[13px] text-[#FF6B76] transition-colors hover:bg-white/[0.06]"
+              >
+                {accionExtra.label}
+              </button>
+            </li>
+          )}
         </ul>
       )}
     </div>

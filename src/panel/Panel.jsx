@@ -135,7 +135,7 @@ export default function Panel({ onSalir }) {
 
             {listo && vista === 'carga' && (
               <div className="pt-1">
-                <CargaAutos stock={datos.stock} onAgregar={agregarUnidades} onEliminar={eliminarUnidad} />
+                <CargaAutos stock={datos.stock} onAgregar={agregarUnidades} />
               </div>
             )}
 
@@ -167,6 +167,7 @@ export default function Panel({ onSalir }) {
                   soloViejas={soloViejas}
                   onSoloViejas={setSoloViejas}
                   onCambiar={cambiarEstado}
+                  onEliminar={eliminarUnidad}
                   onLimpiarBusqueda={() => setBusqueda('')}
                 />
                 <div className="grid gap-4 lg:grid-cols-2">
