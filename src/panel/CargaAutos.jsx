@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import BrandLogo from '../components/BrandLogos'
 import { pesos } from './calculos'
 import { cruzar, leerExcel, normPatente, reconocerFoto } from './carga'
@@ -122,8 +122,49 @@ function FilaCarga({ item, asignado, metodo, libres, onElegir, onQuitar }) {
   )
 }
 
-export default function CargaAutos({ stock, onAgregar }) {
+/* Confirmación antes de borrar. Es un <dialog> nativo: atrapa el foco, se
+   cierra con Esc y no deja tocar nada de atrás. */
+function ConfirmarEliminar({ unidad, eliminando, onCancelar, onConfirmar }) {
+  const ref = useRef(null)
+  useEffect(() => {
+    const d = ref.current
+    if (d && !d.open) d.showModal()
+    return () => d?.close()
+  }, [])
+
+  return (
+    <dialog
+      ref={ref}
+      onCancel={(e) => {
+        e.preventDefault()
+        onCancelar()
+      }}
+      aria-labelledby="eliminar-titulo"
+      className="m-auto w-[calc(100%-2rem)] max-w-md rounded-2xl border border-white/[0.1] bg-[#0B0B0C] p-6 text-white backdrop:bg-black/70"
+    >
+      <h2 id="eliminar-titulo" className="font-jost text-lg font-medium">
+        ¿Eliminar {unidad.brand} {unidad.model}?
+      </h2>
+      <p className="mt-2 text-sm text-white/60">
+        Patente {unidad.patente}. Se borra de la base junto con su foto y no se puede deshacer. Si se vendió, es mejor
+        marcarlo como «Vendido» en Stock para que cuente en las ventas.
+      </p>
+      <div className="mt-6 flex justify-end gap-3">
+        <Boton onClick={onCancelar} disabled={eliminando}>
+          Cancelar
+        </Boton>
+        <Boton primario onClick={onConfirmar} disabled={eliminando}>
+          {eliminando ? 'Eliminando…' : 'Eliminar'}
+        </Boton>
+      </div>
+    </dialog>
+  )
+}
+
+export default function CargaAutos({ stock, onAgregar, onEliminar }) {
   const entrada = useRef(null)
+  const [porEliminar, setPorEliminar] = useState(null)
+  const [eliminando, setEliminando] = useState(false)
   const [arrastrando, setArrastrando] = useState(false)
   const [filas, setFilas] = useState([])
   const [excelNombre, setExcelNombre] = useState(null)
@@ -310,7 +351,7 @@ export default function CargaAutos({ stock, onAgregar }) {
           {enStock.map((u) => (
             <li
               key={u.id}
-              className="grid grid-cols-[72px_1fr] gap-x-4 gap-y-3 rounded-2xl px-3 py-3 hover:bg-white/[0.03] md:grid-cols-[72px_1.3fr_2fr]"
+              className="grid grid-cols-[72px_1fr] items-center gap-x-4 gap-y-3 rounded-2xl px-3 py-3 hover:bg-white/[0.03] md:grid-cols-[72px_1.3fr_2fr_auto]"
             >
               <img src={u.image} alt="" loading="lazy" className="h-14 w-[72px] rounded-lg object-cover" />
               <div className="min-w-0">
@@ -326,10 +367,32 @@ export default function CargaAutos({ stock, onAgregar }) {
                 <Dato etiqueta="Color">{u.color}</Dato>
                 <Dato etiqueta="Precio">{pesos(u.precioVenta)}</Dato>
               </div>
+              <button
+                type="button"
+                onClick={() => setPorEliminar(u)}
+                aria-label={`Eliminar ${u.brand} ${u.model} ${u.patente}`}
+                className="col-span-2 justify-self-start rounded-full border border-white/[0.1] px-3.5 py-1.5 text-xs text-white/60 transition-colors hover:border-[#E0323F]/60 hover:text-[#FF6B76] md:col-span-1 md:justify-self-end"
+              >
+                Eliminar
+              </button>
             </li>
           ))}
         </ul>
       </section>
+
+      {porEliminar && (
+        <ConfirmarEliminar
+          unidad={porEliminar}
+          eliminando={eliminando}
+          onCancelar={() => !eliminando && setPorEliminar(null)}
+          onConfirmar={async () => {
+            setEliminando(true)
+            const ok = await onEliminar(porEliminar)
+            setEliminando(false)
+            if (ok) setPorEliminar(null)
+          }}
+        />
+      )}
     </div>
   )
 }

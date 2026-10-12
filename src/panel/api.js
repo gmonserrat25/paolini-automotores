@@ -1,5 +1,5 @@
 import { VEHICLES } from '../data/vehicles'
-import { agregarAutos, cambiarEstadoAuto, listarAutos } from './datos'
+import { agregarAutos, cambiarEstadoAuto, eliminarAuto, listarAutos } from './datos'
 import {
   AGENDA,
   BUSQUEDAS,
@@ -87,6 +87,7 @@ function armarUnidad(a) {
     tag: `${a.anio ?? '—'} · ${(a.km ?? 0).toLocaleString('es-AR')} km`,
     specs: [a.combustible],
     image: a.foto,
+    fotoPath: a.foto_path,
     patente: a.patente,
     color: a.color,
     condicion: 'usado',
@@ -168,6 +169,11 @@ export async function cargarPanel() {
     historial: HISTORIAL,
     series: { mensual: serieSemanal(hoy), anual: serieAnual(hoy) },
   }
+}
+
+/* DELETE /stock/:id */
+export async function eliminarUnidad(unidad) {
+  await eliminarAuto(unidad.id, unidad.fotoPath)
 }
 
 /* PATCH /stock/:id */

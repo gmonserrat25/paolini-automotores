@@ -92,7 +92,8 @@ function ErrorPanel({ onReintentar }) {
 
 export default function Panel({ onSalir }) {
   useFichaInterna()
-  const { estado, datos, aviso, recargar, agregarUnidades, cambiarEstado, cambiarEstadoConsulta, marcarTasacion } = usePanel()
+  const { estado, datos, aviso, recargar, agregarUnidades, eliminarUnidad, cambiarEstado, cambiarEstadoConsulta, marcarTasacion } =
+    usePanel()
   const vista = useVista()
   const [busqueda, setBusqueda] = useState('')
   const [marca, setMarca] = useState(null)
@@ -134,7 +135,7 @@ export default function Panel({ onSalir }) {
 
             {listo && vista === 'carga' && (
               <div className="pt-1">
-                <CargaAutos stock={datos.stock} onAgregar={agregarUnidades} />
+                <CargaAutos stock={datos.stock} onAgregar={agregarUnidades} onEliminar={eliminarUnidad} />
               </div>
             )}
 

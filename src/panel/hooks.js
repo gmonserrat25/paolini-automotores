@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { agregarUnidades as guardarUnidades, cargarPanel, guardarEstado, guardarEstadoConsulta, guardarTasacion } from './api'
+import { agregarUnidades as guardarUnidades, cargarPanel, eliminarUnidad as borrarUnidad, guardarEstado, guardarEstadoConsulta, guardarTasacion } from './api'
 
 const reduceMotion = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -129,5 +129,18 @@ export function usePanel() {
     }
   }, [])
 
-  return { estado, datos, aviso, recargar, agregarUnidades, cambiarEstado, cambiarEstadoConsulta, marcarTasacion }
+  /* Borra una unidad de la base y de la lista. Devuelve si salió bien. */
+  const eliminarUnidad = useCallback(async (unidad) => {
+    try {
+      await borrarUnidad(unidad)
+      setDatos((d) => ({ ...d, stock: d.stock.filter((u) => u.id !== unidad.id) }))
+      setAviso(`Se eliminó ${unidad.brand} ${unidad.model} (${unidad.patente}).`)
+      return true
+    } catch (e) {
+      setAviso(`No se pudo eliminar. ${e.message}`)
+      return false
+    }
+  }, [])
+
+  return { estado, datos, aviso, recargar, agregarUnidades, eliminarUnidad, cambiarEstado, cambiarEstadoConsulta, marcarTasacion }
 }

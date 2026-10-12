@@ -69,6 +69,15 @@ export async function agregarAutos(cargas) {
   return nuevos.map((a) => ({ ...a, foto: enlaces[a.foto_path] ?? null }))
 }
 
+/* Borra el auto y, después, su foto del bucket. Primero la fila: si falla, no
+   se toca nada; si fallara sólo el borrado de la foto, el auto igual queda
+   eliminado (la foto sobrante no se ve en ningún lado). */
+export async function eliminarAuto(id, fotoPath) {
+  const { error } = await supabase.from('autos').delete().eq('id', id)
+  if (error) falla(error, 'No se pudo eliminar el auto')
+  if (fotoPath) await supabase.storage.from(BUCKET).remove([fotoPath])
+}
+
 export async function cambiarEstadoAuto(id, estado) {
   const { error } = await supabase.from('autos').update({ estado }).eq('id', id)
   if (error) falla(error, 'No se pudo guardar el estado')
