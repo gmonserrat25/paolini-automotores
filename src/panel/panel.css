@@ -14,6 +14,15 @@
   background: #0b0b0c;
 }
 
+/* Un menú desplegable abierto tiene que verse entero aunque llegue más allá de
+   su tarjeta: cada tarjeta animada es su propia capa y las de abajo se dibujan
+   encima de las de arriba, así que la que tiene un menú abierto pasa al
+   frente. */
+.p-card:has(.p-menu) {
+  position: relative;
+  z-index: 10;
+}
+
 /* Entrada escalonada: cada tarjeta fija su turno con `--i`. */
 @keyframes p-entra {
   from {
