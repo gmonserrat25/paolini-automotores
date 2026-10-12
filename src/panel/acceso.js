@@ -14,7 +14,14 @@ const clave = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 export const configurado = Boolean(url && clave)
 
-const supabase = configurado ? createClient(url, clave) : null
+export const supabase = configurado ? createClient(url, clave) : null
+
+/* El "pase" de la sesión, para las funciones de servidor que piden estar
+   logueado (api/reconocer.js). */
+export async function tokenActual() {
+  const s = await sesionActual()
+  return s?.access_token ?? null
+}
 
 /* Sesión actual (o null). */
 export async function sesionActual() {

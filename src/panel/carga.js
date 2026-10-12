@@ -1,4 +1,5 @@
 import { unzipSync, strFromU8 } from 'fflate'
+import { tokenActual } from './acceso'
 
 /* La parte de la carga que no es pantalla: leer el Excel, reconocer la foto y
    cruzar las dos cosas. El cruce es el mismo que hace
@@ -36,9 +37,25 @@ export function leerExcel(buffer) {
     const f = Object.fromEntries(COLUMNAS.map((k, i) => [k, celdas[String.fromCharCode(65 + i)]]))
     for (const k of ['marca', 'modelo', 'color', 'patente']) f[k] = limpiar(f[k])
     for (const k of ['precio', 'anio', 'km']) f[k] = f[k] == null ? null : Math.round(Number(f[k]))
-    if (normPatente(f.patente).length >= 6) filas.push(f)
+    if (normPatente(f.patente).length >= 6) filas.push({ ...f, ...clasificar(f.modelo) })
   }
   return filas
+}
+
+/* El Excel no trae carrocería ni combustible: se deducen del modelo. Lo que no
+   se reconoce queda como "Auto" / "Nafta" y se corrige en la base. */
+const TIPOS = [
+  [/hilux|amarok|ranger|s10|frontier|saveiro|strada|toro/i, 'Pick-up'],
+  [/renegade|t-?cross|tracker|kicks|creta|duster|ecosport|hr-?v|compass|taos/i, 'SUV'],
+  [/corolla|cronos|virtus|logan|sedan|vento|siena/i, 'Sedán'],
+  [/yaris|208|onix|sandero|polo|argo|gol|clio/i, 'Hatchback'],
+]
+export function clasificar(modelo) {
+  const tipo = TIPOS.find(([re]) => re.test(modelo))?.[1] ?? 'Auto'
+  let combustible = 'Nafta'
+  if (/hilux|amarok|ranger|s10|frontier|tdi/i.test(modelo)) combustible = 'Diésel'
+  else if (/hev|hybrid|h[ií]brido/i.test(modelo)) combustible = 'Híbrido'
+  return { tipo, combustible }
 }
 
 const distancia = (a, b) => (a.length !== b.length ? 99 : [...a].filter((c, i) => c !== b[i]).length)
@@ -76,13 +93,14 @@ export function cruzar(visto, filas, usadas) {
 
 /* Achica la foto antes de mandarla: una del celular pesa varios MB y para leer
    la chapa alcanzan 1600 px. */
-async function achicar(archivo, lado = 1600) {
+export async function achicar(archivo, lado = 1600, formato = 'url') {
   const img = await createImageBitmap(archivo)
   const escala = Math.min(1, lado / Math.max(img.width, img.height))
   const lienzo = document.createElement('canvas')
   lienzo.width = Math.round(img.width * escala)
   lienzo.height = Math.round(img.height * escala)
   lienzo.getContext('2d').drawImage(img, 0, 0, lienzo.width, lienzo.height)
+  if (formato === 'blob') return new Promise((listo) => lienzo.toBlob(listo, 'image/jpeg', 0.85))
   return lienzo.toDataURL('image/jpeg', 0.85)
 }
 
@@ -91,9 +109,10 @@ async function achicar(archivo, lado = 1600) {
    publicada o si le falta la key: la pantalla lo cuenta y deja elegir a mano. */
 export async function reconocerFoto(archivo) {
   const imagen = await achicar(archivo)
+  const token = await tokenActual()
   const r = await fetch('/api/reconocer', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify({ imagen }),
   })
   if (!r.ok) throw new Error(`reconocer ${r.status}`)

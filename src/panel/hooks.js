@@ -123,8 +123,8 @@ export function usePanel() {
       setDatos((d) => ({ ...d, stock: [...d.stock, ...nuevas] }))
       setAviso(`Se cargaron ${nuevas.length} ${nuevas.length === 1 ? 'auto' : 'autos'} al stock.`)
       return true
-    } catch {
-      setAviso('No se pudo cargar al stock. Probá de nuevo.')
+    } catch (e) {
+      setAviso(`No se pudo cargar al stock. ${e.message}`)
       return false
     }
   }, [])

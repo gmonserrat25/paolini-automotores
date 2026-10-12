@@ -1,5 +1,5 @@
 import { VEHICLES } from '../data/vehicles'
-import inventario from '../data/inventario.json'
+import { agregarAutos, cambiarEstadoAuto, listarAutos } from './datos'
 import {
   AGENDA,
   BUSQUEDAS,
@@ -76,36 +76,30 @@ function serieAnual(hoy) {
   })
 }
 
-const idDe = (patente) => patente.replace(/\s/g, '').toLowerCase()
-
-/* Una fila del Excel + su foto, con la forma de una unidad del stock. */
-function armarUnidad(fila, foto) {
+/* Una fila de la tabla `autos` (con su foto ya firmada), con la forma de una
+   unidad del stock. No trae costo ni días en stock: el Excel no los tiene. */
+function armarUnidad(a) {
   return {
-    id: idDe(fila.patente),
-    brand: fila.marca[0] + fila.marca.slice(1).toLowerCase(),
-    model: fila.modelo,
-    type: fila.tipo ?? 'Auto',
-    tag: `${fila.anio} · ${fila.km.toLocaleString('es-AR')} km`,
-    specs: [fila.combustible ?? 'Nafta'],
-    image: foto,
-    patente: fila.patente,
-    color: fila.color,
+    id: a.id,
+    brand: a.marca[0] + a.marca.slice(1).toLowerCase(),
+    model: a.modelo,
+    type: a.tipo,
+    tag: `${a.anio ?? '—'} · ${(a.km ?? 0).toLocaleString('es-AR')} km`,
+    specs: [a.combustible],
+    image: a.foto,
+    patente: a.patente,
+    color: a.color,
     condicion: 'usado',
-    estado: estados[idDe(fila.patente)] ?? 'disponible',
+    estado: a.estado,
     origenVenta: 'mostrador',
-    precioVenta: fila.precio,
+    precioVenta: a.precio,
   }
 }
 
-/* Lo que se cargó desde la pantalla Carga en esta sesión. */
-const agregadas = []
-
-/* POST /stock */
-export async function agregarUnidades(filas) {
-  await espera(250)
-  const nuevas = filas.map(({ fila, foto }) => armarUnidad(fila, foto))
-  agregadas.push(...nuevas)
-  return nuevas
+/* POST /stock: sube las fotos y crea los autos en la base. */
+export async function agregarUnidades(cargas) {
+  const guardados = await agregarAutos(cargas)
+  return guardados.map(armarUnidad)
 }
 
 /* GET /panel */
@@ -130,10 +124,8 @@ export async function cargarPanel() {
     }
   })
 
-  /* Los autos cargados desde el Excel y las fotos (scripts/cargar-autos y la
-     sección Carga). No traen costo ni días en stock: el Excel no los tiene. */
-  const cargados = [...inventario.autos.map((a) => armarUnidad(a, a.foto)), ...agregadas]
-  stock.push(...cargados)
+  /* Los autos reales, de la base de Supabase. */
+  stock.push(...(await listarAutos()).map(armarUnidad))
 
   const consultas = (RELLENO ? CONSULTAS : []).map((c) => {
     const auto = VEHICLES.find((v) => v.id === c.vehiculoId)
@@ -181,8 +173,13 @@ export async function cargarPanel() {
 /* PATCH /stock/:id */
 export async function guardarEstado(id, estado) {
   if (!ESTADOS.includes(estado)) throw new Error(`Estado desconocido: ${estado}`)
-  await espera(250)
-  estados[id] = estado
+  if (id in estados) {
+    /* Unidad de relleno: vive sólo en memoria. */
+    await espera(250)
+    estados[id] = estado
+  } else {
+    await cambiarEstadoAuto(id, estado)
+  }
   return { id, estado }
 }
 

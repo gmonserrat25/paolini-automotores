@@ -1,16 +1,31 @@
 /* Función de Vercel: recibe una foto y devuelve qué auto es y qué patente se
-   lee. La key va en la variable de entorno OPENAI_API_KEY del proyecto de
-   Vercel (nunca en el código ni en el navegador). Sin ella responde 503 y el
-   panel deja asignar el auto a mano.
+   lee. Sólo responde a quien tiene sesión iniciada en el panel.
 
-   OJO: el panel todavía no tiene login, así que cualquiera que sepa la URL
-   podría gastar crédito. Antes de publicarlo hay que ponerle acceso. */
+   Variables de entorno del proyecto de Vercel (nunca en el código):
+   - OPENAI_API_KEY        la key del servicio de visión
+   - SUPABASE_URL          la misma URL del proyecto de Supabase
+   - SUPABASE_ANON_KEY     la clave "anon" (pública) de Supabase
+   Sin OPENAI_API_KEY responde 503 y el panel deja asignar el auto a mano. */
 
 const MODELO = 'gpt-4.1-mini'
 const LIMITE = 4_000_000 // caracteres del data URL (~3 MB de imagen)
 
+/* El pase de la sesión se verifica con Supabase: si no es de un usuario real,
+   no se gasta ni un centavo. */
+async function usuarioDe(req) {
+  const token = (req.headers.authorization ?? '').replace(/^Bearer\s+/i, '')
+  const { SUPABASE_URL, SUPABASE_ANON_KEY } = process.env
+  if (!token || !SUPABASE_URL || !SUPABASE_ANON_KEY) return null
+  const r = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${token}` },
+  })
+  return r.ok ? r.json() : null
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Usá POST' })
+  if (!(await usuarioDe(req))) return res.status(401).json({ error: 'Sin sesión' })
+
   const key = process.env.OPENAI_API_KEY
   if (!key) return res.status(503).json({ error: 'Falta OPENAI_API_KEY' })
 

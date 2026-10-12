@@ -201,7 +201,9 @@ export default function CargaAutos({ stock, onAgregar }) {
 
   async function confirmar() {
     setGuardando(true)
-    const ok = await onAgregar(listas.map((i) => ({ fila: cruces[i.id].fila, foto: i.url })))
+    const ok = await onAgregar(
+      listas.map((i) => ({ fila: cruces[i.id].fila, archivo: i.archivo, metodo: cruces[i.id].metodo })),
+    )
     setGuardando(false)
     if (ok) setItems((a) => a.filter((i) => !listas.includes(i)))
   }
