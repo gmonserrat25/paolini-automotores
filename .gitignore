@@ -26,3 +26,4 @@ previews/
 .claude/
 .vercel
 .env*
+!.env.example

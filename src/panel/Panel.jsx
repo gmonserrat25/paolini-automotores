@@ -90,7 +90,7 @@ function ErrorPanel({ onReintentar }) {
   )
 }
 
-export default function Panel() {
+export default function Panel({ onSalir }) {
   useFichaInterna()
   const { estado, datos, aviso, recargar, agregarUnidades, cambiarEstado, cambiarEstadoConsulta, marcarTasacion } = usePanel()
   const vista = useVista()
@@ -116,7 +116,7 @@ export default function Panel() {
     <div className="panel min-h-screen bg-[#010101] text-white">
       <Navegacion />
       <div className="pb-24 md:pb-8 md:pl-[72px]">
-        <Topbar busqueda={busqueda} onBusqueda={setBusqueda} />
+        <Topbar busqueda={busqueda} onBusqueda={setBusqueda} onSalir={onSalir} />
 
         <main className={`grid gap-5 px-4 md:px-6 ${vista === 'panel' ? 'xl:grid-cols-[minmax(0,1fr)_340px]' : ''}`}>
           <div className="min-w-0 space-y-4">

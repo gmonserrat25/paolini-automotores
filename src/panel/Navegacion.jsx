@@ -78,7 +78,7 @@ export default function Navegacion() {
   )
 }
 
-export function Topbar({ busqueda, onBusqueda }) {
+export function Topbar({ busqueda, onBusqueda, onSalir }) {
   return (
     <header className="sticky top-0 z-20 flex items-center gap-3 bg-[#010101]/85 px-4 py-4 backdrop-blur md:px-6">
       <label className="relative flex-1 md:max-w-md">
@@ -92,10 +92,19 @@ export function Topbar({ busqueda, onBusqueda }) {
           className="w-full rounded-full border border-white/[0.08] bg-[#0B0B0C] py-2.5 pl-11 pr-4 text-sm text-white placeholder:text-white/60 transition-colors hover:border-white/20 focus:border-white/30 focus:outline-none"
         />
       </label>
+      {onSalir && (
+        <button
+          type="button"
+          onClick={onSalir}
+          className="ml-auto shrink-0 rounded-full border border-white/[0.1] px-4 py-2 text-[13px] text-white/80 transition-colors hover:border-white/30 hover:text-white"
+        >
+          Salir
+        </button>
+      )}
       <span
         aria-label="Cuenta de Paolini"
         role="img"
-        className="ml-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/[0.1] bg-[#0B0B0C] font-jost text-sm font-semibold"
+        className={`${onSalir ? '' : 'ml-auto '}flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/[0.1] bg-[#0B0B0C] font-jost text-sm font-semibold`}
       >
         P
       </span>
