@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { agregarUnidades as guardarUnidades, cargarPanel, eliminarUnidad as borrarUnidad, guardarEstado, guardarEstadoConsulta, guardarTasacion } from './api'
+import { agregarUnidades as guardarUnidades, cargarPanel, editarUnidad as guardarEdicion, eliminarUnidad as borrarUnidad, guardarEstado, guardarEstadoConsulta, guardarTasacion } from './api'
 
 const reduceMotion = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -129,6 +129,19 @@ export function usePanel() {
     }
   }, [])
 
+  /* Guarda lo editado en la ficha. Devuelve null si salió bien o el mensaje de
+     error para mostrarlo en la ficha. */
+  const editarUnidad = useCallback(async (id, cambios) => {
+    try {
+      const nueva = await guardarEdicion(id, cambios)
+      setDatos((d) => ({ ...d, stock: d.stock.map((u) => (u.id === id ? { ...u, ...nueva } : u)) }))
+      setAviso('Cambios guardados.')
+      return null
+    } catch (e) {
+      return e.message
+    }
+  }, [])
+
   /* Borra una unidad de la base y de la lista. Devuelve si salió bien. */
   const eliminarUnidad = useCallback(async (unidad) => {
     try {
@@ -142,5 +155,5 @@ export function usePanel() {
     }
   }, [])
 
-  return { estado, datos, aviso, recargar, agregarUnidades, eliminarUnidad, cambiarEstado, cambiarEstadoConsulta, marcarTasacion }
+  return { estado, datos, aviso, recargar, agregarUnidades, editarUnidad, eliminarUnidad, cambiarEstado, cambiarEstadoConsulta, marcarTasacion }
 }

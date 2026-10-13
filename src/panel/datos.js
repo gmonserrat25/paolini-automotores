@@ -56,3 +56,9 @@ export async function cambiarEstadoAuto(id, estado) {
   if (DEMO) return (await import('./demo')).estadoDemo(id, estado)
   await pedir(`/api/autos?id=${id}`, { method: 'PATCH', body: JSON.stringify({ estado }) })
 }
+
+/* Edita los datos de un auto. Devuelve la fila ya guardada. */
+export async function editarAuto(id, cambios) {
+  if (DEMO) return (await import('./demo')).editarDemo(id, cambios)
+  return pedir(`/api/autos?id=${id}`, { method: 'PATCH', body: JSON.stringify(cambios) })
+}

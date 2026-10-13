@@ -49,3 +49,13 @@ export function estadoDemo(id, estado) {
   const auto = autos.find((a) => a.id === id)
   if (auto) auto.estado = estado
 }
+
+export function editarDemo(id, cambios) {
+  const auto = autos.find((a) => a.id === id)
+  if (!auto) throw new Error('No existe ese auto')
+  if (cambios.patente && autos.some((a) => a.id !== id && rutaDe(a.patente) === rutaDe(cambios.patente))) {
+    throw new Error(`La patente ${cambios.patente} ya está cargada`)
+  }
+  Object.assign(auto, cambios)
+  return { ...auto }
+}

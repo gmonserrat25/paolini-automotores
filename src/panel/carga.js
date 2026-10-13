@@ -57,6 +57,57 @@ export function clasificar(modelo) {
   return { tipo, combustible }
 }
 
+/* Colores que en la práctica son el mismo (el Excel dice «BORDO» y la IA «rojo»). */
+const GRUPOS_COLOR = [
+  ['rojo', 'bordo', 'granate', 'vino'],
+  ['gris', 'plata', 'plateado', 'grafito'],
+  ['blanco', 'perla'],
+  ['negro'],
+  ['azul', 'celeste'],
+  ['verde'],
+  ['amarillo'],
+  ['naranja'],
+  ['marron', 'cafe', 'beige', 'dorado'],
+]
+const grupoDeColor = (c) => {
+  const t = (c ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
+  const i = GRUPOS_COLOR.findIndex((g) => g.some((x) => t === x || t.startsWith(`${x} `)))
+  return i >= 0 ? i : t || null
+}
+
+const palabras = (t) =>
+  (t ?? '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean)
+
+/* Puntaje de cada auto del Excel contra lo que se vio en la foto:
+   marca +1, la palabra base del modelo («Hilux») +2, cada palabra de versión
+   que también se ve («SR», «Limited», «HV») +1 hasta +2, y color +1. Sólo se
+   elige si el mejor llega a 3 y le gana al segundo: con dos Corolla iguales en
+   color y sin versión a la vista, no se adivina. */
+function porModeloYColor(visto, libres) {
+  const marca = norm(visto?.marca)
+  const vistas = palabras(visto?.modelo).filter((w) => w !== marca.toLowerCase())
+  const color = grupoDeColor(visto?.color)
+  const puntaje = libres
+    .map((f) => {
+      const [base, ...version] = palabras(f.modelo)
+      let s = 0
+      if (marca && marca === norm(f.marca)) s += 1
+      if (base && vistas.some((w) => w === base || (base.length >= 5 && w.startsWith(base.slice(0, 5))))) {
+        s += 2
+        s += Math.min(2, version.filter((w) => vistas.includes(w)).length)
+      }
+      if (color && color === grupoDeColor(f.color)) s += 1
+      return { f, s }
+    })
+    .sort((a, b) => b.s - a.s)
+  return puntaje[0]?.s >= 3 && (puntaje.length === 1 || puntaje[0].s > puntaje[1].s) ? puntaje[0].f : null
+}
+
 const distancia = (a, b) => (a.length !== b.length ? 99 : [...a].filter((c, i) => c !== b[i]).length)
 
 /* Devuelve { fila, metodo } con la fila del Excel que corresponde a lo que se
@@ -71,22 +122,11 @@ export function cruzar(visto, filas, usadas) {
     const cerca = libres.filter((f) => distancia(normPatente(f.patente), p) === 1)
     if (cerca.length === 1) return { fila: cerca[0], metodo: 'patente dudosa' }
   }
-  const marca = norm(visto?.marca)
-  const modelo = norm(visto?.modelo)
-  const color = norm(visto?.color)
-  const puntaje = libres
-    .map((f) => {
-      const fm = norm(f.modelo)
-      let s = 0
-      if (marca && marca === norm(f.marca)) s += 1
-      if (modelo && (modelo.includes(fm) || fm.includes(modelo) || fm.slice(0, 5) === modelo.slice(0, 5))) s += 2
-      if (color && color === norm(f.color)) s += 1
-      return { f, s }
-    })
-    .sort((a, b) => b.s - a.s)
-  if (puntaje[0]?.s >= 3 && (puntaje.length === 1 || puntaje[0].s > puntaje[1].s)) {
-    return { fila: puntaje[0].f, metodo: 'modelo y color' }
-  }
+  /* Sin patente que coincida: se busca por marca, modelo y color. Si la foto
+     trajo una patente (que no coincidió con nada) el resultado queda como
+     dudoso: es una sugerencia para revisar, no algo para cargar solo. */
+  const elegida = porModeloYColor(visto, libres)
+  if (elegida) return { fila: elegida, metodo: visto?.patente ? 'modelo y color dudoso' : 'modelo y color' }
   return { fila: null, metodo: null }
 }
 

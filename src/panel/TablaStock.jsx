@@ -78,6 +78,7 @@ export default function TablaStock({
   onSoloViejas,
   onCambiar,
   onEliminar,
+  onVer,
   onLimpiarBusqueda,
 }) {
   const [estado, setEstado] = useState(null)
@@ -181,7 +182,18 @@ export default function TablaStock({
                     <BrandLogo marca={v.brand} className="h-3.5 w-3.5" />
                     {v.brand}
                   </p>
-                  <p className="truncate text-sm font-medium">{v.model}</p>
+                  {v.ficha ? (
+                    <button
+                      type="button"
+                      onClick={() => onVer(v.id)}
+                      aria-label={`Ver la ficha de ${v.brand} ${v.model}`}
+                      className="block max-w-full truncate text-left text-sm font-medium underline-offset-4 hover:underline focus-visible:underline"
+                    >
+                      {v.model}
+                    </button>
+                  ) : (
+                    <p className="truncate text-sm font-medium">{v.model}</p>
+                  )}
                   <p className="text-xs text-white/60">
                     {v.patente ? `${v.patente} · ${v.color}` : v.type}
                     <span className="md:hidden"> · {v.tag}</span>
