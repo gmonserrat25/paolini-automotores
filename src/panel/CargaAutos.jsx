@@ -16,6 +16,10 @@ import { AccionesFila, BarraSeleccion, Casilla, useSeleccion } from './seleccion
 const METODO = {
   patente: { texto: 'Por patente', revisar: false },
   'patente aproximada': { texto: 'Una letra de la patente se leyó distinta: reconocido por puntaje', revisar: false },
+  'modelo y color con otra patente': {
+    texto: 'La patente de la foto no coincide, pero marca, modelo y color sí: reconocido por puntaje',
+    revisar: false,
+  },
   'modelo y color': { texto: 'Sin patente legible: reconocido por modelo y color', revisar: false },
   'modelo y color dudoso': {
     texto: 'La patente de la foto no coincide con ningún auto del Excel: se sugiere por modelo y color',
@@ -198,11 +202,13 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
     () => items.filter((i) => cruces[i.id]?.fila && !cargadas.has(normPatente(cruces[i.id].fila.patente))),
     [items, cruces, cargadas],
   )
-  /* Se carga sola la foto cuya patente coincide exacto con el Excel o, si la
-     chapa no se lee, la que cruza sin dudas por modelo y color. Si la IA dudó
-     (una letra distinta, una patente que no coincide con nada), queda en la
-     lista para que alguien la revise: así se nota cuando algo no cuadra. */
-  const segura = (i) => ['patente', 'patente aproximada', 'modelo y color'].includes(cruces[i.id]?.metodo)
+  /* Se carga sola la foto cuya patente coincide con el Excel (exacta o con una
+     letra distinta) o, si la chapa no se lee o se lee otra, la que cruza sin
+     dudas por modelo y color con confianza alta. Si la IA dudó (una patente
+     que no coincide con nada y un parecido flojo), queda en la lista para que
+     alguien la revise: así se nota cuando algo no cuadra. */
+  const AUTOMATICAS = ['patente', 'patente aproximada', 'modelo y color', 'modelo y color con otra patente']
+  const segura = (i) => AUTOMATICAS.includes(cruces[i.id]?.metodo)
   const dudosas = items.filter((i) => cruces[i.id]?.fila && !segura(i) && cruces[i.id].metodo !== 'manual')
   const yaCargadas = items.filter((i) => cruces[i.id]?.fila && cargadas.has(normPatente(cruces[i.id].fila.patente)))
 
