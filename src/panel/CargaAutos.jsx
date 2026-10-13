@@ -15,6 +15,7 @@ import { AccionesFila, BarraSeleccion, Casilla, useSeleccion } from './seleccion
 
 const METODO = {
   patente: { texto: 'Por patente', revisar: false },
+  'patente aproximada': { texto: 'Una letra de la patente se leyó distinta, pero marca y color coinciden', revisar: false },
   'patente dudosa': { texto: 'La patente de la foto no coincide del todo con el Excel', revisar: true },
   'modelo y color': { texto: 'Sin patente legible: reconocido por modelo y color', revisar: false },
   'modelo y color dudoso': {
@@ -202,7 +203,7 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
      chapa no se lee, la que cruza sin dudas por modelo y color. Si la IA dudó
      (una letra distinta, una patente que no coincide con nada), queda en la
      lista para que alguien la revise: así se nota cuando algo no cuadra. */
-  const segura = (i) => ['patente', 'modelo y color'].includes(cruces[i.id]?.metodo)
+  const segura = (i) => ['patente', 'patente aproximada', 'modelo y color'].includes(cruces[i.id]?.metodo)
   const dudosas = items.filter((i) => cruces[i.id]?.fila && !segura(i) && cruces[i.id].metodo !== 'manual')
   const yaCargadas = items.filter((i) => cruces[i.id]?.fila && cargadas.has(normPatente(cruces[i.id].fila.patente)))
 
@@ -412,8 +413,8 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
             <p className="mt-1 text-sm text-white/60">
               Subí las fotos y el Excel juntos: cada foto se reconoce sola por la patente y, si coincide exacto con
               el Excel, el auto entra al stock sin que hagas nada. Si la chapa no se lee, se busca por modelo y
-              color. Si la IA tiene alguna duda (una letra de la patente distinta), la foto queda marcada para que la
-              revises vos antes de cargarla.
+              color. Si una letra de la patente se lee distinta pero marca y color coinciden, también entra sola. Si
+              la IA tiene otra duda, la foto queda marcada para que la revises vos antes de cargarla.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">

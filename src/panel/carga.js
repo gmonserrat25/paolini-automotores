@@ -151,7 +151,8 @@ const distancia = (a, b) => (a.length !== b.length ? 99 : [...a].filter((c, i) =
    quedarse con uno de ellos por su patente exacta).
 
      1. patente exacta;
-     2. patente a una letra de distancia, si hay un solo candidato (a revisar);
+     2. patente a una letra de distancia, si hay un solo candidato: segura si
+        también coinciden marca y color, y si no, a revisar;
      3. marca, modelo y color, sobre los autos que quedaron libres. Si dos fotos
         eligen el mismo auto, ninguna se lo lleva. Se repite hasta que no
         quede nada más por resolver, porque cada foto resuelta deja menos
@@ -180,7 +181,14 @@ export function cruzarTodos(entradas, filas, usadas = new Set()) {
     const p = normPatente(e.visto.patente)
     if (!p) continue
     const cerca = libres().filter((f) => distancia(normPatente(f.patente), p) === 1)
-    if (cerca.length === 1) tomar(e.id, cerca[0], 'patente dudosa')
+    if (cerca.length !== 1) continue
+    /* Una letra mal leída no preocupa si el auto es el mismo: con la misma
+       marca y el mismo color se toma como patente segura. Si no, queda dudosa. */
+    const f = cerca[0]
+    const color = grupoDeColor(e.visto.color)
+    const mismoAuto = norm(e.visto.marca) !== '' && norm(e.visto.marca) === norm(f.marca) &&
+      color !== null && color === grupoDeColor(f.color)
+    tomar(e.id, f, mismoAuto ? 'patente aproximada' : 'patente dudosa')
   }
 
   let cambio = true
