@@ -1,5 +1,6 @@
 import { useRef } from 'react'
-import { BRANDS, VEHICLES } from '../data/vehicles'
+import { BRANDS } from '../data/vehicles'
+import { useCatalogo } from '../lib/catalogo'
 import BrandLogo from './BrandLogos'
 import { ChevronLeftIcon, ChevronRightIcon } from './Icons'
 
@@ -12,12 +13,13 @@ import { ChevronLeftIcon, ChevronRightIcon } from './Icons'
    el scroll suave y el alto de la barra fija. */
 export default function BrandStrip({ marca, onSelect }) {
   const railRef = useRef(null)
+  const { vehicles } = useCatalogo()
 
   const scrollBy = (dir) => {
     railRef.current?.scrollBy({ left: dir * 260, behavior: 'smooth' })
   }
 
-  const conStock = new Set(VEHICLES.map((v) => v.brand))
+  const conStock = new Set(vehicles.map((v) => v.brand))
 
   return (
     <section

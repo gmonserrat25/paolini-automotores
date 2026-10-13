@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { VEHICLES } from "../data/vehicles";
+import { useCatalogo } from "../lib/catalogo";
 import "./VehicleArc.css";
 
 /* Carrusel 3D de vehículos, al estilo del "Vertex" de MotionSites: las fichas
@@ -13,12 +13,13 @@ import "./VehicleArc.css";
 /* El stock se repite una vez para llenar el cilindro: con 6 fichas solo se ven
    tres de frente y el arco queda angosto. Las copias caen a 180°, o sea que
    cuando una está de frente su gemela está atrás, fuera de vista. */
-const CARDS = [...VEHICLES, ...VEHICLES];
-const STEP = 360 / CARDS.length;
 // Grados por milisegundo. Una vuelta completa tarda ~48 s.
 const SPEED = 360 / 48000;
 
 export default function VehicleArc({ className = "" }) {
+  const { vehicles } = useCatalogo();
+  const CARDS = [...vehicles, ...vehicles];
+  const STEP = 360 / (CARDS.length || 1);
   const stageRef = useRef(null);
   const cylinderRef = useRef(null);
   const cardRefs = useRef([]);
@@ -86,7 +87,7 @@ export default function VehicleArc({ className = "" }) {
       cancelAnimationFrame(raf);
       ro.disconnect();
     };
-  }, []);
+  }, [STEP]);
 
   return (
     <div

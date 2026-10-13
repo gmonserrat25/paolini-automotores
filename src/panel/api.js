@@ -1,4 +1,3 @@
-import { VEHICLES } from '../data/vehicles'
 import { agregarAutos, cambiarEstadoAuto, eliminarAuto, listarAutos } from './datos'
 import {
   AGENDA,
@@ -33,6 +32,10 @@ import {
    panel el viernes. Apagado: el panel muestra sólo los autos cargados de
    verdad. Se prende para ver el panel "lleno" en una demo. */
 const RELLENO = false
+
+/* El relleno se armaba sobre los autos de ejemplo del sitio, que ya no
+   existen (el sitio muestra lo que cargan los dueños). Queda vacío. */
+const VEHICLES = []
 
 const LATENCIA = 550
 const espera = (ms = LATENCIA) => new Promise((resolver) => setTimeout(resolver, ms))

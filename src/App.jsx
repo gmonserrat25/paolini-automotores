@@ -8,6 +8,7 @@ import Companion from './components/Companion'
 import Financiacion from './components/Financiacion'
 import Buscador from './components/Buscador'
 import Footer from './components/Footer'
+import { CatalogoProvider } from './lib/catalogo'
 
 /* El orden de las secciones es el mismo de la maqueta que copiamos: hero,
    tira de marcas, destacados, bloque a sangre, carrusel en abanico, la
@@ -20,6 +21,7 @@ export default function App() {
   const [marca, setMarca] = useState(null)
 
   return (
+    <CatalogoProvider>
     <div className="min-h-screen bg-[#050505]">
       <TopNav />
       <main>
@@ -33,5 +35,6 @@ export default function App() {
       </main>
       <Footer />
     </div>
+    </CatalogoProvider>
   )
 }

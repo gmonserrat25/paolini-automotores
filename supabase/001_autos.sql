@@ -1,9 +1,13 @@
 -- Base del panel de Paolini. Se corre una sola vez en Supabase:
 -- SQL Editor → pegar todo → Run.
 --
--- Quién puede entrar: sólo usuarios con sesión iniciada (rol "authenticated").
--- Como el registro está apagado y las cuentas las crea el administrador, eso
--- equivale a "los dueños". Sin sesión (rol "anon") no se puede leer nada.
+-- Quién puede entrar al panel: sólo usuarios con sesión iniciada (rol
+-- "authenticated"). Como el registro está apagado y las cuentas las crea el
+-- administrador, eso equivale a "los dueños". La TABLA no se lee sin sesión.
+--
+-- El sitio público (paoliniautomotores.com) lee los autos por la vista
+-- `autos_publicos`, que expone sólo lo que ya se ve en las tarjetas (sin
+-- patente ni datos internos) y deja afuera los vendidos.
 
 create table if not exists public.autos (
   id             uuid primary key default gen_random_uuid(),
@@ -18,7 +22,7 @@ create table if not exists public.autos (
   precio         bigint,
   estado         text not null default 'disponible'
                  check (estado in ('disponible', 'reservado', 'vendido')),
-  foto_path      text,                 -- ruta dentro del bucket privado "autos"
+  foto_path      text,                 -- ruta dentro del bucket "autos"
   reconocido_por text,                 -- cómo se asoció la foto con el Excel
   creado         timestamptz not null default now()
 );
@@ -35,11 +39,22 @@ create policy "autos: cargar" on public.autos for insert to authenticated with c
 create policy "autos: editar" on public.autos for update to authenticated using (true) with check (true);
 create policy "autos: borrar" on public.autos for delete to authenticated using (true);
 
--- Fotos: bucket privado (sin URL pública). El panel pide enlaces firmados que
--- vencen a la hora.
+-- Vista pública. Corre con los permisos de su dueño (por eso puede leer la
+-- tabla aunque "anon" no tenga política), pero sólo devuelve estas columnas.
+create or replace view public.autos_publicos as
+  select id, marca, modelo, tipo, combustible, anio, km, precio, foto_path, creado
+  from public.autos
+  where estado <> 'vendido';
+
+revoke all on public.autos_publicos from public;
+grant select on public.autos_publicos to anon, authenticated;
+
+-- Fotos: bucket público (son las mismas fotos que se ven en el sitio). Ver una
+-- por su enlace no requiere sesión; listar el bucket, subir, reemplazar o
+-- borrar sí.
 insert into storage.buckets (id, name, public)
-values ('autos', 'autos', false)
-on conflict (id) do update set public = false;
+values ('autos', 'autos', true)
+on conflict (id) do update set public = true;
 
 drop policy if exists "fotos: ver" on storage.objects;
 drop policy if exists "fotos: subir" on storage.objects;
