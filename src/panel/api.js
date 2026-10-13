@@ -1,4 +1,4 @@
-import { agregarAutos, cambiarEstadoAuto, editarAuto, eliminarAuto, listarAutos } from './datos'
+import { agregarAutos, cambiarEstadoAuto, editarAuto, eliminarAutos, listarAutos } from './datos'
 import {
   AGENDA,
   BUSQUEDAS,
@@ -191,9 +191,9 @@ export async function cargarPanel() {
   }
 }
 
-/* DELETE /stock/:id */
-export async function eliminarUnidad(unidad) {
-  await eliminarAuto(unidad.id)
+/* DELETE /stock?ids=... */
+export async function eliminarUnidades(unidades) {
+  await eliminarAutos(unidades.map((u) => u.id))
 }
 
 /* PATCH /stock/:id */

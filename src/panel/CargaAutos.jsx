@@ -2,7 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import BrandLogo from '../components/BrandLogos'
 import { pesos } from './calculos'
 import { cruzar, leerExcel, normPatente, reconocerFoto } from './carga'
+import ConfirmarEliminar from './ConfirmarEliminar'
 import { IconoCarga } from './icons'
+import { AccionesFila, BarraSeleccion, Casilla, useSeleccion } from './seleccion'
 
 /* Pantalla aparte para cargar autos: se suben las fotos y el Excel juntos, el
    panel reconoce cada auto (por la patente de la foto o, si no se lee, por
@@ -127,7 +129,7 @@ function FilaCarga({ item, asignado, metodo, libres, onElegir, onQuitar }) {
   )
 }
 
-export default function CargaAutos({ stock, onAgregar, onVer }) {
+export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onEliminar }) {
   const entrada = useRef(null)
   const [arrastrando, setArrastrando] = useState(false)
   const [filas, setFilas] = useState([])
@@ -138,6 +140,9 @@ export default function CargaAutos({ stock, onAgregar, onVer }) {
   const [guardando, setGuardando] = useState(false)
   const [cargadasSolas, setCargadasSolas] = useState(0)
   const [repetidas, setRepetidas] = useState(0)
+  const sel = useSeleccion()
+  const [porEliminar, setPorEliminar] = useState(null)
+  const [eliminando, setEliminando] = useState(false)
   /* Fotos que ya se mandaron a cargar solas: si una falla se queda en la lista
      y se reintenta con el botón, no en bucle. */
   const intentadas = useRef(new Set())
@@ -278,6 +283,7 @@ export default function CargaAutos({ stock, onAgregar, onVer }) {
   }
 
   const enStock = stock.filter((u) => u.patente)
+  const elegidas = enStock.filter((u) => sel.ids.has(u.id))
 
   return (
     <div className="space-y-4">
@@ -395,15 +401,39 @@ export default function CargaAutos({ stock, onAgregar, onVer }) {
       )}
 
       <section aria-label="Autos cargados" className="p-card p-5">
-        <h3 className="font-jost text-lg font-medium">
-          Autos cargados <span className="text-white/60">· {enStock.length}</span>
-        </h3>
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4">
+          <h3 className="font-jost text-lg font-medium">
+            Autos cargados <span className="text-white/60">· {enStock.length}</span>
+          </h3>
+          {enStock.length > 0 && (
+            <button
+              type="button"
+              onClick={() => sel.poner(enStock.map((u) => u.id))}
+              className="text-[13px] text-white/60 underline-offset-4 transition-colors hover:text-white hover:underline"
+            >
+              Elegir todos
+            </button>
+          )}
+        </div>
+        <BarraSeleccion
+          cantidad={elegidas.length}
+          onEliminar={() => setPorEliminar(elegidas)}
+          onQuitar={sel.limpiar}
+        />
         <ul className="mt-3">
           {enStock.map((u) => (
             <li
               key={u.id}
-              className="grid grid-cols-[72px_1fr] gap-x-4 gap-y-3 rounded-2xl px-3 py-3 hover:bg-white/[0.03] md:grid-cols-[72px_1.3fr_2fr]"
+              className={`relative grid grid-cols-[72px_1fr] items-center gap-x-4 gap-y-3 rounded-2xl py-3 pl-11 pr-3 hover:bg-white/[0.03] md:grid-cols-[72px_1.3fr_2fr_auto] ${
+                sel.ids.has(u.id) ? 'bg-white/[0.05]' : ''
+              }`}
             >
+              <Casilla
+                marcada={sel.ids.has(u.id)}
+                onChange={() => sel.alternar(u.id)}
+                etiqueta={`Elegir ${u.brand} ${u.model}`}
+                className="absolute left-3 top-1/2 -translate-y-1/2"
+              />
               <img src={u.image} alt="" loading="lazy" className="h-14 w-[72px] rounded-lg object-cover" />
               <div className="min-w-0">
                 <p className="flex items-center gap-1.5 text-xs text-white/60">
@@ -429,11 +459,32 @@ export default function CargaAutos({ stock, onAgregar, onVer }) {
                 <Dato etiqueta="Color">{u.color}</Dato>
                 <Dato etiqueta="Precio">{pesos(u.precioVenta)}</Dato>
               </div>
+              {u.ficha && (
+                <div className="col-span-2 md:col-span-1 md:justify-self-end">
+                  <AccionesFila unidad={u} onEditar={onEditar} onEliminar={(x) => setPorEliminar([x])} />
+                </div>
+              )}
             </li>
           ))}
         </ul>
       </section>
 
+      {porEliminar && (
+        <ConfirmarEliminar
+          unidades={porEliminar}
+          eliminando={eliminando}
+          onCancelar={() => setPorEliminar(null)}
+          onConfirmar={async () => {
+            setEliminando(true)
+            const ok = await onEliminar(porEliminar)
+            setEliminando(false)
+            if (ok) {
+              setPorEliminar(null)
+              sel.limpiar()
+            }
+          }}
+        />
+      )}
     </div>
   )
 }

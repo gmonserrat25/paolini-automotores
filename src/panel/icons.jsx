@@ -89,3 +89,15 @@ export const IconoVentas = (p) => (
     <path d="m4 6.5 4-3 3 2 5-3" />
   </Icono>
 )
+
+export const IconoEditar = (p) => (
+  <Icono {...p}>
+    <path d="M12.5 4.25l3.25 3.25M4 16l.75-3.5 8.5-8.5 2.75 2.75-8.5 8.5L4 16z" />
+  </Icono>
+)
+
+export const IconoBasura = (p) => (
+  <Icono {...p}>
+    <path d="M3.5 5.5h13M8 5.5V3.75h4V5.5M5.25 5.5l.75 10.25h8l.75-10.25M8.5 8.5v4.5M11.5 8.5v4.5" />
+  </Icono>
+)

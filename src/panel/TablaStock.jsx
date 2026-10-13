@@ -4,6 +4,7 @@ import { MARGEN, esVieja, pesos, pesosCorto } from './calculos'
 import ConfirmarEliminar from './ConfirmarEliminar'
 import { IconoBuscar } from './icons'
 import MenuEstado from './MenuEstado'
+import { AccionesFila, BarraSeleccion, Casilla, useSeleccion } from './seleccion'
 import { DIAS_ALERTA, ESTADOS, ESTADO_LABEL } from './mock'
 
 /* Cada estado se distingue por el punto, no por un color más: disponible es
@@ -49,7 +50,7 @@ function Chip({ activo, onClick, children }) {
   )
 }
 
-const COLUMNAS = 'md:grid-cols-[64px_1.4fr_1fr_1fr_1.2fr_142px]'
+const COLUMNAS = 'md:grid-cols-[64px_1.3fr_minmax(max-content,1fr)_0.9fr_1.1fr_240px]'
 
 /* Cuánto lleva la unidad en el salón. Pasados los 60 días el número se pinta
    en rojo y lo dice con texto, no sólo con el color. */
@@ -79,10 +80,12 @@ export default function TablaStock({
   onCambiar,
   onEliminar,
   onVer,
+  onEditar,
   onLimpiarBusqueda,
 }) {
   const [estado, setEstado] = useState(null)
   const [porEliminar, setPorEliminar] = useState(null)
+  const sel = useSeleccion()
   const [eliminando, setEliminando] = useState(false)
   const marcas = [...new Set(stock.map((v) => v.brand))]
 
@@ -94,6 +97,7 @@ export default function TablaStock({
       (!soloViejas || esVieja(v)) &&
       (!q || sinTildes(`${v.brand} ${v.model} ${v.type} ${v.tag}`).includes(q)),
   )
+  const elegidas = stock.filter((v) => sel.ids.has(v.id))
   const hayFiltros = Boolean(marca || estado || soloViejas || q)
 
   const limpiar = () => {
@@ -107,10 +111,27 @@ export default function TablaStock({
     <section id="stock" className="p-card p-entra scroll-mt-24 p-5" style={{ '--i': 6 }}>
       <header className="flex flex-wrap items-baseline justify-between gap-x-4">
         <h2 className="font-jost text-lg font-medium">Stock</h2>
-        <p className="text-[13px] text-white/60" aria-live="polite">
-          {visibles.length} de {stock.length} unidades
-        </p>
+        <div className="flex items-baseline gap-4">
+          {visibles.length > 0 && (
+            <button
+              type="button"
+              onClick={() => sel.poner(visibles.map((v) => v.id))}
+              className="text-[13px] text-white/60 underline-offset-4 transition-colors hover:text-white hover:underline"
+            >
+              Elegir todos
+            </button>
+          )}
+          <p className="text-[13px] text-white/60" aria-live="polite">
+            {visibles.length} de {stock.length} unidades
+          </p>
+        </div>
       </header>
+
+      <BarraSeleccion
+        cantidad={elegidas.length}
+        onEliminar={() => setPorEliminar(elegidas)}
+        onQuitar={sel.limpiar}
+      />
 
       <div className="-mx-5 mt-4 space-y-2.5 overflow-x-auto px-5 pb-1">
         <div className="flex items-center gap-2" role="group" aria-label="Filtrar por marca">
@@ -157,7 +178,7 @@ export default function TablaStock({
         </div>
       ) : (
         <div className="mt-4">
-          <div className={`${COLUMNAS} hidden gap-4 border-b border-white/[0.08] px-3 pb-2.5 text-xs text-white/60 md:grid`}>
+          <div className={`${COLUMNAS} hidden gap-4 border-b border-white/[0.08] pb-2.5 pl-11 pr-3 text-xs text-white/60 md:grid`}>
             <span>Foto</span>
             <span>Modelo</span>
             <span>Etiqueta</span>
@@ -169,8 +190,16 @@ export default function TablaStock({
             {visibles.map((v) => (
               <li
                 key={v.id}
-                className={`${COLUMNAS} grid grid-cols-[56px_1fr] items-center gap-x-4 gap-y-3 rounded-2xl px-3 py-3 transition-colors hover:bg-white/[0.03]`}
+                className={`${COLUMNAS} relative grid grid-cols-[56px_1fr] items-center gap-x-4 gap-y-3 rounded-2xl py-3 pl-11 pr-3 transition-colors hover:bg-white/[0.03] ${
+                  sel.ids.has(v.id) ? 'bg-white/[0.05]' : ''
+                }`}
               >
+                <Casilla
+                  marcada={sel.ids.has(v.id)}
+                  onChange={() => sel.alternar(v.id)}
+                  etiqueta={`Elegir ${v.brand} ${v.model}`}
+                  className="absolute left-3 top-1/2 -translate-y-1/2"
+                />
                 <img
                   src={v.image}
                   alt=""
@@ -200,7 +229,7 @@ export default function TablaStock({
                   </p>
                 </div>
                 <p className="hidden md:block">
-                  <span className="rounded-full border border-white/[0.1] px-2.5 py-1 text-xs text-white/80">
+                  <span className="whitespace-nowrap rounded-full border border-white/[0.1] px-2.5 py-1 text-xs text-white/80">
                     {v.tag}
                   </span>
                 </p>
@@ -213,8 +242,9 @@ export default function TablaStock({
                     </p>
                   </div>
                 </div>
-                <div className="col-span-2 md:col-span-1">
-                  <EstadoMenu unidad={v} onCambiar={onCambiar} onEliminar={setPorEliminar} />
+                <div className="col-span-2 flex items-center gap-2 md:col-span-1">
+                  <EstadoMenu unidad={v} onCambiar={onCambiar} onEliminar={(u) => setPorEliminar([u])} />
+                  {v.ficha && <AccionesFila unidad={v} onEditar={onEditar} onEliminar={(u) => setPorEliminar([u])} />}
                 </div>
               </li>
             ))}
@@ -224,14 +254,17 @@ export default function TablaStock({
 
       {porEliminar && (
         <ConfirmarEliminar
-          unidad={porEliminar}
+          unidades={porEliminar}
           eliminando={eliminando}
           onCancelar={() => setPorEliminar(null)}
           onConfirmar={async () => {
             setEliminando(true)
             const ok = await onEliminar(porEliminar)
             setEliminando(false)
-            if (ok) setPorEliminar(null)
+            if (ok) {
+              setPorEliminar(null)
+              sel.limpiar()
+            }
           }}
         />
       )}

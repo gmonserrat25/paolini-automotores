@@ -47,9 +47,15 @@ export async function agregarAutos(cargas) {
   return nuevos
 }
 
-export async function eliminarAuto(id) {
-  if (DEMO) return (await import('./demo')).eliminarDemo(id)
-  await pedir(`/api/autos?id=${id}`, { method: 'DELETE' })
+/* Borra uno o varios autos (con sus fotos). De a 100 por pedido. */
+export async function eliminarAutos(ids) {
+  if (DEMO) {
+    const { eliminarDemo } = await import('./demo')
+    return ids.forEach(eliminarDemo)
+  }
+  for (let i = 0; i < ids.length; i += 100) {
+    await pedir(`/api/autos?ids=${ids.slice(i, i + 100).join(',')}`, { method: 'DELETE' })
+  }
 }
 
 export async function cambiarEstadoAuto(id, estado) {
