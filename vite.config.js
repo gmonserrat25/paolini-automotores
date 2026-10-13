@@ -34,4 +34,7 @@ function reconocerLocal(env) {
 // El sitio se publica en Vercel, en la raíz de https://paoliniautomotores.com/.
 export default defineConfig(({ mode }) => ({
   plugins: [react(), reconocerLocal(loadEnv(mode, process.cwd(), ''))],
+  /* Con API_LOCAL=http://localhost:3001 el servidor de desarrollo manda /api a
+     otro proceso que corre las funciones (en Vercel no hace falta). */
+  server: process.env.API_LOCAL ? { proxy: { '/api': process.env.API_LOCAL } } : undefined,
 }))
