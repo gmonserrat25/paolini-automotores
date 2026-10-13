@@ -5,7 +5,7 @@ import { asset } from './asset'
 /* El catálogo del sitio público: los autos que cargan los dueños desde el
    panel (/panel). Se leen en vivo de GET /api/autos (api/autos.js), así que un
    Excel nuevo aparece en la página sin publicar nada (la respuesta se
-   refresca sola cada medio minuto).
+   refresca sola cada pocos segundos).
 
    Esa respuesta es pública y sólo trae lo que ya se ve en la tarjeta: sin
    patente y sin los autos vendidos. */
