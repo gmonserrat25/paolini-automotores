@@ -12,8 +12,8 @@ import { IconoCarga } from './icons'
 
 const METODO = {
   patente: { texto: 'Por patente', revisar: false },
-  'patente dudosa': { texto: 'Patente con una letra distinta', revisar: true },
-  'modelo y color': { texto: 'Por modelo y color', revisar: true },
+  'patente dudosa': { texto: 'La patente de la foto no coincide del todo con el Excel', revisar: true },
+  'modelo y color': { texto: 'No se leyó la patente: coincide por modelo y color', revisar: true },
   manual: { texto: 'Asignado a mano', revisar: false },
 }
 
@@ -164,15 +164,20 @@ export default function CargaAutos({ stock, onAgregar }) {
     () => items.filter((i) => cruces[i.id]?.fila && !cargadas.has(normPatente(cruces[i.id].fila.patente))),
     [items, cruces, cargadas],
   )
+  /* Sólo se carga sola la foto cuya patente coincide exacto con el Excel. Si
+     la IA dudó (una letra distinta, patente ilegible), queda en la lista para
+     que alguien la revise: así se nota cuando algo no cuadra. */
+  const segura = (i) => cruces[i.id]?.metodo === 'patente'
+  const dudosas = items.filter((i) => cruces[i.id]?.fila && !segura(i) && cruces[i.id].metodo !== 'manual')
   const yaCargadas = items.filter((i) => cruces[i.id]?.fila && cargadas.has(normPatente(cruces[i.id].fila.patente)))
 
   const leyendo = items.some((i) => i.estado === 'leyendo')
 
-  /* Cuando ya se leyeron todas las fotos y hay Excel, lo que quedó cruzado se
-     carga sin pedir nada. */
+  /* Cuando ya se leyeron todas las fotos y hay Excel, lo que cruzó con
+     seguridad se carga sin pedir nada. */
   useEffect(() => {
     if (leyendo || guardando || !filas.length) return
-    const aCargar = listas.filter((i) => !intentadas.current.has(i.id))
+    const aCargar = listas.filter((i) => segura(i) && !intentadas.current.has(i.id))
     if (!aCargar.length) return
     aCargar.forEach((i) => intentadas.current.add(i.id))
     setGuardando(true)
@@ -184,6 +189,7 @@ export default function CargaAutos({ stock, onAgregar }) {
         setItems((a) => a.filter((i) => !aCargar.includes(i)))
       },
     )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [leyendo, guardando, filas, listas, cruces, onAgregar])
 
   async function recibir(archivos) {
@@ -260,9 +266,9 @@ export default function CargaAutos({ stock, onAgregar }) {
               Carga de autos
             </h2>
             <p className="mt-1 text-sm text-white/60">
-              Subí las fotos y el Excel juntos y listo: cada foto se reconoce sola por la patente (o, si la chapa no
-              se ve, por marca, modelo y color) y el auto entra al stock sin que hagas nada. Sólo te va a pedir ayuda
-              con las fotos que no pueda reconocer.
+              Subí las fotos y el Excel juntos: cada foto se reconoce sola por la patente y, si coincide exacto con
+              el Excel, el auto entra al stock sin que hagas nada. Si la IA tiene alguna duda (una letra de la patente
+              distinta, una chapa que no se lee), la foto queda marcada para que la revises vos antes de cargarla.
             </p>
           </div>
           <Boton primario onClick={() => entrada.current?.click()}>
@@ -308,13 +314,20 @@ export default function CargaAutos({ stock, onAgregar }) {
         <section aria-label="Fotos para cargar" className="p-card p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h3 className="font-jost text-lg font-medium">
-              {leyendo ? 'Reconociendo fotos…' : 'Para asignar a mano'}{' '}
+              {leyendo ? 'Reconociendo fotos…' : 'Para revisar'}{' '}
               <span className="text-white/60">· {items.length}</span>
             </h3>
             <Boton primario disabled={!listas.length || guardando} onClick={confirmar}>
               {guardando ? 'Cargando…' : `Agregar ${listas.length} al stock`}
             </Boton>
           </div>
+          {!leyendo && dudosas.length > 0 && (
+            <p role="status" className="mt-3 rounded-xl border border-[#E0323F]/40 px-4 py-3 text-sm text-white/80">
+              {dudosas.length === 1 ? 'Hay 1 foto' : `Hay ${dudosas.length} fotos`} que la IA no pudo confirmar.
+              Revisá que la foto y el auto del Excel sean los correctos: si lo son, tocá «Agregar»; si no, elegí
+              otro auto del Excel o quitá la foto.
+            </p>
+          )}
           <ul className="mt-3">
             {items.map((i) => (
               <FilaCarga
