@@ -47,6 +47,7 @@ function aVehiculo(a) {
     tag: a.precio ? pesos.format(a.precio) : 'A consultar',
     specs: [a.combustible],
     image: a.foto ?? asset('/ig/logo-paolini.svg'),
+    fotos: a.fotos?.length ? a.fotos : [a.foto].filter(Boolean),
   }
 }
 

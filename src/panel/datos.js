@@ -27,21 +27,38 @@ export async function listarAutos() {
   }
 }
 
-/* Crea cada auto con su foto (achicada). `cargas` es una lista de
-   { fila, archivo, metodo } con la fila del Excel y el archivo de la foto. */
+/* Crea cada auto con todas sus fotos (achicadas). `cargas` es una lista de
+   { fila, archivos, metodo } con la fila del Excel y los archivos de sus fotos,
+   la portada primero. La portada va con el auto y las demás se suman de a una
+   (un pedido no admite varias fotos juntas); si alguna falla el auto queda
+   creado con las que subieron y el error lo cuenta. */
 export async function agregarAutos(cargas) {
   if (DEMO) return (await import('./demo')).agregarDemo(cargas)
   const nuevos = []
-  for (const { fila, archivo, metodo } of cargas) {
+  for (const { fila, archivos, metodo } of cargas) {
+    let auto
     try {
-      nuevos.push(
-        await pedir('/api/autos', {
-          method: 'POST',
-          body: JSON.stringify({ ...fila, metodo, foto: await achicar(archivo, 1600, 'url') }),
-        }),
-      )
+      auto = await pedir('/api/autos', {
+        method: 'POST',
+        body: JSON.stringify({ ...fila, metodo, foto: await achicar(archivos[0], 1600, 'url') }),
+      })
     } catch (e) {
       throw new Error(`${fila.patente}: ${e.message}`)
+    }
+    let fallidas = 0
+    for (const archivo of archivos.slice(1)) {
+      try {
+        auto = await pedir(`/api/autos?id=${auto.id}`, {
+          method: 'POST',
+          body: JSON.stringify({ foto: await achicar(archivo, 1600, 'url') }),
+        })
+      } catch {
+        fallidas += 1
+      }
+    }
+    nuevos.push(auto)
+    if (fallidas) {
+      throw new Error(`${fila.patente}: se cargó el auto pero ${fallidas} de sus fotos no subieron`)
     }
   }
   return nuevos

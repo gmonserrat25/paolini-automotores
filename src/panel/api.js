@@ -90,6 +90,7 @@ function armarUnidad(a) {
     tag: `${a.anio ?? '—'} · ${(a.km ?? 0).toLocaleString('es-AR')} km`,
     specs: [a.combustible],
     image: a.foto,
+    fotos: a.fotos?.length ? a.fotos : [a.foto],
     patente: a.patente,
     color: a.color,
     condicion: 'usado',

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import BrandLogo from '../components/BrandLogos'
 import { pesos } from './calculos'
-import { cruzar, leerExcel, normPatente, reconocerFoto } from './carga'
+import { agruparFotos, cruzar, leerExcel, normPatente, reconocerFoto } from './carga'
 import ConfirmarEliminar from './ConfirmarEliminar'
 import { IconoCarga } from './icons'
 import { AccionesFila, BarraSeleccion, Casilla, useSeleccion } from './seleccion'
@@ -22,6 +22,8 @@ const METODO = {
   },
   manual: { texto: 'Asignado a mano', revisar: false },
 }
+
+const MAX_MINIATURAS = 6
 
 const esExcel = (a) => /\.xlsx$/i.test(a.name)
 const esFoto = (a) => a.type.startsWith('image/')
@@ -52,12 +54,22 @@ function Dato({ etiqueta, children }) {
   )
 }
 
-function FilaCarga({ item, asignado, metodo, libres, onElegir, onQuitar }) {
+function FilaCarga({ grupo, libres, leyendoGrupo, onElegir, onQuitar }) {
+  const { fila: asignado, metodo, items } = grupo
   const m = metodo && METODO[metodo]
-  const leyendo = item.estado === 'leyendo'
+  const portada = items[0]
+  const vistas = items.map((i) => i.visto?.patente).filter(Boolean)
+  const id = portada.id
   return (
     <li className="grid grid-cols-[72px_1fr] gap-x-4 gap-y-3 rounded-2xl px-3 py-3 hover:bg-white/[0.03] md:grid-cols-[72px_1.3fr_2fr_auto]">
-      <img src={item.url} alt="" className="h-14 w-[72px] rounded-lg object-cover" />
+      <div className="relative">
+        <img src={portada.url} alt="" className="h-14 w-[72px] rounded-lg object-cover" />
+        {items.length > 1 && (
+          <span className="absolute -bottom-1.5 -right-1.5 rounded-full border border-white/[0.15] bg-[#0B0B0C] px-1.5 text-[11px] tabular-nums text-white/80">
+            {items.length}
+          </span>
+        )}
+      </div>
 
       <div className="min-w-0">
         {asignado ? (
@@ -69,10 +81,11 @@ function FilaCarga({ item, asignado, metodo, libres, onElegir, onQuitar }) {
             <p className="truncate text-sm font-medium">{asignado.modelo}</p>
           </>
         ) : (
-          <p className="text-sm text-white/60">{leyendo ? 'Leyendo la foto…' : 'Sin asignar'}</p>
+          <p className="text-sm text-white/60">{leyendoGrupo ? 'Leyendo la foto…' : 'Sin asignar'}</p>
         )}
         <p className="mt-0.5 text-xs text-white/60">
-          {item.visto?.patente ? `En la foto: ${item.visto.patente}` : leyendo ? '' : 'Chapa no legible'}
+          {items.length > 1 ? `${items.length} fotos · ` : ''}
+          {vistas.length ? `En la foto: ${vistas[0]}` : leyendoGrupo ? '' : 'Chapa no legible'}
         </p>
       </div>
 
@@ -100,13 +113,13 @@ function FilaCarga({ item, asignado, metodo, libres, onElegir, onQuitar }) {
             {m.texto}
           </span>
         )}
-        <label className="sr-only" htmlFor={`sel-${item.id}`}>
-          Elegir el auto del Excel para esta foto
+        <label className="sr-only" htmlFor={`sel-${id}`}>
+          Elegir el auto del Excel para {items.length > 1 ? 'estas fotos' : 'esta foto'}
         </label>
         <select
-          id={`sel-${item.id}`}
+          id={`sel-${id}`}
           value={asignado?.patente ?? ''}
-          onChange={(e) => onElegir(item.id, e.target.value)}
+          onChange={(e) => onElegir(items, e.target.value)}
           className="max-w-[180px] rounded-full border border-white/[0.1] bg-[#0B0B0C] px-3 py-1.5 text-xs text-white/80 focus:border-white/30 focus:outline-none"
         >
           <option value="">{asignado ? 'Quitar asignación' : 'Elegir del Excel…'}</option>
@@ -117,14 +130,46 @@ function FilaCarga({ item, asignado, metodo, libres, onElegir, onQuitar }) {
             </option>
           ))}
         </select>
-        <button
-          type="button"
-          onClick={() => onQuitar(item.id)}
-          className="rounded-full px-2.5 py-1 text-xs text-white/60 transition-colors hover:text-white"
-        >
-          Quitar
-        </button>
+        {items.length === 1 && (
+          <button
+            type="button"
+            onClick={() => onQuitar([id])}
+            className="rounded-full px-2.5 py-1 text-xs text-white/60 transition-colors hover:text-white"
+          >
+            Quitar
+          </button>
+        )}
       </div>
+
+      {items.length > 1 && (
+        <ul className="col-span-2 flex flex-wrap gap-2 md:col-span-4 md:pl-[88px]" aria-label="Fotos de este auto">
+          {items.slice(0, MAX_MINIATURAS).map((i) => (
+            <li key={i.id} className="group relative">
+              <img src={i.url} alt="" className="h-10 w-14 rounded-md object-cover" />
+              <button
+                type="button"
+                onClick={() => onQuitar([i.id])}
+                aria-label="Quitar esta foto"
+                className="absolute -right-1.5 -top-1.5 hidden h-4 w-4 items-center justify-center rounded-full bg-[#0B0B0C] text-[11px] leading-none text-white/80 ring-1 ring-white/20 hover:text-white group-hover:flex focus-visible:flex"
+              >
+                ×
+              </button>
+            </li>
+          ))}
+          {items.length > MAX_MINIATURAS && (
+            <li className="flex h-10 items-center px-2 text-xs text-white/60">+{items.length - MAX_MINIATURAS}</li>
+          )}
+          <li className="flex h-10 items-center pl-1">
+            <button
+              type="button"
+              onClick={() => onQuitar(items.map((i) => i.id))}
+              className="rounded-full px-2.5 py-1 text-xs text-white/60 transition-colors hover:text-white"
+            >
+              Quitar todas
+            </button>
+          </li>
+        </ul>
+      )}
     </li>
   )
 }
@@ -152,38 +197,43 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
 
   const cargadas = useMemo(() => new Set(stock.filter((u) => u.patente).map((u) => normPatente(u.patente))), [stock])
 
-  /* Cada foto con su auto del Excel. Primero se respeta lo que se eligió a
-     mano; después se cruza el resto, sin repetir patentes. */
+  /* Cada foto con su auto del Excel: lo que se eligió a mano manda y el resto
+     se cruza foto por foto. Las fotos de un mismo auto cruzan con la misma
+     fila: después se juntan en un solo grupo. */
   const cruces = useMemo(() => {
-    const usadas = new Set(items.filter((i) => i.manual).map((i) => i.manual))
     const out = {}
     for (const i of items) {
       if (i.manual) {
         out[i.id] = { fila: filas.find((f) => f.patente === i.manual) ?? null, metodo: 'manual' }
+      } else if (filas.length && i.visto) {
+        out[i.id] = cruzar(i.visto, filas, new Set())
       }
-    }
-    for (const i of items) {
-      if (i.manual || !filas.length || !i.visto) continue
-      const c = cruzar(i.visto, filas, usadas)
-      if (c.fila) usadas.add(c.fila.patente)
-      out[i.id] = c
     }
     return out
   }, [items, filas])
 
-  const asignadas = new Set(Object.values(cruces).flatMap((c) => (c.fila ? [c.fila.patente] : [])))
+  /* Un grupo por auto, con todas sus fotos (la portada primero). */
+  const grupos = useMemo(() => agruparFotos(items, cruces), [items, cruces])
+
+  const asignadas = new Set(grupos.flatMap((g) => (g.fila ? [g.fila.patente] : [])))
   const libres = filas.filter((f) => !asignadas.has(f.patente))
-  const listas = useMemo(
-    () => items.filter((i) => cruces[i.id]?.fila && !cargadas.has(normPatente(cruces[i.id].fila.patente))),
-    [items, cruces, cargadas],
-  )
-  /* Se carga sola la foto cuya patente coincide exacto con el Excel o, si la
-     chapa no se lee, la que cruza sin dudas por modelo y color. Si la IA dudó
+  const yaEstaCargado = (g) => g.fila && cargadas.has(normPatente(g.fila.patente))
+  const listas = grupos.filter((g) => g.fila && !yaEstaCargado(g))
+  /* Se carga solo el auto cuya patente coincide exacto con el Excel o, si la
+     chapa no se lee, el que cruza sin dudas por modelo y color. Si la IA dudó
      (una letra distinta, una patente que no coincide con nada), queda en la
      lista para que alguien la revise: así se nota cuando algo no cuadra. */
-  const segura = (i) => ['patente', 'modelo y color'].includes(cruces[i.id]?.metodo)
-  const dudosas = items.filter((i) => cruces[i.id]?.fila && !segura(i) && cruces[i.id].metodo !== 'manual')
-  const yaCargadas = items.filter((i) => cruces[i.id]?.fila && cargadas.has(normPatente(cruces[i.id].fila.patente)))
+  const segura = (g) => ['patente', 'modelo y color', 'manual'].includes(g.metodo)
+  const dudosas = listas.filter((g) => !segura(g))
+  const yaCargadas = useMemo(
+    () =>
+      grupos
+        .filter((g) => g.fila && cargadas.has(normPatente(g.fila.patente)))
+        .flatMap((g) => g.items.map((i) => i.id)),
+    [grupos, cargadas],
+  )
+  const claveDe = (g) => `${g.fila.patente}:${g.items.map((i) => i.id).join(',')}`
+  const pedido = (g) => ({ fila: g.fila, archivos: g.items.map((i) => i.archivo), metodo: g.metodo })
 
   const leyendo = items.some((i) => i.estado === 'leyendo')
 
@@ -192,27 +242,26 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
   useEffect(() => {
     if (leyendo || !yaCargadas.length) return
     setRepetidas((n) => n + yaCargadas.length)
-    setItems((a) => a.filter((i) => !yaCargadas.includes(i)))
+    setItems((a) => a.filter((i) => !yaCargadas.includes(i.id)))
   }, [leyendo, yaCargadas])
 
   /* Cuando ya se leyeron todas las fotos y hay Excel, lo que cruzó con
      seguridad se carga sin pedir nada. */
   useEffect(() => {
     if (leyendo || guardando || !filas.length) return
-    const aCargar = listas.filter((i) => segura(i) && !intentadas.current.has(i.id))
+    const aCargar = listas.filter((g) => segura(g) && !intentadas.current.has(claveDe(g)))
     if (!aCargar.length) return
-    aCargar.forEach((i) => intentadas.current.add(i.id))
+    aCargar.forEach((g) => intentadas.current.add(claveDe(g)))
     setGuardando(true)
-    onAgregar(aCargar.map((i) => ({ fila: cruces[i.id].fila, archivo: i.archivo, metodo: cruces[i.id].metodo }))).then(
-      (ok) => {
-        setGuardando(false)
-        if (!ok) return
-        setCargadasSolas((n) => n + aCargar.length)
-        setItems((a) => a.filter((i) => !aCargar.includes(i)))
-      },
-    )
+    onAgregar(aCargar.map(pedido)).then((ok) => {
+      setGuardando(false)
+      if (!ok) return
+      const idas = new Set(aCargar.flatMap((g) => g.items.map((i) => i.id)))
+      setCargadasSolas((n) => n + aCargar.length)
+      setItems((a) => a.filter((i) => !idas.has(i.id)))
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [leyendo, guardando, filas, listas, cruces, onAgregar])
+  }, [leyendo, guardando, filas, listas, onAgregar])
 
   /* Vacía la pantalla (fotos, Excel y avisos) para arrancar otra tanda. No toca
      los autos que ya están en el stock. */
@@ -269,17 +318,21 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
     }
   }
 
-  const elegir = (id, patente) =>
-    setItems((a) => a.map((i) => (i.id === id ? { ...i, manual: patente || null, visto: i.visto ?? {} } : i)))
-  const quitar = (id) => setItems((a) => a.filter((i) => i.id !== id))
+  /* Elegir el auto del Excel vale para todas las fotos del grupo. */
+  const elegir = (fotos, patente) => {
+    const ids = new Set(fotos.map((i) => i.id))
+    setItems((a) => a.map((i) => (ids.has(i.id) ? { ...i, manual: patente || null, visto: i.visto ?? {} } : i)))
+  }
+  const quitar = (ids) => setItems((a) => a.filter((i) => !ids.includes(i.id)))
 
   async function confirmar() {
     setGuardando(true)
-    const ok = await onAgregar(
-      listas.map((i) => ({ fila: cruces[i.id].fila, archivo: i.archivo, metodo: cruces[i.id].metodo })),
-    )
+    const ok = await onAgregar(listas.map(pedido))
     setGuardando(false)
-    if (ok) setItems((a) => a.filter((i) => !listas.includes(i)))
+    if (ok) {
+      const idas = new Set(listas.flatMap((g) => g.items.map((i) => i.id)))
+      setItems((a) => a.filter((i) => !idas.has(i.id)))
+    }
   }
 
   const enStock = stock.filter((u) => u.patente)
@@ -357,8 +410,9 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
               Carga de autos
             </h2>
             <p className="mt-1 text-sm text-white/60">
-              Subí las fotos y el Excel juntos: cada foto se reconoce sola por la patente y, si coincide exacto con
-              el Excel, el auto entra al stock sin que hagas nada. Si la chapa no se lee, se busca por modelo y
+              Subí las fotos y el Excel juntos, sin ordenar por carpeta: cada foto se reconoce sola por la patente y
+              las de un mismo auto se juntan en una sola publicación. Si coincide exacto con el Excel, el auto entra
+              al stock sin que hagas nada. Si la chapa no se lee, se busca por modelo y
               color. Si la IA tiene alguna duda (una letra de la patente distinta), la foto queda marcada para que la
               revises vos antes de cargarla.
             </p>
@@ -400,7 +454,7 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
         )}
         {cargadasSolas > 0 && (
           <p role="status" className="mt-3 text-sm text-white/80">
-            {cargadasSolas} {cargadasSolas === 1 ? 'auto cargado' : 'autos cargados'} solos al stock.
+            {cargadasSolas} {cargadasSolas === 1 ? 'auto cargado' : 'autos cargados'} solos al stock, cada uno con todas sus fotos.
           </p>
         )}
         {repetidas > 0 && (
@@ -429,18 +483,17 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
           </div>
           {!leyendo && dudosas.length > 0 && (
             <p role="status" className="mt-3 rounded-xl border border-[#E0323F]/40 px-4 py-3 text-sm text-white/80">
-              {dudosas.length === 1 ? 'Hay 1 foto' : `Hay ${dudosas.length} fotos`} que la IA no pudo confirmar.
+              {dudosas.length === 1 ? 'Hay 1 auto' : `Hay ${dudosas.length} autos`} que la IA no pudo confirmar.
               Revisá que la foto y el auto del Excel sean los correctos: si lo son, tocá «Agregar»; si no, elegí
               otro auto del Excel o quitá la foto.
             </p>
           )}
           <ul className="mt-3">
-            {items.map((i) => (
+            {grupos.map((g) => (
               <FilaCarga
-                key={i.id}
-                item={i}
-                asignado={cruces[i.id]?.fila}
-                metodo={cruces[i.id]?.metodo}
+                key={g.clave}
+                grupo={g}
+                leyendoGrupo={g.items.some((i) => i.estado === 'leyendo')}
                 libres={libres}
                 onElegir={elegir}
                 onQuitar={quitar}

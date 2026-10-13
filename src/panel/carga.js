@@ -130,6 +130,64 @@ export function cruzar(visto, filas, usadas) {
   return { fila: null, metodo: null }
 }
 
+/* Qué tan buena es una foto como portada: el frente del auto primero, el
+   interior y el motor al final. */
+const PORTADA = { frente: 0, lateral: 1, trasera: 2, otra: 3, interior: 4, motor: 5 }
+const rangoPortada = (visto) => PORTADA[visto?.vista] ?? 3
+
+/* De más a menos seguro: el grupo toma el mejor método de sus fotos. */
+const SEGURIDAD = ['manual', 'patente', 'modelo y color', 'patente dudosa', 'modelo y color dudoso']
+
+/* Las fotos vienen mezcladas, de a una. Junta las de cada auto en un solo
+   grupo: las que cruzaron con la misma fila del Excel (por patente, modelo y
+   color, o porque se eligió a mano) van juntas. Las que no dicen nada del auto
+   (un interior, el motor) se pegan por orden de captura —nombre de archivo y
+   hora— sólo si la foto de antes y la de después son del mismo auto (o si
+   están al principio o al final de la tanda y hay un solo vecino); si cambian
+   de auto justo ahí, no se adivina y quedan sueltas para asignar a mano.
+
+   `cruces` es { [item.id]: { fila, metodo } }. Devuelve [{ clave, fila,
+   metodo, items }] con las fotos de cada grupo ya ordenadas (portada primero) y
+   las sueltas como grupos de una foto con fila null. */
+export function agruparFotos(items, cruces) {
+  const orden = [...items].sort(
+    (a, b) =>
+      (a.archivo?.lastModified ?? 0) - (b.archivo?.lastModified ?? 0) ||
+      (a.archivo?.name ?? '').localeCompare(b.archivo?.name ?? '', undefined, { numeric: true }),
+  )
+  const directa = (i) => cruces[i.id]?.fila?.patente ?? null
+  const patenteDe = {}
+  orden.forEach((i, n) => {
+    patenteDe[i.id] = directa(i)
+    if (patenteDe[i.id] || i.estado !== 'listo' || i.visto?.patente) return
+    const antes = orden.slice(0, n).reverse().find(directa)
+    const despues = orden.slice(n + 1).find(directa)
+    if (antes && despues ? directa(antes) === directa(despues) : antes || despues) {
+      patenteDe[i.id] = directa(antes ?? despues)
+    }
+  })
+
+  const grupos = new Map()
+  for (const [n, i] of orden.entries()) {
+    const patente = patenteDe[i.id]
+    const clave = patente ?? `suelta-${i.id}`
+    if (!grupos.has(clave)) grupos.set(clave, { clave, fila: null, metodo: null, items: [] })
+    const g = grupos.get(clave)
+    g.items.push({ ...i, orden: n })
+    if (patente) {
+      const c = directa(i) ? cruces[i.id] : null
+      if (c) {
+        g.fila ??= c.fila
+        if (g.metodo == null || SEGURIDAD.indexOf(c.metodo) < SEGURIDAD.indexOf(g.metodo)) g.metodo = c.metodo
+      }
+    }
+  }
+  for (const g of grupos.values()) {
+    g.items.sort((a, b) => rangoPortada(a.visto) - rangoPortada(b.visto) || a.orden - b.orden)
+  }
+  return [...grupos.values()]
+}
+
 /* Achica la foto antes de mandarla: una del celular pesa varios MB y para leer
    la chapa alcanzan 1600 px. */
 export async function achicar(archivo, lado = 1600, formato = 'url') {

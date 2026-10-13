@@ -2,7 +2,8 @@
 
    GET            público: lo que muestra el sitio (sin patente, sin vendidos).
    GET ?vista=panel   con sesión: todos, con todos los datos.
-   POST           con sesión: crea un auto con su foto (la sube a Vercel Blob).
+   POST           con sesión: crea un auto con su foto de portada (la sube a Vercel Blob).
+   POST ?id=      con sesión: suma otra foto a un auto ya creado ({ foto }; una por pedido).
    PATCH ?id=     con sesión: edita los datos del auto (y su estado).
    DELETE ?id=    con sesión: borra el auto y su foto.
    DELETE ?ids=a,b,c  con sesión: borra varios autos y sus fotos de una vez (hasta 100).
@@ -17,7 +18,13 @@ const MAX_LOTE = 100
 const FOTO_MAX = 2_500_000 // caracteres del data URL (~1,8 MB de imagen)
 
 /* bigint llega como texto: se pasa a número para el navegador. */
-const fila = (a) => ({ ...a, precio: a.precio == null ? null : Number(a.precio) })
+const fila = (a) => ({
+  ...a,
+  precio: a.precio == null ? null : Number(a.precio),
+  fotos: a.fotos?.length ? a.fotos : a.foto_url ? [a.foto_url] : [],
+})
+const FOTOS_MAX = 20 // fotos por auto
+const esFoto = (f) => typeof f === 'string' && f.startsWith('data:image/jpeg;base64,') && f.length <= FOTO_MAX
 
 const texto = (v, max) => (typeof v === 'string' && v.trim() && v.trim().length <= max ? v.trim() : null)
 const entero = (v, min, max) => (Number.isInteger(v) && v >= min && v <= max ? v : null)
@@ -37,7 +44,7 @@ export default async function handler(req, res) {
        stale-while-revalidate: no se sirve nunca una lista vieja. */
     res.setHeader('Cache-Control', 'public, s-maxage=5')
     const autos = await sql`
-      select id, marca, modelo, tipo, combustible, anio, km, precio, estado, foto_url as foto
+      select id, marca, modelo, tipo, combustible, anio, km, precio, estado, foto_url as foto, fotos
       from autos where estado <> 'vendido' order by creado asc`
     return res.status(200).json(autos.map(fila))
   }
@@ -45,13 +52,39 @@ export default async function handler(req, res) {
   if (!exigirSesion(req, res)) return
   res.setHeader('Cache-Control', 'no-store')
 
+  /* Suma una foto más a un auto que ya existe (el panel las manda de a una
+     porque un pedido no admite varias fotos juntas). */
+  if (req.method === 'POST' && req.query.id != null) {
+    const id = String(req.query.id)
+    if (!UUID.test(id)) return res.status(400).json({ error: 'Falta el id' })
+    if (!esFoto(req.body?.foto)) return res.status(400).json({ error: 'La foto tiene que ser un JPG de menos de 1,8 MB' })
+    const [actual] = await sql`select * from autos where id = ${id}`
+    if (!actual) return res.status(404).json({ error: 'No existe ese auto' })
+    const previas = fila(actual).fotos
+    if (previas.length >= FOTOS_MAX) return res.status(400).json({ error: `Un auto admite hasta ${FOTOS_MAX} fotos` })
+    const foto = await put(`autos/${actual.patente.replace(/[^A-Z0-9]/gi, '').toLowerCase()}.jpg`, Buffer.from(req.body.foto.split(',')[1], 'base64'), {
+      access: 'public',
+      contentType: 'image/jpeg',
+      addRandomSuffix: true,
+    })
+    try {
+      /* Si el auto era de antes de las galerías, su foto única pasa primero. */
+      const [auto] = await sql`
+        update autos set fotos = ${JSON.stringify([...previas, foto.url])}::jsonb where id = ${id} returning *`
+      return res.status(201).json({ ...fila(auto), foto: auto.foto_url })
+    } catch (e) {
+      await del(foto.url).catch(() => {})
+      throw e
+    }
+  }
+
   if (req.method === 'POST') {
     const b = req.body ?? {}
     const patente = texto(b.patente, 12)?.toUpperCase()
     const marca = texto(b.marca, 60)
     const modelo = texto(b.modelo, 80)
     if (!patente || !marca || !modelo) return res.status(400).json({ error: 'Faltan patente, marca o modelo' })
-    if (typeof b.foto !== 'string' || !b.foto.startsWith('data:image/jpeg;base64,') || b.foto.length > FOTO_MAX) {
+    if (!esFoto(b.foto)) {
       return res.status(400).json({ error: 'La foto tiene que ser un JPG de menos de 1,8 MB' })
     }
 
@@ -67,10 +100,10 @@ export default async function handler(req, res) {
     })
     try {
       const [auto] = await sql`
-        insert into autos (patente, marca, modelo, tipo, combustible, color, anio, km, precio, foto_url, reconocido_por)
+        insert into autos (patente, marca, modelo, tipo, combustible, color, anio, km, precio, foto_url, fotos, reconocido_por)
         values (${patente}, ${marca}, ${modelo}, ${texto(b.tipo, 40) ?? 'Auto'}, ${texto(b.combustible, 40) ?? 'Nafta'},
                 ${texto(b.color, 40)}, ${entero(b.anio, 1950, 2100)}, ${entero(b.km, 0, 5_000_000)},
-                ${entero(b.precio, 0, 1_000_000_000_000)}, ${foto.url}, ${texto(b.metodo, 40)})
+                ${entero(b.precio, 0, 1_000_000_000_000)}, ${foto.url}, ${JSON.stringify([foto.url])}::jsonb, ${texto(b.metodo, 40)})
         returning *`
       return res.status(201).json({ ...fila(auto), foto: auto.foto_url })
     } catch (e) {
@@ -99,8 +132,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: `Pasá entre 1 y ${MAX_LOTE} ids válidos` })
     }
     const borrados = await sql`
-      delete from autos where id = any(string_to_array(${ids.join(',')}, ',')::uuid[]) returning foto_url`
-    const fotos = borrados.map((a) => a.foto_url).filter(Boolean)
+      delete from autos where id = any(string_to_array(${ids.join(',')}, ',')::uuid[]) returning foto_url, fotos`
+    const fotos = [...new Set(borrados.flatMap((a) => [a.foto_url, ...(a.fotos ?? [])]).filter(Boolean))]
     if (fotos.length) await del(fotos).catch(() => {})
     return res.status(200).json({ borrados: borrados.length })
   }
@@ -153,11 +186,12 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'DELETE') {
-    const [auto] = await sql`delete from autos where id = ${id} returning foto_url`
+    const [auto] = await sql`delete from autos where id = ${id} returning foto_url, fotos`
     if (!auto) return res.status(404).json({ error: 'No existe ese auto' })
     /* La fila se borra primero: si fallara sólo el borrado de la foto, el auto
        igual queda eliminado y la foto sobrante no se ve en ningún lado. */
-    if (auto.foto_url) await del(auto.foto_url).catch(() => {})
+    const fotos = [...new Set([auto.foto_url, ...(auto.fotos ?? [])].filter(Boolean))]
+    if (fotos.length) await del(fotos).catch(() => {})
     return res.status(204).end()
   }
 

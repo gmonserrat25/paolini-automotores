@@ -15,7 +15,7 @@ const autos = []
 export const listarDemo = () => autos.map((a) => ({ ...a }))
 
 export function agregarDemo(cargas) {
-  return cargas.map(({ fila, archivo, metodo }) => {
+  return cargas.map(({ fila, archivos, metodo }) => {
     if (autos.some((a) => rutaDe(a.patente) === rutaDe(fila.patente))) {
       throw new Error(`La patente ${fila.patente} ya está cargada`)
     }
@@ -32,7 +32,8 @@ export function agregarDemo(cargas) {
       precio: fila.precio,
       estado: 'disponible',
       foto_path: rutaDe(fila.patente),
-      foto: URL.createObjectURL(archivo),
+      foto: URL.createObjectURL(archivos[0]),
+      fotos: archivos.map((a) => URL.createObjectURL(a)),
       reconocido_por: metodo,
     }
     autos.push(auto)

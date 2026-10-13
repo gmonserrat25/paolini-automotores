@@ -75,6 +75,9 @@ export default function FichaAuto({ unidad, empezarEditando = false, onCerrar, o
   const [form, setForm] = useState(() => ({ ...inicial(unidad.ficha), estado: unidad.estado }))
   const [error, setError] = useState(null)
   const [guardando, setGuardando] = useState(false)
+  const [actual, setActual] = useState(0)
+  const fotos = unidad.fotos?.length ? unidad.fotos : [unidad.image]
+  const foto = fotos[actual] ?? fotos[0]
 
   useEffect(() => {
     const d = ref.current
@@ -137,10 +140,27 @@ export default function FichaAuto({ unidad, empezarEditando = false, onCerrar, o
       className="m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-2xl overflow-y-auto rounded-2xl border border-white/[0.1] bg-[#0B0B0C] text-white backdrop:bg-black/70"
     >
       <img
-        src={unidad.image}
+        src={foto}
         alt={`${unidad.brand} ${unidad.model}`}
         className={`aspect-[16/9] w-full object-cover ${unidad.estado === 'vendido' ? 'opacity-60' : ''}`}
       />
+      {fotos.length > 1 && (
+        <ul className="flex gap-2 overflow-x-auto px-6 pt-4" aria-label="Fotos del auto">
+          {fotos.map((f, n) => (
+            <li key={f} className="shrink-0">
+              <button
+                type="button"
+                onClick={() => setActual(n)}
+                aria-label={`Ver la foto ${n + 1} de ${fotos.length}`}
+                aria-current={f === foto}
+                className={`block overflow-hidden rounded-md ring-1 transition-opacity ${f === foto ? 'ring-white/60' : 'opacity-60 ring-white/10 hover:opacity-100'}`}
+              >
+                <img src={f} alt="" loading="lazy" className="h-12 w-[72px] object-cover" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
 
       <div className="p-6">
         <p className="flex items-center gap-1.5 text-xs text-white/60">

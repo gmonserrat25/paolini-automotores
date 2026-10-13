@@ -40,6 +40,9 @@ export function esquema() {
       reconocido_por text,
       creado         timestamptz not null default now()
     )`
+    /* Todas las fotos del auto (la primera es la portada y es la misma que
+       foto_url). Los autos viejos la tienen vacía: ahí vale foto_url. */
+    await sql`alter table autos add column if not exists fotos jsonb not null default '[]'`
     /* La patente es única sin importar espacios ni mayúsculas ("AF 459 VG" y
        "af459vg" son el mismo auto). */
     await sql`create unique index if not exists autos_patente_norm
