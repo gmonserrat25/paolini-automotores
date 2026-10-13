@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import BrandLogo from '../components/BrandLogos'
 import { pesos } from './calculos'
+import ConfirmarEliminar from './ConfirmarEliminar'
 import { ESTADOS, ESTADO_LABEL } from './mock'
 
 /* La ficha de un auto: sus especificaciones en una tarjeta y, desde ahí mismo,
@@ -66,9 +67,11 @@ function Lista({ id, label, valor, opciones, etiquetas = {}, onChange }) {
   )
 }
 
-export default function FichaAuto({ unidad, onCerrar, onGuardar }) {
+export default function FichaAuto({ unidad, empezarEditando = false, onCerrar, onGuardar, onEliminar }) {
   const ref = useRef(null)
-  const [editando, setEditando] = useState(false)
+  const [editando, setEditando] = useState(empezarEditando)
+  const [confirmando, setConfirmando] = useState(false)
+  const [eliminando, setEliminando] = useState(false)
   const [form, setForm] = useState(() => ({ ...inicial(unidad.ficha), estado: unidad.estado }))
   const [error, setError] = useState(null)
   const [guardando, setGuardando] = useState(false)
@@ -120,6 +123,7 @@ export default function FichaAuto({ unidad, onCerrar, onGuardar }) {
   const secundario = `${boton} border border-white/[0.12] hover:border-white/30 hover:bg-white/[0.05]`
 
   return (
+    <>
     <dialog
       ref={ref}
       onCancel={(e) => {
@@ -160,13 +164,22 @@ export default function FichaAuto({ unidad, onCerrar, onGuardar }) {
               <Dato etiqueta="Estado">{ESTADO_LABEL[unidad.estado]}</Dato>
               <Dato etiqueta="Cómo se reconoció">{RECONOCIDO[unidad.reconocidoPor]}</Dato>
             </dl>
-            <div className="mt-6 flex justify-end gap-3">
-              <button type="button" onClick={onCerrar} className={secundario}>
-                Cerrar
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmando(true)}
+                className={`${boton} border border-[#E0323F]/50 text-[#FF6B76] hover:bg-[#E0323F]/10`}
+              >
+                Eliminar
               </button>
-              <button type="button" onClick={empezar} className={`${boton} bg-[#E0323F] hover:bg-[#EA4350]`}>
-                Editar
-              </button>
+              <div className="flex gap-3">
+                <button type="button" onClick={onCerrar} className={secundario}>
+                  Cerrar
+                </button>
+                <button type="button" onClick={empezar} className={`${boton} bg-[#E0323F] hover:bg-[#EA4350]`}>
+                  Editar
+                </button>
+              </div>
             </div>
           </>
         ) : (
@@ -233,5 +246,20 @@ export default function FichaAuto({ unidad, onCerrar, onGuardar }) {
         )}
       </div>
     </dialog>
+    {confirmando && (
+      <ConfirmarEliminar
+        unidades={[unidad]}
+        eliminando={eliminando}
+        onCancelar={() => setConfirmando(false)}
+        onConfirmar={async () => {
+          setEliminando(true)
+          const ok = await onEliminar([unidad])
+          setEliminando(false)
+          if (ok) onCerrar()
+          else setConfirmando(false)
+        }}
+      />
+    )}
+    </>
   )
 }

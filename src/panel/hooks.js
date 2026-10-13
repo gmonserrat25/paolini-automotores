@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { agregarUnidades as guardarUnidades, cargarPanel, editarUnidad as guardarEdicion, eliminarUnidad as borrarUnidad, guardarEstado, guardarEstadoConsulta, guardarTasacion } from './api'
+import { agregarUnidades as guardarUnidades, cargarPanel, editarUnidad as guardarEdicion, eliminarUnidades as borrarUnidades, guardarEstado, guardarEstadoConsulta, guardarTasacion } from './api'
 
 const reduceMotion = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -142,12 +142,18 @@ export function usePanel() {
     }
   }, [])
 
-  /* Borra una unidad de la base y de la lista. Devuelve si salió bien. */
-  const eliminarUnidad = useCallback(async (unidad) => {
+  /* Borra una o varias unidades de la base y de la lista. Devuelve si salió
+     bien. */
+  const eliminarUnidades = useCallback(async (unidades) => {
     try {
-      await borrarUnidad(unidad)
-      setDatos((d) => ({ ...d, stock: d.stock.filter((u) => u.id !== unidad.id) }))
-      setAviso(`Se eliminó ${unidad.brand} ${unidad.model} (${unidad.patente}).`)
+      await borrarUnidades(unidades)
+      const idas = new Set(unidades.map((u) => u.id))
+      setDatos((d) => ({ ...d, stock: d.stock.filter((u) => !idas.has(u.id)) }))
+      setAviso(
+        unidades.length === 1
+          ? `Se eliminó ${unidades[0].brand} ${unidades[0].model} (${unidades[0].patente}).`
+          : `Se eliminaron ${unidades.length} autos.`,
+      )
       return true
     } catch (e) {
       setAviso(`No se pudo eliminar. ${e.message}`)
@@ -155,5 +161,5 @@ export function usePanel() {
     }
   }, [])
 
-  return { estado, datos, aviso, recargar, agregarUnidades, editarUnidad, eliminarUnidad, cambiarEstado, cambiarEstadoConsulta, marcarTasacion }
+  return { estado, datos, aviso, recargar, agregarUnidades, editarUnidad, eliminarUnidades, cambiarEstado, cambiarEstadoConsulta, marcarTasacion }
 }

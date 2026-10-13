@@ -4,13 +4,15 @@
    GET ?vista=panel   con sesión: todos, con todos los datos.
    POST           con sesión: crea un auto con su foto (la sube a Vercel Blob).
    PATCH ?id=     con sesión: edita los datos del auto (y su estado).
-   DELETE ?id=    con sesión: borra el auto y su foto. */
+   DELETE ?id=    con sesión: borra el auto y su foto.
+   DELETE ?ids=a,b,c  con sesión: borra varios autos y sus fotos de una vez (hasta 100). */
 
 import { del, put } from '@vercel/blob'
 import { esquema, exigirSesion, sql } from './_comun.js'
 
 const ESTADOS = ['disponible', 'reservado', 'vendido']
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const MAX_LOTE = 100
 const FOTO_MAX = 2_500_000 // caracteres del data URL (~1,8 MB de imagen)
 
 /* bigint llega como texto: se pasa a número para el navegador. */
@@ -74,6 +76,19 @@ export default async function handler(req, res) {
       await del(foto.url).catch(() => {})
       throw e
     }
+  }
+
+  /* Borrado en lote: un solo pedido para varios autos. */
+  if (req.method === 'DELETE' && req.query.ids != null) {
+    const ids = [...new Set(String(req.query.ids).split(',').filter(Boolean))]
+    if (!ids.length || ids.length > MAX_LOTE || !ids.every((i) => UUID.test(i))) {
+      return res.status(400).json({ error: `Pasá entre 1 y ${MAX_LOTE} ids válidos` })
+    }
+    const borrados = await sql`
+      delete from autos where id = any(string_to_array(${ids.join(',')}, ',')::uuid[]) returning foto_url`
+    const fotos = borrados.map((a) => a.foto_url).filter(Boolean)
+    if (fotos.length) await del(fotos).catch(() => {})
+    return res.status(200).json({ borrados: borrados.length })
   }
 
   const id = String(req.query.id ?? '')

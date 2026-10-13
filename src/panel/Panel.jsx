@@ -93,14 +93,17 @@ function ErrorPanel({ onReintentar }) {
 
 export default function Panel({ onSalir }) {
   useFichaInterna()
-  const { estado, datos, aviso, recargar, agregarUnidades, editarUnidad, eliminarUnidad, cambiarEstado, cambiarEstadoConsulta, marcarTasacion } =
+  const { estado, datos, aviso, recargar, agregarUnidades, editarUnidad, eliminarUnidades, cambiarEstado, cambiarEstadoConsulta, marcarTasacion } =
     usePanel()
   const vista = useVista()
   const [busqueda, setBusqueda] = useState('')
   const [marca, setMarca] = useState(null)
   const [soloViejas, setSoloViejas] = useState(false)
   const [soloSinResponder, setSoloSinResponder] = useState(false)
-  const [fichaId, setFichaId] = useState(null)
+  /* La ficha abierta: { id, editar }. `editar` la abre ya en modo edición. */
+  const [ficha, setFicha] = useState(null)
+  const verFicha = (id) => setFicha({ id, editar: false })
+  const editarFicha = (id) => setFicha({ id, editar: true })
 
   const listo = estado === 'listo'
 
@@ -137,7 +140,13 @@ export default function Panel({ onSalir }) {
 
             {listo && vista === 'carga' && (
               <div className="pt-1">
-                <CargaAutos stock={datos.stock} onAgregar={agregarUnidades} onVer={setFichaId} />
+                <CargaAutos
+                  stock={datos.stock}
+                  onAgregar={agregarUnidades}
+                  onVer={verFicha}
+                  onEditar={editarFicha}
+                  onEliminar={eliminarUnidades}
+                />
               </div>
             )}
 
@@ -169,8 +178,9 @@ export default function Panel({ onSalir }) {
                   soloViejas={soloViejas}
                   onSoloViejas={setSoloViejas}
                   onCambiar={cambiarEstado}
-                  onEliminar={eliminarUnidad}
-                  onVer={setFichaId}
+                  onEliminar={eliminarUnidades}
+                  onVer={verFicha}
+                  onEditar={editarFicha}
                   onLimpiarBusqueda={() => setBusqueda('')}
                 />
                 <div className="grid gap-4 lg:grid-cols-2">
@@ -201,12 +211,14 @@ export default function Panel({ onSalir }) {
         </main>
       </div>
 
-      {listo && fichaId && datos.stock.find((u) => u.id === fichaId)?.ficha && (
+      {listo && ficha && datos.stock.find((u) => u.id === ficha.id)?.ficha && (
         <FichaAuto
-          key={fichaId}
-          unidad={datos.stock.find((u) => u.id === fichaId)}
-          onCerrar={() => setFichaId(null)}
+          key={`${ficha.id}-${ficha.editar}`}
+          unidad={datos.stock.find((u) => u.id === ficha.id)}
+          empezarEditando={ficha.editar}
+          onCerrar={() => setFicha(null)}
           onGuardar={editarUnidad}
+          onEliminar={eliminarUnidades}
         />
       )}
 
