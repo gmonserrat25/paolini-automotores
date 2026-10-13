@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import BrandLogo from '../components/BrandLogos'
 import { pesos } from './calculos'
-import { cruzarTodos, leerExcel, normPatente, reconocerFoto } from './carga'
+import { cruzarTodos, explicarSinCruce, filaDeStock, leerExcel, normPatente, reconocerFoto } from './carga'
+import { registrarCarga } from './datos'
 import ConfirmarEliminar from './ConfirmarEliminar'
 import { IconoCarga } from './icons'
 import { AccionesFila, BarraSeleccion, Casilla, useSeleccion } from './seleccion'
@@ -159,8 +160,20 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
   /* Sube cada vez que se limpia la lista: las lecturas de fotos que quedaron
      a medias dejan de pedirse. */
   const generacion = useRef(0)
+  /* Fotos que ya quedaron anotadas en el registro de la carga (una vez cada una). */
+  const registradas = useRef(new Set())
 
   const cargadas = useMemo(() => new Set(stock.filter((u) => u.patente).map((u) => normPatente(u.patente))), [stock])
+
+  /* Contra qué se cruza cada foto: las filas del Excel más los autos que ya
+     están cargados y no vienen en este Excel. Así la foto de un auto ya
+     cargado se queda con ése y no le roba la fila a otro parecido (dos
+     Corolla, por ejemplo). */
+  const pool = useMemo(() => {
+    const delExcel = new Set(filas.map((f) => normPatente(f.patente)))
+    const deStock = stock.filter((u) => u.patente && !delExcel.has(normPatente(u.patente))).map(filaDeStock)
+    return [...filas, ...deStock]
+  }, [filas, stock])
 
   /* Cada foto con su auto del Excel. Primero se respeta lo que se eligió a
      mano; después se cruza el resto, sin repetir patentes. */
@@ -174,10 +187,10 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
     }
     if (filas.length) {
       const sinManual = items.filter((i) => !i.manual && i.visto).map((i) => ({ id: i.id, visto: i.visto }))
-      Object.assign(out, cruzarTodos(sinManual, filas, usadas))
+      Object.assign(out, cruzarTodos(sinManual, pool, usadas))
     }
     return out
-  }, [items, filas])
+  }, [items, filas, pool])
 
   const asignadas = new Set(Object.values(cruces).flatMap((c) => (c.fila ? [c.fila.patente] : [])))
   const libres = filas.filter((f) => !asignadas.has(f.patente))
@@ -203,6 +216,37 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
     setItems((a) => a.filter((i) => !yaCargadas.includes(i)))
   }, [leyendo, yaCargadas])
 
+  /* Cada foto que no pudo reconocerse (o que quedó dudosa) se anota en el
+     registro, con lo que vio la IA, el motivo y los candidatos más cercanos.
+     Se anota cuando ya se leyeron todas y hay Excel, o si la lectura falló;
+     una sola vez por foto. Las fotos de autos ya cargados no cuentan: eso no
+     es un fallo. */
+  useEffect(() => {
+    if (leyendo) return
+    const renglones = []
+    for (const i of items) {
+      if (registradas.current.has(i.id)) continue
+      const c = cruces[i.id]
+      if (c?.fila && cargadas.has(normPatente(c.fila.patente))) continue
+      let r
+      if (i.estado === 'sin-reconocer') {
+        r = { resultado: 'sin reconocer', ...explicarSinCruce(null, []), visto: null }
+      } else if (!filas.length || i.manual) {
+        continue
+      } else if (!c?.fila) {
+        r = { resultado: 'sin reconocer', ...explicarSinCruce(i.visto, libres), visto: i.visto }
+      } else if (!segura(i) && c.metodo !== 'manual') {
+        r = { resultado: 'dudosa', motivo: METODO[c.metodo].texto, visto: i.visto, asignado: c.fila.patente }
+      } else {
+        continue
+      }
+      registradas.current.add(i.id)
+      renglones.push({ archivo: i.archivo.name, excel: excelNombre, ...r })
+    }
+    registrarCarga(renglones)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leyendo, items, cruces, filas, cargadas])
+
   /* Cuando ya se leyeron todas las fotos y hay Excel, lo que cruzó con
      seguridad se carga sin pedir nada. */
   useEffect(() => {
@@ -227,6 +271,7 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
   function limpiar() {
     generacion.current += 1
     intentadas.current = new Set()
+    registradas.current = new Set()
     items.forEach((i) => URL.revokeObjectURL(i.url))
     setItems([])
     setFilas([])
