@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import BrandLogo from '../components/BrandLogos'
 import { pesos } from './calculos'
 import { cruzar, leerExcel, normPatente, reconocerFoto } from './carga'
@@ -6,8 +6,9 @@ import { IconoCarga } from './icons'
 
 /* Pantalla aparte para cargar autos: se suben las fotos y el Excel juntos, el
    panel reconoce cada auto (por la patente de la foto o, si no se ve, por
-   marca, modelo y color), lo cruza con el Excel y recién al confirmar entra al
-   stock. Lo dudoso queda marcado para revisar; nada se adivina. */
+   marca, modelo y color), lo cruza con el Excel y lo carga solo al stock. Lo
+   que no se pudo cruzar queda en la lista para asignarlo a mano; nada se
+   adivina. */
 
 const METODO = {
   patente: { texto: 'Por patente', revisar: false },
@@ -131,6 +132,10 @@ export default function CargaAutos({ stock, onAgregar }) {
   const [error, setError] = useState(null)
   const [sinReconocimiento, setSinReconocimiento] = useState(false)
   const [guardando, setGuardando] = useState(false)
+  const [cargadasSolas, setCargadasSolas] = useState(0)
+  /* Fotos que ya se mandaron a cargar solas: si una falla se queda en la lista
+     y se reintenta con el botón, no en bucle. */
+  const intentadas = useRef(new Set())
 
   const cargadas = useMemo(() => new Set(stock.filter((u) => u.patente).map((u) => normPatente(u.patente))), [stock])
 
@@ -155,8 +160,31 @@ export default function CargaAutos({ stock, onAgregar }) {
 
   const asignadas = new Set(Object.values(cruces).flatMap((c) => (c.fila ? [c.fila.patente] : [])))
   const libres = filas.filter((f) => !asignadas.has(f.patente))
-  const listas = items.filter((i) => cruces[i.id]?.fila && !cargadas.has(normPatente(cruces[i.id].fila.patente)))
+  const listas = useMemo(
+    () => items.filter((i) => cruces[i.id]?.fila && !cargadas.has(normPatente(cruces[i.id].fila.patente))),
+    [items, cruces, cargadas],
+  )
   const yaCargadas = items.filter((i) => cruces[i.id]?.fila && cargadas.has(normPatente(cruces[i.id].fila.patente)))
+
+  const leyendo = items.some((i) => i.estado === 'leyendo')
+
+  /* Cuando ya se leyeron todas las fotos y hay Excel, lo que quedó cruzado se
+     carga sin pedir nada. */
+  useEffect(() => {
+    if (leyendo || guardando || !filas.length) return
+    const aCargar = listas.filter((i) => !intentadas.current.has(i.id))
+    if (!aCargar.length) return
+    aCargar.forEach((i) => intentadas.current.add(i.id))
+    setGuardando(true)
+    onAgregar(aCargar.map((i) => ({ fila: cruces[i.id].fila, archivo: i.archivo, metodo: cruces[i.id].metodo }))).then(
+      (ok) => {
+        setGuardando(false)
+        if (!ok) return
+        setCargadasSolas((n) => n + aCargar.length)
+        setItems((a) => a.filter((i) => !aCargar.includes(i)))
+      },
+    )
+  }, [leyendo, guardando, filas, listas, cruces, onAgregar])
 
   async function recibir(archivos) {
     setError(null)
@@ -232,8 +260,9 @@ export default function CargaAutos({ stock, onAgregar }) {
               Carga de autos
             </h2>
             <p className="mt-1 text-sm text-white/60">
-              Subí las fotos y el Excel juntos. Cada foto se reconoce sola por la patente; si la chapa no se ve, se
-              busca por marca, modelo y color. Lo dudoso queda marcado para que lo revises antes de confirmar.
+              Subí las fotos y el Excel juntos y listo: cada foto se reconoce sola por la patente (o, si la chapa no
+              se ve, por marca, modelo y color) y el auto entra al stock sin que hagas nada. Sólo te va a pedir ayuda
+              con las fotos que no pueda reconocer.
             </p>
           </div>
           <Boton primario onClick={() => entrada.current?.click()}>
@@ -263,10 +292,14 @@ export default function CargaAutos({ stock, onAgregar }) {
             {error}
           </p>
         )}
+        {cargadasSolas > 0 && (
+          <p role="status" className="mt-3 text-sm text-white/80">
+            {cargadasSolas} {cargadasSolas === 1 ? 'auto cargado' : 'autos cargados'} solos al stock.
+          </p>
+        )}
         {sinReconocimiento && (
           <p role="status" className="mt-3 rounded-xl border border-white/[0.1] px-4 py-3 text-sm text-white/80">
-            El reconocimiento automático todavía no está activo en este panel (falta conectar la clave del servicio de
-            visión). Las fotos se cargaron igual: elegí a mano qué auto del Excel es cada una.
+            No se pudo reconocer alguna foto automáticamente. Elegí a mano qué auto del Excel es cada una.
           </p>
         )}
       </section>
@@ -275,7 +308,8 @@ export default function CargaAutos({ stock, onAgregar }) {
         <section aria-label="Fotos para cargar" className="p-card p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h3 className="font-jost text-lg font-medium">
-              Para revisar <span className="text-white/60">· {items.length}</span>
+              {leyendo ? 'Reconociendo fotos…' : 'Para asignar a mano'}{' '}
+              <span className="text-white/60">· {items.length}</span>
             </h3>
             <Boton primario disabled={!listas.length || guardando} onClick={confirmar}>
               {guardando ? 'Cargando…' : `Agregar ${listas.length} al stock`}

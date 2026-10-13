@@ -1,5 +1,5 @@
 import { unzipSync, strFromU8 } from 'fflate'
-import { DEMO, tokenActual } from './acceso'
+import { tokenActual } from './acceso'
 
 /* La parte de la carga que no es pantalla: leer el Excel, reconocer la foto y
    cruzar las dos cosas. El cruce es el mismo que hace
@@ -108,7 +108,6 @@ export async function achicar(archivo, lado = 1600, formato = 'url') {
    modelo de visión qué auto es y qué patente se lee. Falla si no está
    publicada o si le falta la key: la pantalla lo cuenta y deja elegir a mano. */
 export async function reconocerFoto(archivo) {
-  if (DEMO) return (await import('./demo')).reconocerDemo(archivo)
   const imagen = await achicar(archivo)
   const token = await tokenActual()
   const r = await fetch('/api/reconocer', {

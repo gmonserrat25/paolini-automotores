@@ -27,3 +27,4 @@ previews/
 .vercel
 .env*
 !.env.example
+!.env.demo

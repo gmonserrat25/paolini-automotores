@@ -42,3 +42,20 @@ El DNS del dominio está en Cloudflare: `A @ 76.76.21.21` y
   lo que cancela el ruido de compresión de cada JPEG. El original en vectorial
   no lo tenemos.
 - **Tipografías:** Jost para títulos, Archivo para texto.
+
+## Demo del panel (sin Supabase)
+
+Para mostrar el panel de `/panel` en una compu, sin cuenta de Supabase:
+
+```bash
+git checkout worktree-paolini-cargar-autos
+npm install
+OPENAI_API_KEY=sk-... npm run demo     # abre http://localhost:5173/panel
+```
+
+- Entrar con `demo@paolini.com` / `demo1234` (cuenta ficticia, sólo existe en este modo).
+- Arranca sin autos. En **Carga**, arrastrar `supabase/seed/inventario-demo.xlsx` junto con las
+  fotos de `supabase/seed/fotos`: la IA reconoce cada foto y carga los autos sola.
+- Sin `OPENAI_API_KEY` la demo anda igual, pero las fotos hay que asignarlas a mano.
+- Los autos viven en memoria: al recargar la página desaparecen. Nada se publica.
+- La key de OpenAI nunca se commitea: se pasa por el entorno.
