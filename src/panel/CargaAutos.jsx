@@ -15,8 +15,7 @@ import { AccionesFila, BarraSeleccion, Casilla, useSeleccion } from './seleccion
 
 const METODO = {
   patente: { texto: 'Por patente', revisar: false },
-  'patente aproximada': { texto: 'Una letra de la patente se leyó distinta, pero marca y color coinciden', revisar: false },
-  'patente dudosa': { texto: 'La patente de la foto no coincide del todo con el Excel', revisar: true },
+  'patente aproximada': { texto: 'Una letra de la patente se leyó distinta: reconocido por puntaje', revisar: false },
   'modelo y color': { texto: 'Sin patente legible: reconocido por modelo y color', revisar: false },
   'modelo y color dudoso': {
     texto: 'La patente de la foto no coincide con ningún auto del Excel: se sugiere por modelo y color',
@@ -413,8 +412,9 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
             <p className="mt-1 text-sm text-white/60">
               Subí las fotos y el Excel juntos: cada foto se reconoce sola por la patente y, si coincide exacto con
               el Excel, el auto entra al stock sin que hagas nada. Si la chapa no se lee, se busca por modelo y
-              color. Si una letra de la patente se lee distinta pero marca y color coinciden, también entra sola. Si
-              la IA tiene otra duda, la foto queda marcada para que la revises vos antes de cargarla.
+              color. Si una sola letra de la patente se lee distinta, también entra sola. Si la IA tiene otra duda
+              (una patente que no se parece a ninguna del Excel), la foto queda marcada para que la revises vos
+              antes de cargarla.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">

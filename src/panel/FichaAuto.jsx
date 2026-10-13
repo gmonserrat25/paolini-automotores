@@ -15,6 +15,7 @@ const COMBUSTIBLES = ['Nafta', 'Diésel', 'Híbrido', 'Eléctrico', 'GNC']
 const RECONOCIDO = {
   patente: 'Por la patente de la foto',
   'patente dudosa': 'Patente con una letra distinta (confirmado a mano)',
+  'patente aproximada': 'Patente con una letra distinta (reconocido por puntaje)',
   'modelo y color': 'Por modelo y color (la chapa no se leía)',
   'modelo y color dudoso': 'Sugerido por modelo y color (confirmado a mano)',
   manual: 'Asignado a mano',
