@@ -12,6 +12,7 @@ import { CuotasSimuladas, Tasaciones } from './Tasaciones'
 import TablaStock, { TablaEsqueleto } from './TablaStock'
 import UltimasConsultas, { ConsultasEsqueleto } from './UltimasConsultas'
 import { EmbudoMes, QuePidenYQueHay } from './Ventas'
+import FichaAuto from './FichaAuto'
 import { usePanel } from './hooks'
 
 const fechaLarga = new Intl.DateTimeFormat('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -92,13 +93,14 @@ function ErrorPanel({ onReintentar }) {
 
 export default function Panel({ onSalir }) {
   useFichaInterna()
-  const { estado, datos, aviso, recargar, agregarUnidades, eliminarUnidad, cambiarEstado, cambiarEstadoConsulta, marcarTasacion } =
+  const { estado, datos, aviso, recargar, agregarUnidades, editarUnidad, eliminarUnidad, cambiarEstado, cambiarEstadoConsulta, marcarTasacion } =
     usePanel()
   const vista = useVista()
   const [busqueda, setBusqueda] = useState('')
   const [marca, setMarca] = useState(null)
   const [soloViejas, setSoloViejas] = useState(false)
   const [soloSinResponder, setSoloSinResponder] = useState(false)
+  const [fichaId, setFichaId] = useState(null)
 
   const listo = estado === 'listo'
 
@@ -135,7 +137,7 @@ export default function Panel({ onSalir }) {
 
             {listo && vista === 'carga' && (
               <div className="pt-1">
-                <CargaAutos stock={datos.stock} onAgregar={agregarUnidades} />
+                <CargaAutos stock={datos.stock} onAgregar={agregarUnidades} onVer={setFichaId} />
               </div>
             )}
 
@@ -168,6 +170,7 @@ export default function Panel({ onSalir }) {
                   onSoloViejas={setSoloViejas}
                   onCambiar={cambiarEstado}
                   onEliminar={eliminarUnidad}
+                  onVer={setFichaId}
                   onLimpiarBusqueda={() => setBusqueda('')}
                 />
                 <div className="grid gap-4 lg:grid-cols-2">
@@ -197,6 +200,15 @@ export default function Panel({ onSalir }) {
           )}
         </main>
       </div>
+
+      {listo && fichaId && datos.stock.find((u) => u.id === fichaId)?.ficha && (
+        <FichaAuto
+          key={fichaId}
+          unidad={datos.stock.find((u) => u.id === fichaId)}
+          onCerrar={() => setFichaId(null)}
+          onGuardar={editarUnidad}
+        />
+      )}
 
       {aviso && (
         <p

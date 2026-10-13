@@ -1,4 +1,4 @@
-import { agregarAutos, cambiarEstadoAuto, eliminarAuto, listarAutos } from './datos'
+import { agregarAutos, cambiarEstadoAuto, editarAuto, eliminarAuto, listarAutos } from './datos'
 import {
   AGENDA,
   BUSQUEDAS,
@@ -96,6 +96,19 @@ function armarUnidad(a) {
     estado: a.estado,
     origenVenta: 'mostrador',
     precioVenta: a.precio,
+    reconocidoPor: a.reconocido_por,
+    /* Los datos tal como están en la base, para la ficha y su edición. */
+    ficha: {
+      patente: a.patente,
+      marca: a.marca,
+      modelo: a.modelo,
+      tipo: a.tipo,
+      combustible: a.combustible,
+      color: a.color,
+      anio: a.anio,
+      km: a.km,
+      precio: a.precio,
+    },
   }
 }
 
@@ -103,6 +116,11 @@ function armarUnidad(a) {
 export async function agregarUnidades(cargas) {
   const guardados = await agregarAutos(cargas)
   return guardados.map(armarUnidad)
+}
+
+/* PATCH /stock/:id con los datos que cambiaron: devuelve la unidad ya guardada. */
+export async function editarUnidad(id, cambios) {
+  return armarUnidad(await editarAuto(id, cambios))
 }
 
 /* GET /panel */

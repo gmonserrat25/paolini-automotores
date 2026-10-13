@@ -5,15 +5,19 @@ import { cruzar, leerExcel, normPatente, reconocerFoto } from './carga'
 import { IconoCarga } from './icons'
 
 /* Pantalla aparte para cargar autos: se suben las fotos y el Excel juntos, el
-   panel reconoce cada auto (por la patente de la foto o, si no se ve, por
+   panel reconoce cada auto (por la patente de la foto o, si no se lee, por
    marca, modelo y color), lo cruza con el Excel y lo carga solo al stock. Lo
-   que no se pudo cruzar queda en la lista para asignarlo a mano; nada se
-   adivina. */
+   que la IA duda (una patente leída que no coincide del todo) o no pudo cruzar
+   queda en la lista para revisarlo a mano; nada se adivina. */
 
 const METODO = {
   patente: { texto: 'Por patente', revisar: false },
   'patente dudosa': { texto: 'La patente de la foto no coincide del todo con el Excel', revisar: true },
-  'modelo y color': { texto: 'No se leyó la patente: coincide por modelo y color', revisar: true },
+  'modelo y color': { texto: 'Sin patente legible: reconocido por modelo y color', revisar: false },
+  'modelo y color dudoso': {
+    texto: 'La patente de la foto no coincide con ningún auto del Excel: se sugiere por modelo y color',
+    revisar: true,
+  },
   manual: { texto: 'Asignado a mano', revisar: false },
 }
 
@@ -123,7 +127,7 @@ function FilaCarga({ item, asignado, metodo, libres, onElegir, onQuitar }) {
   )
 }
 
-export default function CargaAutos({ stock, onAgregar }) {
+export default function CargaAutos({ stock, onAgregar, onVer }) {
   const entrada = useRef(null)
   const [arrastrando, setArrastrando] = useState(false)
   const [filas, setFilas] = useState([])
@@ -133,9 +137,13 @@ export default function CargaAutos({ stock, onAgregar }) {
   const [sinReconocimiento, setSinReconocimiento] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [cargadasSolas, setCargadasSolas] = useState(0)
+  const [repetidas, setRepetidas] = useState(0)
   /* Fotos que ya se mandaron a cargar solas: si una falla se queda en la lista
      y se reintenta con el botón, no en bucle. */
   const intentadas = useRef(new Set())
+  /* Sube cada vez que se limpia la lista: las lecturas de fotos que quedaron
+     a medias dejan de pedirse. */
+  const generacion = useRef(0)
 
   const cargadas = useMemo(() => new Set(stock.filter((u) => u.patente).map((u) => normPatente(u.patente))), [stock])
 
@@ -164,14 +172,23 @@ export default function CargaAutos({ stock, onAgregar }) {
     () => items.filter((i) => cruces[i.id]?.fila && !cargadas.has(normPatente(cruces[i.id].fila.patente))),
     [items, cruces, cargadas],
   )
-  /* Sólo se carga sola la foto cuya patente coincide exacto con el Excel. Si
-     la IA dudó (una letra distinta, patente ilegible), queda en la lista para
-     que alguien la revise: así se nota cuando algo no cuadra. */
-  const segura = (i) => cruces[i.id]?.metodo === 'patente'
+  /* Se carga sola la foto cuya patente coincide exacto con el Excel o, si la
+     chapa no se lee, la que cruza sin dudas por modelo y color. Si la IA dudó
+     (una letra distinta, una patente que no coincide con nada), queda en la
+     lista para que alguien la revise: así se nota cuando algo no cuadra. */
+  const segura = (i) => ['patente', 'modelo y color'].includes(cruces[i.id]?.metodo)
   const dudosas = items.filter((i) => cruces[i.id]?.fila && !segura(i) && cruces[i.id].metodo !== 'manual')
   const yaCargadas = items.filter((i) => cruces[i.id]?.fila && cargadas.has(normPatente(cruces[i.id].fila.patente)))
 
   const leyendo = items.some((i) => i.estado === 'leyendo')
+
+  /* Las fotos de autos que ya están en el stock no tienen nada para revisar:
+     se sacan de la lista y queda el aviso. */
+  useEffect(() => {
+    if (leyendo || !yaCargadas.length) return
+    setRepetidas((n) => n + yaCargadas.length)
+    setItems((a) => a.filter((i) => !yaCargadas.includes(i)))
+  }, [leyendo, yaCargadas])
 
   /* Cuando ya se leyeron todas las fotos y hay Excel, lo que cruzó con
      seguridad se carga sin pedir nada. */
@@ -192,7 +209,23 @@ export default function CargaAutos({ stock, onAgregar }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [leyendo, guardando, filas, listas, cruces, onAgregar])
 
+  /* Vacía la pantalla (fotos, Excel y avisos) para arrancar otra tanda. No toca
+     los autos que ya están en el stock. */
+  function limpiar() {
+    generacion.current += 1
+    intentadas.current = new Set()
+    items.forEach((i) => URL.revokeObjectURL(i.url))
+    setItems([])
+    setFilas([])
+    setExcelNombre(null)
+    setError(null)
+    setSinReconocimiento(false)
+    setCargadasSolas(0)
+    setRepetidas(0)
+  }
+
   async function recibir(archivos) {
+    const g = generacion.current
     setError(null)
     const lista = [...archivos]
     const excel = lista.find(esExcel)
@@ -218,6 +251,7 @@ export default function CargaAutos({ stock, onAgregar }) {
     if (!nuevas.length) return
     setItems((actuales) => [...actuales, ...nuevas])
     for (const n of nuevas) {
+      if (generacion.current !== g) return
       let cambio
       try {
         cambio = { estado: 'listo', visto: await reconocerFoto(n.archivo) }
@@ -225,6 +259,7 @@ export default function CargaAutos({ stock, onAgregar }) {
         setSinReconocimiento(true)
         cambio = { estado: 'sin-reconocer', visto: null }
       }
+      if (generacion.current !== g) return
       setItems((actuales) => actuales.map((i) => (i.id === n.id ? { ...i, ...cambio } : i)))
     }
   }
@@ -267,14 +302,22 @@ export default function CargaAutos({ stock, onAgregar }) {
             </h2>
             <p className="mt-1 text-sm text-white/60">
               Subí las fotos y el Excel juntos: cada foto se reconoce sola por la patente y, si coincide exacto con
-              el Excel, el auto entra al stock sin que hagas nada. Si la IA tiene alguna duda (una letra de la patente
-              distinta, una chapa que no se lee), la foto queda marcada para que la revises vos antes de cargarla.
+              el Excel, el auto entra al stock sin que hagas nada. Si la chapa no se lee, se busca por modelo y
+              color. Si la IA tiene alguna duda (una letra de la patente distinta), la foto queda marcada para que la
+              revises vos antes de cargarla.
             </p>
           </div>
-          <Boton primario onClick={() => entrada.current?.click()}>
-            <IconoCarga className="h-[18px] w-[18px]" />
-            Cargar fotos y Excel
-          </Boton>
+          <div className="flex flex-wrap items-center gap-2">
+            {(items.length > 0 || filas.length > 0) && (
+              <Boton onClick={limpiar} disabled={guardando}>
+                Limpiar lista
+              </Boton>
+            )}
+            <Boton primario onClick={() => entrada.current?.click()}>
+              <IconoCarga className="h-[18px] w-[18px]" />
+              Cargar fotos y Excel
+            </Boton>
+          </div>
           <input
             ref={entrada}
             type="file"
@@ -291,7 +334,8 @@ export default function CargaAutos({ stock, onAgregar }) {
 
         <p className="mt-4 text-xs text-white/60">
           {excelNombre ? `Excel: ${excelNombre} · ${filas.length} autos leídos` : 'Todavía no cargaste el Excel.'}
-          {' · '}También podés arrastrar los archivos acá.
+          {' · '}También podés arrastrar los archivos acá. Podés cargar varias tandas: los autos que ya están en el
+          stock no se vuelven a agregar.
         </p>
         {error && (
           <p role="alert" className="mt-3 text-sm text-[#FF6B76]">
@@ -301,6 +345,12 @@ export default function CargaAutos({ stock, onAgregar }) {
         {cargadasSolas > 0 && (
           <p role="status" className="mt-3 text-sm text-white/80">
             {cargadasSolas} {cargadasSolas === 1 ? 'auto cargado' : 'autos cargados'} solos al stock.
+          </p>
+        )}
+        {repetidas > 0 && (
+          <p role="status" className="mt-3 text-sm text-white/80">
+            {repetidas} {repetidas === 1 ? 'foto es de un auto' : 'fotos son de autos'} que ya {repetidas === 1 ? 'estaba' : 'estaban'} en
+            el stock: no se {repetidas === 1 ? 'agregó' : 'agregaron'} de nuevo.
           </p>
         )}
         {sinReconocimiento && (
@@ -341,11 +391,6 @@ export default function CargaAutos({ stock, onAgregar }) {
               />
             ))}
           </ul>
-          {yaCargadas.length > 0 && (
-            <p className="mt-3 text-xs text-white/60">
-              {yaCargadas.length} de estas fotos ya están en el stock y no se vuelven a agregar.
-            </p>
-          )}
         </section>
       )}
 
@@ -365,7 +410,18 @@ export default function CargaAutos({ stock, onAgregar }) {
                   <BrandLogo marca={u.brand} className="h-3.5 w-3.5" />
                   {u.brand}
                 </p>
-                <p className="truncate text-sm font-medium">{u.model}</p>
+                {u.ficha ? (
+                  <button
+                    type="button"
+                    onClick={() => onVer(u.id)}
+                    aria-label={`Ver la ficha de ${u.brand} ${u.model}`}
+                    className="block max-w-full truncate text-left text-sm font-medium underline-offset-4 hover:underline focus-visible:underline"
+                  >
+                    {u.model}
+                  </button>
+                ) : (
+                  <p className="truncate text-sm font-medium">{u.model}</p>
+                )}
               </div>
               <div className="col-span-2 grid grid-cols-2 gap-3 md:col-span-1 md:grid-cols-4">
                 <Dato etiqueta="Patente">{u.patente}</Dato>

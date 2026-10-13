@@ -3,7 +3,7 @@
    GET            público: lo que muestra el sitio (sin patente, sin vendidos).
    GET ?vista=panel   con sesión: todos, con todos los datos.
    POST           con sesión: crea un auto con su foto (la sube a Vercel Blob).
-   PATCH ?id=     con sesión: cambia el estado.
+   PATCH ?id=     con sesión: edita los datos del auto (y su estado).
    DELETE ?id=    con sesión: borra el auto y su foto. */
 
 import { del, put } from '@vercel/blob'
@@ -80,10 +80,47 @@ export default async function handler(req, res) {
   if (!UUID.test(id)) return res.status(400).json({ error: 'Falta el id' })
 
   if (req.method === 'PATCH') {
-    const estado = req.body?.estado
-    if (!ESTADOS.includes(estado)) return res.status(400).json({ error: 'Estado desconocido' })
-    const [auto] = await sql`update autos set estado = ${estado} where id = ${id} returning id`
-    return auto ? res.status(200).json({ id, estado }) : res.status(404).json({ error: 'No existe ese auto' })
+    const b = req.body ?? {}
+    const [actual] = await sql`select * from autos where id = ${id}`
+    if (!actual) return res.status(404).json({ error: 'No existe ese auto' })
+
+    /* Se valida cada campo que vino; lo que no vino queda como estaba. */
+    const nuevo = { ...actual }
+    const obligatorio = { patente: 12, marca: 60, modelo: 80, tipo: 40, combustible: 40 }
+    for (const [k, max] of Object.entries(obligatorio)) {
+      if (!(k in b)) continue
+      const v = texto(b[k], max)
+      if (!v) return res.status(400).json({ error: `${k} no puede quedar vacío` })
+      nuevo[k] = k === 'patente' ? v.toUpperCase() : v
+    }
+    if ('color' in b) {
+      if (b.color != null && !texto(b.color, 40)) return res.status(400).json({ error: 'color inválido' })
+      nuevo.color = b.color == null ? null : texto(b.color, 40)
+    }
+    const numeros = { anio: [1950, 2100], km: [0, 5_000_000], precio: [0, 1_000_000_000_000] }
+    for (const [k, [min, max]] of Object.entries(numeros)) {
+      if (!(k in b)) continue
+      if (b[k] != null && entero(b[k], min, max) == null) return res.status(400).json({ error: `${k} inválido` })
+      nuevo[k] = b[k] ?? null
+    }
+    if ('estado' in b) {
+      if (!ESTADOS.includes(b.estado)) return res.status(400).json({ error: 'Estado desconocido' })
+      nuevo.estado = b.estado
+    }
+
+    if (nuevo.patente !== actual.patente) {
+      const [otro] = await sql`
+        select 1 as x from autos
+        where id <> ${id} and regexp_replace(upper(patente), '[^A-Z0-9]', '', 'g') = ${nuevo.patente.replace(/[^A-Z0-9]/g, '')}`
+      if (otro) return res.status(409).json({ error: `La patente ${nuevo.patente} ya está cargada` })
+    }
+
+    const [auto] = await sql`
+      update autos set patente = ${nuevo.patente}, marca = ${nuevo.marca}, modelo = ${nuevo.modelo},
+        tipo = ${nuevo.tipo}, combustible = ${nuevo.combustible}, color = ${nuevo.color}, anio = ${nuevo.anio},
+        km = ${nuevo.km}, precio = ${nuevo.precio}, estado = ${nuevo.estado}
+      where id = ${id} returning *`
+    return res.status(200).json({ ...fila(auto), foto: auto.foto_url })
   }
 
   if (req.method === 'DELETE') {
