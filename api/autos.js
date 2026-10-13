@@ -37,7 +37,7 @@ export default async function handler(req, res) {
        stale-while-revalidate: no se sirve nunca una lista vieja. */
     res.setHeader('Cache-Control', 'public, s-maxage=5')
     const autos = await sql`
-      select id, marca, modelo, tipo, combustible, anio, km, precio, foto_url as foto
+      select id, marca, modelo, tipo, combustible, anio, km, precio, estado, foto_url as foto
       from autos where estado <> 'vendido' order by creado asc`
     return res.status(200).json(autos.map(fila))
   }

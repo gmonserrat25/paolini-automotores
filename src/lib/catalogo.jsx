@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { BRANDS } from '../data/vehicles'
 import { asset } from './asset'
 
@@ -10,7 +10,7 @@ import { asset } from './asset'
    Esa respuesta es pública y sólo trae lo que ya se ve en la tarjeta: sin
    patente y sin los autos vendidos. */
 
-const CatalogoContext = createContext({ vehicles: [], estado: 'listo' })
+const CatalogoContext = createContext({ vehicles: [], disponibles: [], estado: 'listo' })
 
 const pesos = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 })
 
@@ -38,6 +38,7 @@ function aVehiculo(a) {
   const ficha = [a.anio, a.km != null && `${a.km.toLocaleString('es-AR')} km`].filter(Boolean).join(' · ')
   return {
     id: a.id,
+    reservado: a.estado === 'reservado',
     brand: marcaBonita(a.marca),
     model: modeloBonito(a.modelo),
     type: a.tipo,
@@ -77,7 +78,14 @@ export function CatalogoProvider({ children }) {
     }
   }, [])
 
-  return <CatalogoContext.Provider value={datos}>{children}</CatalogoContext.Provider>
+  /* `vehicles` trae todo lo que se muestra (disponibles y reservados);
+     `disponibles` es lo que se puede ofrecer: los reservados no entran al
+     buscador ni al carrusel. */
+  const valor = useMemo(
+    () => ({ ...datos, disponibles: datos.vehicles.filter((v) => !v.reservado) }),
+    [datos],
+  )
+  return <CatalogoContext.Provider value={valor}>{children}</CatalogoContext.Provider>
 }
 
 export const useCatalogo = () => useContext(CatalogoContext)

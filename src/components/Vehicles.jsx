@@ -24,13 +24,18 @@ function VehicleCard({ vehicle }) {
         </div>
       </header>
 
-      <div className="mt-4 h-[168px] w-full overflow-hidden">
+      <div className="relative mt-4 h-[168px] w-full overflow-hidden">
         <img
           src={vehicle.image}
           alt={`${vehicle.brand} ${vehicle.model} en Automotores Paolini`}
-          className="h-full w-full object-cover"
+          className={`h-full w-full object-cover ${vehicle.reservado ? 'opacity-70' : ''}`}
           loading="lazy"
         />
+        {vehicle.reservado ? (
+          <span className="absolute left-3 top-3 rounded-full bg-[#D52B38] px-3 py-1 font-sans text-[12px] font-semibold uppercase tracking-[0.06em] text-white">
+            Reservado
+          </span>
+        ) : null}
       </div>
 
       <div className="flex items-center gap-4 border-t border-white/[0.06] px-5 py-4 sm:gap-5">
@@ -77,6 +82,9 @@ function VehicleCard({ vehicle }) {
 export default function Vehicles({ marca = null, onLimpiar }) {
   const { vehicles, estado } = useCatalogo()
   const listado = marca ? vehicles.filter((v) => v.brand === marca) : vehicles
+  /* Los reservados se ven, pero aparte y después de los que se pueden comprar. */
+  const disponibles = listado.filter((v) => !v.reservado)
+  const reservados = listado.filter((v) => v.reservado)
 
   const consultaMarca = `${WHATSAPP_URL}?text=${encodeURIComponent(
     `Hola Paolini, ¿qué tienen disponible de ${marca}?`,
@@ -140,11 +148,31 @@ export default function Vehicles({ marca = null, onLimpiar }) {
             </div>
           </div>
         ) : (
-          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:mt-10 lg:grid-cols-3 lg:gap-6">
-            {listado.map((vehicle) => (
-              <VehicleCard key={vehicle.id} vehicle={vehicle} />
-            ))}
-          </div>
+          <>
+            {disponibles.length > 0 ? (
+              <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:mt-10 lg:grid-cols-3 lg:gap-6">
+                {disponibles.map((vehicle) => (
+                  <VehicleCard key={vehicle.id} vehicle={vehicle} />
+                ))}
+              </div>
+            ) : null}
+
+            {reservados.length > 0 ? (
+              <div className={disponibles.length > 0 ? 'mt-12 lg:mt-16' : 'mt-8 lg:mt-10'}>
+                <h3 className="font-display text-[20px] font-semibold uppercase leading-[1.1] tracking-[-0.01em] text-white sm:text-[24px]">
+                  Reservados
+                </h3>
+                <p className="mt-2 font-sans text-[14px] text-white/55">
+                  Ya tienen dueño en camino. Si te interesa uno parecido, consultanos.
+                </p>
+                <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+                  {reservados.map((vehicle) => (
+                    <VehicleCard key={vehicle.id} vehicle={vehicle} />
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </>
         )}
       </div>
     </section>
