@@ -17,6 +17,17 @@ async function pedir(ruta, opciones = {}) {
   return r.status === 204 ? null : r.json()
 }
 
+/* Anota en el registro (tabla `registro_carga`) las fotos que la carga no pudo
+   reconocer o dejó dudosas. Es un aviso aparte: si falla, la carga sigue igual. */
+export async function registrarCarga(renglones) {
+  if (DEMO || !renglones.length) return
+  try {
+    await pedir('/api/registro', { method: 'POST', body: JSON.stringify({ renglones }) })
+  } catch {
+    /* sin registro no se frena nada */
+  }
+}
+
 /* Todos los autos, con su foto. */
 export async function listarAutos() {
   if (DEMO) return (await import('./demo')).listarDemo()

@@ -49,6 +49,19 @@ export function esquema() {
       clave_hash text not null,
       creado     timestamptz not null default now()
     )`
+    /* Un renglón por cada foto que la carga no pudo reconocer o que dejó dudosa:
+       qué vio la IA, por qué no cruzó y qué candidatos había. */
+    await sql`create table if not exists registro_carga (
+      id         uuid primary key default gen_random_uuid(),
+      creado     timestamptz not null default now(),
+      archivo    text,
+      excel      text,
+      resultado  text not null,
+      motivo     text not null,
+      visto      jsonb,
+      candidatos jsonb,
+      asignado   text
+    )`
     await sql`create table if not exists intentos (
       email  text not null,
       cuando timestamptz not null default now()

@@ -88,7 +88,7 @@ const palabras = (t) =>
    que también se ve («SR», «Limited», «HV») +1 hasta +2, y color +1. Sólo se
    elige si el mejor llega a 3 y le gana al segundo: con dos Corolla iguales en
    color y sin versión a la vista, no se adivina. */
-function porModeloYColor(visto, libres) {
+function puntuar(visto, libres) {
   const marca = norm(visto?.marca)
   const vistas = palabras(visto?.modelo).filter((w) => w !== marca.toLowerCase())
   const color = grupoDeColor(visto?.color)
@@ -107,8 +107,40 @@ function porModeloYColor(visto, libres) {
       return { f, s }
     })
     .sort((a, b) => b.s - a.s)
+  return puntaje
+}
+
+function porModeloYColor(visto, libres) {
+  const puntaje = puntuar(visto, libres)
   return puntaje[0]?.s >= 3 && (puntaje.length === 1 || puntaje[0].s > puntaje[1].s) ? puntaje[0].f : null
 }
+
+/* Por qué una foto no encontró auto, para el registro de la carga: el motivo en
+   palabras y los tres candidatos más cercanos con su puntaje. `libres` son los
+   autos que quedaron sin foto. */
+export function explicarSinCruce(visto, libres) {
+  if (!visto) return { motivo: 'No se pudo leer la foto (falló el servicio de reconocimiento)', candidatos: [] }
+  const candidatos = puntuar(visto, libres)
+    .filter((c) => c.s > 0)
+    .slice(0, 3)
+    .map(({ f, s }) => ({ patente: f.patente, auto: `${f.marca} ${f.modelo} ${f.color ?? ''}`.trim(), puntos: s }))
+  let motivo
+  if (!libres.length) motivo = 'Ya no quedaba ningún auto del Excel sin foto'
+  else if (normPatente(visto.patente)) {
+    motivo = `La patente leída (${visto.patente}) no está en el Excel ni difiere en una sola letra`
+  } else if (!candidatos.length) motivo = 'Chapa no legible y ningún auto del Excel se parece al de la foto'
+  else if (candidatos[0].puntos < 3) motivo = 'Chapa no legible y el parecido por modelo y color es muy bajo'
+  else motivo = 'Chapa no legible y hay más de un auto del Excel igual de parecido (o dos fotos eligen el mismo)'
+  return { motivo, candidatos }
+}
+
+/* Los autos ya cargados en el stock, con la forma de una fila del Excel. */
+export const filaDeStock = (u) => ({
+  marca: (u.brand ?? '').toUpperCase(),
+  modelo: u.model ?? '',
+  color: u.color ?? '',
+  patente: u.patente,
+})
 
 const distancia = (a, b) => (a.length !== b.length ? 99 : [...a].filter((c, i) => c !== b[i]).length)
 
