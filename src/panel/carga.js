@@ -84,20 +84,23 @@ const palabras = (t) =>
     .filter(Boolean)
 
 /* Puntaje de cada auto del Excel contra lo que se vio en la foto:
-   marca +1, la palabra base del modelo («Hilux») +2, cada palabra de versión
-   que también se ve («SR», «Limited», «HV») +1 hasta +2, y color +1. Sólo se
-   elige si el mejor llega a 3 y le gana al segundo: con dos Corolla iguales en
-   color y sin versión a la vista, no se adivina. */
+   patente a una letra de distancia +4 (una letra mal leída), marca +1, la
+   palabra base del modelo («Hilux») +2, cada palabra de versión que también se
+   ve («SR», «Limited», «HV») +1 hasta +2, y color +1. Sólo se elige si el
+   mejor llega a 3 y le gana al segundo: con dos Corolla iguales en color y sin
+   versión a la vista, no se adivina. */
 function puntuar(visto, libres) {
   const marca = norm(visto?.marca)
   const vistas = palabras(visto?.modelo).filter((w) => w !== marca.toLowerCase())
   const color = grupoDeColor(visto?.color)
+  const patente = normPatente(visto?.patente)
   const puntaje = libres
     .map((f) => {
       /* Si el Excel escribió la marca dentro del modelo («Toyota Hilux»), no
          cuenta como parte del modelo. */
       const [base, ...version] = palabras(f.modelo).filter((w) => w !== palabras(f.marca)[0])
       let s = 0
+      if (patente && distancia(normPatente(f.patente), patente) === 1) s += 4
       if (marca && marca === norm(f.marca)) s += 1
       if (base && vistas.some((w) => w === base || (base.length >= 5 && w.startsWith(base.slice(0, 5))))) {
         s += 2
@@ -126,7 +129,7 @@ export function explicarSinCruce(visto, libres) {
     .map(({ f, s }) => ({ patente: f.patente, auto: `${f.marca} ${f.modelo} ${f.color ?? ''}`.trim(), puntos: s }))
   let motivo
   if (!libres.length) motivo = 'Ya no quedaba ningún auto del Excel sin foto'
-  else if (normPatente(visto.patente)) {
+  else if (normPatente(visto.patente) && !(candidatos[0]?.puntos >= 3)) {
     motivo = `La patente leída (${visto.patente}) no está en el Excel ni difiere en una sola letra`
   } else if (!candidatos.length) motivo = 'Chapa no legible y ningún auto del Excel se parece al de la foto'
   else if (candidatos[0].puntos < 3) motivo = 'Chapa no legible y el parecido por modelo y color es muy bajo'
@@ -151,8 +154,11 @@ const distancia = (a, b) => (a.length !== b.length ? 99 : [...a].filter((c, i) =
    quedarse con uno de ellos por su patente exacta).
 
      1. patente exacta;
-     2. patente a una letra de distancia, si hay un solo candidato (a revisar);
-     3. marca, modelo y color, sobre los autos que quedaron libres. Si dos fotos
+     2. por puntaje, sobre los autos que quedaron libres: la patente a una
+        letra de distancia (+4), marca, modelo, versión y color. Gana el que
+        llega a 3 puntos y le saca ventaja al segundo, así que una letra mal
+        leída se carga igual y, si hay dos autos con patentes casi iguales,
+        deciden la marca, el modelo y el color. Si dos fotos
         eligen el mismo auto, ninguna se lo lleva. Se repite hasta que no
         quede nada más por resolver, porque cada foto resuelta deja menos
         candidatos a las demás.
@@ -176,13 +182,6 @@ export function cruzarTodos(entradas, filas, usadas = new Set()) {
     if (exacta) tomar(e.id, exacta, 'patente')
   }
 
-  for (const e of pendientes()) {
-    const p = normPatente(e.visto.patente)
-    if (!p) continue
-    const cerca = libres().filter((f) => distancia(normPatente(f.patente), p) === 1)
-    if (cerca.length === 1) tomar(e.id, cerca[0], 'patente dudosa')
-  }
-
   let cambio = true
   while (cambio) {
     cambio = false
@@ -193,9 +192,16 @@ export function cruzarTodos(entradas, filas, usadas = new Set()) {
     for (const { f } of elegidas) veces.set(f.patente, (veces.get(f.patente) ?? 0) + 1)
     for (const { e, f } of elegidas) {
       if (veces.get(f.patente) !== 1) continue
-      /* Si la foto trajo una patente (que no coincidió con nada), el resultado
-         es una sugerencia para revisar, no algo para cargar solo. */
-      tomar(e.id, f, e.visto.patente ? 'modelo y color dudoso' : 'modelo y color')
+      /* Una letra mal leída se carga igual. Si la foto trajo una patente que no
+         se parece a la del auto elegido, el resultado es una sugerencia para
+         revisar, no algo para cargar solo. */
+      const p = normPatente(e.visto.patente)
+      const metodo = !p
+        ? 'modelo y color'
+        : distancia(normPatente(f.patente), p) === 1
+          ? 'patente aproximada'
+          : 'modelo y color dudoso'
+      tomar(e.id, f, metodo)
       cambio = true
     }
   }
