@@ -2,8 +2,8 @@ import react from '@vitejs/plugin-react'
 import { defineConfig, loadEnv } from 'vite'
 
 /* Sólo para la demo local del panel (VITE_PANEL_DEMO=1, `npm run dev`): sirve
-   /api/reconocer sin pasar por la base ni la sesión y con la OPENAI_API_KEY del entorno
-   (`key usar openai=OPENAI_API_KEY -- npm run dev`). En producción esto no
+   /api/reconocer sin pasar por la base ni la sesión y con la ANTHROPIC_API_KEY del entorno
+   (`key usar antrophic=ANTHROPIC_API_KEY -- npm run dev`). En producción esto no
    existe: ahí responde la función de Vercel, que exige sesión. */
 function reconocerLocal(env) {
   return {
@@ -22,7 +22,7 @@ function reconocerLocal(env) {
         for await (const trozo of req) texto += trozo
         try {
           const { reconocerAuto } = await server.ssrLoadModule('/api/_reconocer.js')
-          responder(200, await reconocerAuto(JSON.parse(texto).imagen, process.env.OPENAI_API_KEY))
+          responder(200, await reconocerAuto(JSON.parse(texto).imagen, process.env.ANTHROPIC_API_KEY))
         } catch (e) {
           responder(e.status ?? 502, { error: e.message })
         }

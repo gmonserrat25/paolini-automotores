@@ -2,9 +2,9 @@
    lee. Sólo responde a quien tiene sesión iniciada en el panel.
 
    Variable de entorno del proyecto de Vercel (nunca en el código):
-   - OPENAI_API_KEY        la key del servicio de visión
+   - ANTHROPIC_API_KEY     la key de Anthropic (el modelo de visión es Claude Sonnet 5.5)
    (y SESSION_SECRET, que comparten todas las funciones: ver _comun.js).
-   Sin OPENAI_API_KEY responde 503 y el panel deja asignar el auto a mano. */
+   Sin ANTHROPIC_API_KEY responde 503 y el panel deja asignar el auto a mano. */
 
 import { exigirSesion } from './_comun.js'
 import { reconocerAuto } from './_reconocer.js'
@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   if (!exigirSesion(req, res)) return
 
   try {
-    return res.status(200).json(await reconocerAuto(req.body?.imagen, process.env.OPENAI_API_KEY))
+    return res.status(200).json(await reconocerAuto(req.body?.imagen, process.env.ANTHROPIC_API_KEY))
   } catch (e) {
     return res.status(e.status ?? 502).json({ error: e.message })
   }
