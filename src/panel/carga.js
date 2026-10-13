@@ -94,7 +94,9 @@ function porModeloYColor(visto, libres) {
   const color = grupoDeColor(visto?.color)
   const puntaje = libres
     .map((f) => {
-      const [base, ...version] = palabras(f.modelo)
+      /* Si el Excel escribió la marca dentro del modelo («Toyota Hilux»), no
+         cuenta como parte del modelo. */
+      const [base, ...version] = palabras(f.modelo).filter((w) => w !== palabras(f.marca)[0])
       let s = 0
       if (marca && marca === norm(f.marca)) s += 1
       if (base && vistas.some((w) => w === base || (base.length >= 5 && w.startsWith(base.slice(0, 5))))) {
@@ -110,24 +112,62 @@ function porModeloYColor(visto, libres) {
 
 const distancia = (a, b) => (a.length !== b.length ? 99 : [...a].filter((c, i) => c !== b[i]).length)
 
-/* Devuelve { fila, metodo } con la fila del Excel que corresponde a lo que se
-   vio en la foto, o fila: null si no hay forma segura de decidirlo. `usadas`
-   son las patentes que ya tienen otra foto. */
-export function cruzar(visto, filas, usadas) {
-  const libres = filas.filter((f) => !usadas.has(f.patente))
-  const p = normPatente(visto?.patente)
-  if (p) {
-    const exacta = libres.find((f) => normPatente(f.patente) === p)
-    if (exacta) return { fila: exacta, metodo: 'patente' }
-    const cerca = libres.filter((f) => distancia(normPatente(f.patente), p) === 1)
-    if (cerca.length === 1) return { fila: cerca[0], metodo: 'patente dudosa' }
+/* Cruza todas las fotos de la tanda con las filas del Excel, por pasadas: las
+   decisiones seguras van primero, así lo que ya está claro no estorba a lo
+   que no lo está (con el cruce foto por foto, una foto sin patente podía
+   declarar «empate» entre dos autos parecidos aunque otra foto ya iba a
+   quedarse con uno de ellos por su patente exacta).
+
+     1. patente exacta;
+     2. patente a una letra de distancia, si hay un solo candidato (a revisar);
+     3. marca, modelo y color, sobre los autos que quedaron libres. Si dos fotos
+        eligen el mismo auto, ninguna se lo lleva. Se repite hasta que no
+        quede nada más por resolver, porque cada foto resuelta deja menos
+        candidatos a las demás.
+
+   `entradas` es [{ id, visto }]; `usadas` son las patentes que ya tienen foto
+   (las asignadas a mano). Devuelve { [id]: { fila, metodo } } sólo con las
+   fotos que encontraron auto. */
+export function cruzarTodos(entradas, filas, usadas = new Set()) {
+  const out = {}
+  const tomadas = new Set(usadas)
+  const libres = () => filas.filter((f) => !tomadas.has(f.patente))
+  const pendientes = () => entradas.filter((e) => e.visto && !out[e.id])
+  const tomar = (id, fila, metodo) => {
+    out[id] = { fila, metodo }
+    tomadas.add(fila.patente)
   }
-  /* Sin patente que coincida: se busca por marca, modelo y color. Si la foto
-     trajo una patente (que no coincidió con nada) el resultado queda como
-     dudoso: es una sugerencia para revisar, no algo para cargar solo. */
-  const elegida = porModeloYColor(visto, libres)
-  if (elegida) return { fila: elegida, metodo: visto?.patente ? 'modelo y color dudoso' : 'modelo y color' }
-  return { fila: null, metodo: null }
+
+  for (const e of pendientes()) {
+    const p = normPatente(e.visto.patente)
+    const exacta = p && libres().find((f) => normPatente(f.patente) === p)
+    if (exacta) tomar(e.id, exacta, 'patente')
+  }
+
+  for (const e of pendientes()) {
+    const p = normPatente(e.visto.patente)
+    if (!p) continue
+    const cerca = libres().filter((f) => distancia(normPatente(f.patente), p) === 1)
+    if (cerca.length === 1) tomar(e.id, cerca[0], 'patente dudosa')
+  }
+
+  let cambio = true
+  while (cambio) {
+    cambio = false
+    const elegidas = pendientes()
+      .map((e) => ({ e, f: porModeloYColor(e.visto, libres()) }))
+      .filter((x) => x.f)
+    const veces = new Map()
+    for (const { f } of elegidas) veces.set(f.patente, (veces.get(f.patente) ?? 0) + 1)
+    for (const { e, f } of elegidas) {
+      if (veces.get(f.patente) !== 1) continue
+      /* Si la foto trajo una patente (que no coincidió con nada), el resultado
+         es una sugerencia para revisar, no algo para cargar solo. */
+      tomar(e.id, f, e.visto.patente ? 'modelo y color dudoso' : 'modelo y color')
+      cambio = true
+    }
+  }
+  return out
 }
 
 /* Achica la foto antes de mandarla: una del celular pesa varios MB y para leer

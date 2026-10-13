@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import BrandLogo from '../components/BrandLogos'
 import { pesos } from './calculos'
-import { cruzar, leerExcel, normPatente, reconocerFoto } from './carga'
+import { cruzarTodos, leerExcel, normPatente, reconocerFoto } from './carga'
 import ConfirmarEliminar from './ConfirmarEliminar'
 import { IconoCarga } from './icons'
 import { AccionesFila, BarraSeleccion, Casilla, useSeleccion } from './seleccion'
@@ -21,6 +21,16 @@ const METODO = {
     revisar: true,
   },
   manual: { texto: 'Asignado a mano', revisar: false },
+}
+
+/* Lo que la IA vio en la foto, para entender por qué quedó (o no) asignada. */
+function enLaFoto(visto) {
+  const partes = [
+    visto?.patente ? visto.patente : 'chapa no legible',
+    [visto?.marca, visto?.modelo].filter(Boolean).join(' '),
+    visto?.color,
+  ]
+  return partes.filter(Boolean).join(' · ')
 }
 
 const esExcel = (a) => /\.xlsx$/i.test(a.name)
@@ -72,7 +82,7 @@ function FilaCarga({ item, asignado, metodo, libres, onElegir, onQuitar }) {
           <p className="text-sm text-white/60">{leyendo ? 'Leyendo la foto…' : 'Sin asignar'}</p>
         )}
         <p className="mt-0.5 text-xs text-white/60">
-          {item.visto?.patente ? `En la foto: ${item.visto.patente}` : leyendo ? '' : 'Chapa no legible'}
+          {leyendo ? '' : `En la foto: ${enLaFoto(item.visto)}`}
         </p>
       </div>
 
@@ -162,11 +172,9 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
         out[i.id] = { fila: filas.find((f) => f.patente === i.manual) ?? null, metodo: 'manual' }
       }
     }
-    for (const i of items) {
-      if (i.manual || !filas.length || !i.visto) continue
-      const c = cruzar(i.visto, filas, usadas)
-      if (c.fila) usadas.add(c.fila.patente)
-      out[i.id] = c
+    if (filas.length) {
+      const sinManual = items.filter((i) => !i.manual && i.visto).map((i) => ({ id: i.id, visto: i.visto }))
+      Object.assign(out, cruzarTodos(sinManual, filas, usadas))
     }
     return out
   }, [items, filas])
