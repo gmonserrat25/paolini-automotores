@@ -1,10 +1,9 @@
 import { asset } from '../lib/asset'
-import { BRANDS, CONTACT, NAV_LINKS, VEHICLES, WHATSAPP_URL } from '../data/vehicles'
+import { BRANDS, CONTACT, NAV_LINKS, WHATSAPP_URL } from '../data/vehicles'
+import { useCatalogo } from '../lib/catalogo'
 import { InstagramIcon, MailIcon, PhoneIcon, PinIcon, WhatsAppIcon } from './Icons'
 
 const MAPS = `https://maps.google.com/?q=${encodeURIComponent(CONTACT.address)}`
-
-const TIPOS = [...new Set(VEHICLES.map((v) => v.type))]
 
 function Column({ title, children }) {
   return (
@@ -37,6 +36,8 @@ function Item({ href, children }) {
 /* Pie de página de la referencia: la marca con su bajada a la izquierda y
    cuatro columnas de enlaces, con las redes debajo de la última. */
 export default function Footer() {
+  const { vehicles } = useCatalogo()
+  const TIPOS = [...new Set(vehicles.map((v) => v.type))]
   return (
     <footer id="contacto" className="bg-[#050505]">
       <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-[60px]">

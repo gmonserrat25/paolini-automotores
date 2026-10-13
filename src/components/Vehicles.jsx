@@ -1,4 +1,5 @@
-import { VEHICLES, WHATSAPP_URL } from '../data/vehicles'
+import { WHATSAPP_URL } from '../data/vehicles'
+import { useCatalogo } from '../lib/catalogo'
 import { FuelIcon, GearboxIcon, WhatsAppIcon } from './Icons'
 import { Corner, Cta, SectionTitle } from './Ui'
 
@@ -18,6 +19,7 @@ function VehicleCard({ vehicle }) {
           </h3>
           <p className="mt-1 font-sans text-[13px] text-white/55">
             {vehicle.brand} · {vehicle.type}
+            {vehicle.ficha ? ` · ${vehicle.ficha}` : ''}
           </p>
         </div>
       </header>
@@ -73,7 +75,8 @@ function VehicleCard({ vehicle }) {
    listado de esa marca: cambia el título, aparece el conteo y el botón de la
    derecha vuelve a mostrar todo el stock. */
 export default function Vehicles({ marca = null, onLimpiar }) {
-  const listado = marca ? VEHICLES.filter((v) => v.brand === marca) : VEHICLES
+  const { vehicles, estado } = useCatalogo()
+  const listado = marca ? vehicles.filter((v) => v.brand === marca) : vehicles
 
   const consultaMarca = `${WHATSAPP_URL}?text=${encodeURIComponent(
     `Hola Paolini, ¿qué tienen disponible de ${marca}?`,
@@ -110,7 +113,15 @@ export default function Vehicles({ marca = null, onLimpiar }) {
           )}
         </div>
 
-        {listado.length === 0 ? (
+        {listado.length === 0 && !marca ? (
+          <div className="mt-8 rounded-[10px] border border-white/10 bg-gradient-to-b from-[#1D1D1D] to-[#131313] px-6 py-12 text-center lg:mt-10">
+            <p className="mx-auto max-w-[460px] font-sans text-[15px] leading-[26px] text-white/65">
+              {estado === 'cargando'
+                ? 'Cargando los vehículos…'
+                : 'Estamos actualizando el stock. Escribinos y te contamos qué tenemos disponible hoy.'}
+            </p>
+          </div>
+        ) : listado.length === 0 ? (
           <div className="mt-8 rounded-[10px] border border-white/10 bg-gradient-to-b from-[#1D1D1D] to-[#131313] px-6 py-12 text-center lg:mt-10">
             <p className="mx-auto max-w-[460px] font-sans text-[15px] leading-[26px] text-white/65">
               No tenemos ningún {marca} publicado en este momento, pero

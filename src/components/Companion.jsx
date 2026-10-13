@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
-import { VEHICLES, WHATSAPP_URL } from '../data/vehicles'
+import { WHATSAPP_URL } from '../data/vehicles'
+import { useCatalogo } from '../lib/catalogo'
 import { ChevronLeftIcon, ChevronRightIcon, SeatsIcon, WhatsAppIcon } from './Icons'
 import { Cta } from './Ui'
 
@@ -18,8 +19,13 @@ function offsetFor(index, active, total) {
 
 export default function Companion() {
   const [active, setActive] = useState(0)
+  const { vehicles: VEHICLES } = useCatalogo()
   const total = VEHICLES.length
   const arrastre = useRef(null)
+
+  /* Sin autos cargados no hay abanico que mostrar. */
+  if (!total) return null
+  const activo = active % total
 
   const move = (dir) => setActive((i) => (i + dir + total) % total)
 
@@ -75,7 +81,7 @@ export default function Companion() {
           onPointerUp={onPointerUp}
         >
           {VEHICLES.map((vehicle, i) => {
-            const offset = offsetFor(i, active, total)
+            const offset = offsetFor(i, activo, total)
             const distance = Math.abs(offset)
             if (distance > 2) return null
 
@@ -136,7 +142,7 @@ export default function Companion() {
                 type="button"
                 onClick={() => setActive(i)}
                 className={`h-[7px] rounded-full transition-all ${
-                  i === active ? 'w-[7px] bg-[#D52B38]' : 'w-[7px] bg-white/25 hover:bg-white/50'
+                  i === activo ? 'w-[7px] bg-[#D52B38]' : 'w-[7px] bg-white/25 hover:bg-white/50'
                 }`}
               >
                 <span className="sr-only">

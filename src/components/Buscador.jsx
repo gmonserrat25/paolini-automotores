@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { asset } from '../lib/asset'
-import { VEHICLES, WHATSAPP_URL } from '../data/vehicles'
+import { WHATSAPP_URL } from '../data/vehicles'
+import { useCatalogo } from '../lib/catalogo'
 import { SearchIcon } from './Icons'
 
 /* "Find your dream car": la barra de filtros y, debajo, el auto grande con la
@@ -44,6 +45,7 @@ function Select({ label, value, options, onChange }) {
 const combustibleDe = (v) => v.specs[0]
 
 export default function Buscador() {
+  const { vehicles: VEHICLES } = useCatalogo()
   const [tipo, setTipo] = useState(TODOS)
   const [marca, setMarca] = useState(TODOS)
   const [modelo, setModelo] = useState(TODOS)
@@ -51,15 +53,15 @@ export default function Buscador() {
 
   const tipos = useMemo(
     () => [TODOS, ...new Set(VEHICLES.map((v) => v.type))],
-    [],
+    [VEHICLES],
   )
   const marcas = useMemo(
     () => [TODOS, ...new Set(VEHICLES.map((v) => v.brand))],
-    [],
+    [VEHICLES],
   )
   const combustibles = useMemo(
     () => [TODOS, ...new Set(VEHICLES.map(combustibleDe))],
-    [],
+    [VEHICLES],
   )
 
   const porTipoYMarca = VEHICLES.filter(
