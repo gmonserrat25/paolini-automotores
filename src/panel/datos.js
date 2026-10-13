@@ -1,5 +1,5 @@
 import { achicar } from './carga'
-import { supabase } from './acceso'
+import { DEMO, supabase } from './acceso'
 
 /* Los autos viven en la tabla `autos` de Supabase y las fotos en el bucket
    privado `autos` (ver supabase/001_autos.sql). Todo pasa por la sesión del
@@ -25,6 +25,7 @@ async function firmar(rutas) {
 
 /* Todos los autos, ya con el enlace de su foto. */
 export async function listarAutos() {
+  if (DEMO) return (await import('./demo')).listarDemo()
   const { data, error } = await supabase.from('autos').select('*').order('creado', { ascending: true })
   if (error) falla(error, 'No se pudieron leer los autos')
   const enlaces = await firmar(data.map((a) => a.foto_path))
@@ -34,6 +35,7 @@ export async function listarAutos() {
 /* Sube la foto (achicada) y crea la fila. `cargas` es una lista de
    { fila, archivo, metodo } con la fila del Excel y el archivo de la foto. */
 export async function agregarAutos(cargas) {
+  if (DEMO) return (await import('./demo')).agregarDemo(cargas)
   const nuevos = []
   for (const { fila, archivo, metodo } of cargas) {
     const ruta = `${normPatente(fila.patente)}.jpg`
@@ -73,12 +75,14 @@ export async function agregarAutos(cargas) {
    se toca nada; si fallara sólo el borrado de la foto, el auto igual queda
    eliminado (la foto sobrante no se ve en ningún lado). */
 export async function eliminarAuto(id, fotoPath) {
+  if (DEMO) return (await import('./demo')).eliminarDemo(id)
   const { error } = await supabase.from('autos').delete().eq('id', id)
   if (error) falla(error, 'No se pudo eliminar el auto')
   if (fotoPath) await supabase.storage.from(BUCKET).remove([fotoPath])
 }
 
 export async function cambiarEstadoAuto(id, estado) {
+  if (DEMO) return (await import('./demo')).estadoDemo(id, estado)
   const { error } = await supabase.from('autos').update({ estado }).eq('id', id)
   if (error) falla(error, 'No se pudo guardar el estado')
 }

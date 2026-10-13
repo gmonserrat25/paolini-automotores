@@ -12,9 +12,17 @@ import { createClient } from '@supabase/supabase-js'
 const url = import.meta.env.VITE_SUPABASE_URL
 const clave = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-export const configurado = Boolean(url && clave)
+/* Demo local (ver demo.js): sin Supabase y con una cuenta ficticia. Sólo en
+   `npm run dev` con VITE_PANEL_DEMO=1; en producción la condición es falsa. */
+export const DEMO = import.meta.env.DEV && import.meta.env.VITE_PANEL_DEMO === '1'
+const CUENTA_DEMO = { email: 'demo@paolini.com', contrasena: 'demo1234' }
+const SESION_DEMO = { access_token: 'demo' }
+const oyentesDemo = new Set()
+const enDemo = () => sessionStorage.getItem('panel-demo') === '1'
 
-export const supabase = configurado ? createClient(url, clave) : null
+export const configurado = DEMO || Boolean(url && clave)
+
+export const supabase = !DEMO && configurado ? createClient(url, clave) : null
 
 /* El "pase" de la sesión, para las funciones de servidor que piden estar
    logueado (api/reconocer.js). */
@@ -25,6 +33,7 @@ export async function tokenActual() {
 
 /* Sesión actual (o null). */
 export async function sesionActual() {
+  if (DEMO) return enDemo() ? SESION_DEMO : null
   if (!supabase) return null
   const { data } = await supabase.auth.getSession()
   return data.session
@@ -33,6 +42,10 @@ export async function sesionActual() {
 /* Avisa cada vez que alguien entra o sale. Devuelve la función para dejar de
    escuchar. */
 export function alCambiarSesion(avisar) {
+  if (DEMO) {
+    oyentesDemo.add(avisar)
+    return () => oyentesDemo.delete(avisar)
+  }
   if (!supabase) return () => {}
   const { data } = supabase.auth.onAuthStateChange((_evento, sesion) => avisar(sesion))
   return () => data.subscription.unsubscribe()
@@ -40,6 +53,14 @@ export function alCambiarSesion(avisar) {
 
 /* Devuelve un texto de error listo para mostrar, o null si salió bien. */
 export async function entrar(email, contrasena) {
+  if (DEMO) {
+    if (email !== CUENTA_DEMO.email || contrasena !== CUENTA_DEMO.contrasena) {
+      return 'El mail o la contraseña no son correctos.'
+    }
+    sessionStorage.setItem('panel-demo', '1')
+    oyentesDemo.forEach((avisar) => avisar(SESION_DEMO))
+    return null
+  }
   if (!supabase) return 'El acceso todavía no está configurado.'
   const { error } = await supabase.auth.signInWithPassword({ email, password: contrasena })
   if (!error) return null
@@ -49,5 +70,10 @@ export async function entrar(email, contrasena) {
 }
 
 export async function salir() {
+  if (DEMO) {
+    sessionStorage.removeItem('panel-demo')
+    oyentesDemo.forEach((avisar) => avisar(null))
+    return
+  }
   await supabase?.auth.signOut()
 }
