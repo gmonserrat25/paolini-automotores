@@ -5,7 +5,7 @@
    - DATABASE_URL           la base Neon Postgres (la pone la integración)
    - BLOB_READ_WRITE_TOKEN  el almacén de fotos de Vercel Blob (lo pone Vercel)
    - SESSION_SECRET         texto largo al azar para firmar las sesiones
-   - OPENAI_API_KEY         sólo para api/reconocer.js */
+   - ANTHROPIC_API_KEY      sólo para api/reconocer.js */
 
 import { neon } from '@neondatabase/serverless'
 import { createHmac, randomBytes, scrypt, timingSafeEqual } from 'node:crypto'

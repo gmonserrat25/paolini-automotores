@@ -12,6 +12,7 @@
     "deploy": "vercel --prod"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.133.0",
     "@neondatabase/serverless": "^1.2.0",
     "@vercel/blob": "^2.8.1",
     "fflate": "^0.8.3",
