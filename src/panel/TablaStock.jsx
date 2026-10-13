@@ -101,12 +101,78 @@ export default function TablaStock({
   const elegidas = stock.filter((v) => sel.ids.has(v.id))
   const hayFiltros = Boolean(marca || estado || soloViejas || q)
 
+  /* Los reservados salen de la lista principal y van aparte, bajo su título. */
+  const reservadas = visibles.filter((v) => v.estado === 'reservado')
+  const principales = visibles.filter((v) => v.estado !== 'reservado')
+
   const limpiar = () => {
     onMarca(null)
     setEstado(null)
     onSoloViejas(false)
     onLimpiarBusqueda()
   }
+
+  const fila = (v) => (
+    <li
+      key={v.id}
+      className={`${COLUMNAS} relative grid grid-cols-[56px_1fr] items-center gap-x-4 gap-y-3 rounded-2xl py-3 pl-11 pr-3 transition-colors hover:bg-white/[0.03] ${
+        sel.ids.has(v.id) ? 'bg-white/[0.05]' : ''
+      }`}
+    >
+      <Casilla
+        marcada={sel.ids.has(v.id)}
+        onChange={() => sel.alternar(v.id)}
+        etiqueta={`Elegir ${v.brand} ${v.model}`}
+        className="absolute left-3 top-1/2 -translate-y-1/2"
+      />
+      <img
+        src={v.image}
+        alt=""
+        loading="lazy"
+        className={`h-11 w-14 rounded-lg object-cover md:h-12 md:w-16 ${v.estado === 'vendido' ? 'opacity-50' : ''}`}
+      />
+      <div className="min-w-0">
+        <p className="flex items-center gap-1.5 text-xs text-white/60">
+          <BrandLogo marca={v.brand} className="h-3.5 w-3.5" />
+          {v.brand}
+        </p>
+        {v.ficha ? (
+          <button
+            type="button"
+            onClick={() => onVer(v.id)}
+            aria-label={`Ver la ficha de ${v.brand} ${v.model}`}
+            className="block max-w-full truncate text-left text-sm font-medium underline-offset-4 hover:underline focus-visible:underline"
+          >
+            {v.model}
+          </button>
+        ) : (
+          <p className="truncate text-sm font-medium">{v.model}</p>
+        )}
+        <p className="text-xs text-white/60">
+          {v.patente ? `${v.patente} · ${v.color}` : v.type}
+          <span className="md:hidden"> · {v.tag}</span>
+        </p>
+      </div>
+      <p className="hidden md:block">
+        <span className="whitespace-nowrap rounded-full border border-white/[0.1] px-2.5 py-1 text-xs text-white/80">
+          {v.tag}
+        </span>
+      </p>
+      <div className="col-span-2 flex items-baseline justify-between gap-4 md:contents">
+        <Dias unidad={v} />
+        <div className="text-right md:text-left">
+          <p className="text-sm tabular-nums">{pesos(v.precioVenta)}</p>
+          <p className="text-xs tabular-nums text-white/60">
+            {MARGEN(v) == null ? 'Margen sin cargar' : `Margen ${pesosCorto(MARGEN(v))}`}
+          </p>
+        </div>
+      </div>
+      <div className="col-span-2 flex items-center gap-2 md:col-span-1">
+        <EstadoMenu unidad={v} onCambiar={onCambiar} onEliminar={(u) => setPorEliminar([u])} />
+        {v.ficha && <AccionesFila unidad={v} onEditar={onEditar} onEliminar={(u) => setPorEliminar([u])} />}
+      </div>
+    </li>
+  )
 
   return (
     <section id="stock" className="p-card p-entra scroll-mt-24 p-5" style={{ '--i': 6 }}>
@@ -190,69 +256,15 @@ export default function TablaStock({
             <span>Precio y margen</span>
             <span>Estado</span>
           </div>
-          <ul>
-            {visibles.map((v) => (
-              <li
-                key={v.id}
-                className={`${COLUMNAS} relative grid grid-cols-[56px_1fr] items-center gap-x-4 gap-y-3 rounded-2xl py-3 pl-11 pr-3 transition-colors hover:bg-white/[0.03] ${
-                  sel.ids.has(v.id) ? 'bg-white/[0.05]' : ''
-                }`}
-              >
-                <Casilla
-                  marcada={sel.ids.has(v.id)}
-                  onChange={() => sel.alternar(v.id)}
-                  etiqueta={`Elegir ${v.brand} ${v.model}`}
-                  className="absolute left-3 top-1/2 -translate-y-1/2"
-                />
-                <img
-                  src={v.image}
-                  alt=""
-                  loading="lazy"
-                  className={`h-11 w-14 rounded-lg object-cover md:h-12 md:w-16 ${v.estado === 'vendido' ? 'opacity-50' : ''}`}
-                />
-                <div className="min-w-0">
-                  <p className="flex items-center gap-1.5 text-xs text-white/60">
-                    <BrandLogo marca={v.brand} className="h-3.5 w-3.5" />
-                    {v.brand}
-                  </p>
-                  {v.ficha ? (
-                    <button
-                      type="button"
-                      onClick={() => onVer(v.id)}
-                      aria-label={`Ver la ficha de ${v.brand} ${v.model}`}
-                      className="block max-w-full truncate text-left text-sm font-medium underline-offset-4 hover:underline focus-visible:underline"
-                    >
-                      {v.model}
-                    </button>
-                  ) : (
-                    <p className="truncate text-sm font-medium">{v.model}</p>
-                  )}
-                  <p className="text-xs text-white/60">
-                    {v.patente ? `${v.patente} · ${v.color}` : v.type}
-                    <span className="md:hidden"> · {v.tag}</span>
-                  </p>
-                </div>
-                <p className="hidden md:block">
-                  <span className="whitespace-nowrap rounded-full border border-white/[0.1] px-2.5 py-1 text-xs text-white/80">
-                    {v.tag}
-                  </span>
-                </p>
-                <div className="col-span-2 flex items-baseline justify-between gap-4 md:contents">
-                  <Dias unidad={v} />
-                  <div className="text-right md:text-left">
-                    <p className="text-sm tabular-nums">{pesos(v.precioVenta)}</p>
-                    <p className="text-xs tabular-nums text-white/60">
-                      {MARGEN(v) == null ? 'Margen sin cargar' : `Margen ${pesosCorto(MARGEN(v))}`}
-                    </p>
-                  </div>
-                </div>
-                <div className="col-span-2 flex items-center gap-2 md:col-span-1">
-                  <EstadoMenu unidad={v} onCambiar={onCambiar} onEliminar={(u) => setPorEliminar([u])} />
-                  {v.ficha && <AccionesFila unidad={v} onEditar={onEditar} onEliminar={(u) => setPorEliminar([u])} />}
-                </div>
-              </li>
-            ))}
-          </ul>
+          <ul>{principales.map(fila)}</ul>
+          {reservadas.length > 0 && (
+            <section aria-label="Reservados" className="mt-6">
+              <h3 className="flex items-baseline gap-2 border-b border-white/[0.08] px-3 pb-2.5 font-jost text-base font-medium">
+                Reservados <span className="text-sm text-white/60">· {reservadas.length}</span>
+              </h3>
+              <ul>{reservadas.map(fila)}</ul>
+            </section>
+          )}
         </div>
       )}
 

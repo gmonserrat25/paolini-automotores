@@ -285,6 +285,56 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
   const enStock = stock.filter((u) => u.patente)
   const elegidas = enStock.filter((u) => sel.ids.has(u.id))
 
+  /* Los reservados salen de la lista principal y van aparte, bajo su título. */
+  const reservadasCargadas = enStock.filter((u) => u.estado === 'reservado')
+  const principalesCargadas = enStock.filter((u) => u.estado !== 'reservado')
+
+  const filaCargada = (u) => (
+    <li
+      key={u.id}
+      className={`relative grid grid-cols-[72px_1fr] items-center gap-x-4 gap-y-3 rounded-2xl py-3 pl-11 pr-3 hover:bg-white/[0.03] md:grid-cols-[72px_1.3fr_2fr_auto] ${
+        sel.ids.has(u.id) ? 'bg-white/[0.05]' : ''
+      }`}
+    >
+      <Casilla
+        marcada={sel.ids.has(u.id)}
+        onChange={() => sel.alternar(u.id)}
+        etiqueta={`Elegir ${u.brand} ${u.model}`}
+        className="absolute left-3 top-1/2 -translate-y-1/2"
+      />
+      <img src={u.image} alt="" loading="lazy" className="h-14 w-[72px] rounded-lg object-cover" />
+      <div className="min-w-0">
+        <p className="flex items-center gap-1.5 text-xs text-white/60">
+          <BrandLogo marca={u.brand} className="h-3.5 w-3.5" />
+          {u.brand}
+        </p>
+        {u.ficha ? (
+          <button
+            type="button"
+            onClick={() => onVer(u.id)}
+            aria-label={`Ver la ficha de ${u.brand} ${u.model}`}
+            className="block max-w-full truncate text-left text-sm font-medium underline-offset-4 hover:underline focus-visible:underline"
+          >
+            {u.model}
+          </button>
+        ) : (
+          <p className="truncate text-sm font-medium">{u.model}</p>
+        )}
+      </div>
+      <div className="col-span-2 grid grid-cols-2 gap-3 md:col-span-1 md:grid-cols-4">
+        <Dato etiqueta="Patente">{u.patente}</Dato>
+        <Dato etiqueta="Año · km">{u.tag.replace(' km', '')}</Dato>
+        <Dato etiqueta="Color">{u.color}</Dato>
+        <Dato etiqueta="Precio">{pesos(u.precioVenta)}</Dato>
+      </div>
+      {u.ficha && (
+        <div className="col-span-2 md:col-span-1 md:justify-self-end">
+          <AccionesFila unidad={u} onEditar={onEditar} onEliminar={(x) => setPorEliminar([x])} />
+        </div>
+      )}
+    </li>
+  )
+
   return (
     <div className="space-y-4">
       <section
@@ -423,53 +473,15 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
           }}
           onQuitar={sel.limpiar}
         />
-        <ul className="mt-3">
-          {enStock.map((u) => (
-            <li
-              key={u.id}
-              className={`relative grid grid-cols-[72px_1fr] items-center gap-x-4 gap-y-3 rounded-2xl py-3 pl-11 pr-3 hover:bg-white/[0.03] md:grid-cols-[72px_1.3fr_2fr_auto] ${
-                sel.ids.has(u.id) ? 'bg-white/[0.05]' : ''
-              }`}
-            >
-              <Casilla
-                marcada={sel.ids.has(u.id)}
-                onChange={() => sel.alternar(u.id)}
-                etiqueta={`Elegir ${u.brand} ${u.model}`}
-                className="absolute left-3 top-1/2 -translate-y-1/2"
-              />
-              <img src={u.image} alt="" loading="lazy" className="h-14 w-[72px] rounded-lg object-cover" />
-              <div className="min-w-0">
-                <p className="flex items-center gap-1.5 text-xs text-white/60">
-                  <BrandLogo marca={u.brand} className="h-3.5 w-3.5" />
-                  {u.brand}
-                </p>
-                {u.ficha ? (
-                  <button
-                    type="button"
-                    onClick={() => onVer(u.id)}
-                    aria-label={`Ver la ficha de ${u.brand} ${u.model}`}
-                    className="block max-w-full truncate text-left text-sm font-medium underline-offset-4 hover:underline focus-visible:underline"
-                  >
-                    {u.model}
-                  </button>
-                ) : (
-                  <p className="truncate text-sm font-medium">{u.model}</p>
-                )}
-              </div>
-              <div className="col-span-2 grid grid-cols-2 gap-3 md:col-span-1 md:grid-cols-4">
-                <Dato etiqueta="Patente">{u.patente}</Dato>
-                <Dato etiqueta="Año · km">{u.tag.replace(' km', '')}</Dato>
-                <Dato etiqueta="Color">{u.color}</Dato>
-                <Dato etiqueta="Precio">{pesos(u.precioVenta)}</Dato>
-              </div>
-              {u.ficha && (
-                <div className="col-span-2 md:col-span-1 md:justify-self-end">
-                  <AccionesFila unidad={u} onEditar={onEditar} onEliminar={(x) => setPorEliminar([x])} />
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
+        <ul className="mt-3">{principalesCargadas.map(filaCargada)}</ul>
+        {reservadasCargadas.length > 0 && (
+          <div className="mt-6">
+            <h4 className="flex items-baseline gap-2 border-b border-white/[0.08] px-3 pb-2.5 font-jost text-base font-medium">
+              Reservados <span className="text-sm text-white/60">· {reservadasCargadas.length}</span>
+            </h4>
+            <ul className="mt-3">{reservadasCargadas.map(filaCargada)}</ul>
+          </div>
+        )}
       </section>
 
       {porEliminar && (
