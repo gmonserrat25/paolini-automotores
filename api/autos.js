@@ -5,7 +5,8 @@
    POST           con sesión: crea un auto con su foto (la sube a Vercel Blob).
    PATCH ?id=     con sesión: edita los datos del auto (y su estado).
    DELETE ?id=    con sesión: borra el auto y su foto.
-   DELETE ?ids=a,b,c  con sesión: borra varios autos y sus fotos de una vez (hasta 100). */
+   DELETE ?ids=a,b,c  con sesión: borra varios autos y sus fotos de una vez (hasta 100).
+   PATCH ?ids=a,b,c   con sesión: cambia el estado de varios autos de una vez (hasta 100). */
 
 import { del, put } from '@vercel/blob'
 import { esquema, exigirSesion, sql } from './_comun.js'
@@ -76,6 +77,19 @@ export default async function handler(req, res) {
       await del(foto.url).catch(() => {})
       throw e
     }
+  }
+
+  /* Cambio de estado en lote: { estado } para varios autos de una vez. */
+  if (req.method === 'PATCH' && req.query.ids != null) {
+    const ids = [...new Set(String(req.query.ids).split(',').filter(Boolean))]
+    if (!ids.length || ids.length > MAX_LOTE || !ids.every((i) => UUID.test(i))) {
+      return res.status(400).json({ error: `Pasá entre 1 y ${MAX_LOTE} ids válidos` })
+    }
+    const estado = req.body?.estado
+    if (!ESTADOS.includes(estado)) return res.status(400).json({ error: 'Estado desconocido' })
+    const hechos = await sql`
+      update autos set estado = ${estado} where id = any(string_to_array(${ids.join(',')}, ',')::uuid[]) returning id`
+    return res.status(200).json({ actualizados: hechos.length, estado })
   }
 
   /* Borrado en lote: un solo pedido para varios autos. */

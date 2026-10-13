@@ -1,4 +1,4 @@
-import { agregarAutos, cambiarEstadoAuto, editarAuto, eliminarAutos, listarAutos } from './datos'
+import { agregarAutos, cambiarEstadoAuto, cambiarEstadoAutos, editarAuto, eliminarAutos, listarAutos } from './datos'
 import {
   AGENDA,
   BUSQUEDAS,
@@ -207,6 +207,12 @@ export async function guardarEstado(id, estado) {
     await cambiarEstadoAuto(id, estado)
   }
   return { id, estado }
+}
+
+/* PATCH /stock?ids=... { estado } */
+export async function guardarEstados(ids, estado) {
+  if (!ESTADOS.includes(estado)) throw new Error(`Estado desconocido: ${estado}`)
+  await cambiarEstadoAutos(ids, estado)
 }
 
 /* PATCH /consultas/:id */

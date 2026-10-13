@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { IconoBasura, IconoEditar } from './icons'
+import { ESTADOS, ESTADO_LABEL } from './mock'
 
 /* Piezas compartidas por las listas de autos (Stock y Carga): casilla para
    elegir varios, barra con lo elegido y los botones de cada fila. */
@@ -58,7 +59,7 @@ export function AccionesFila({ unidad, onEditar, onEliminar }) {
 }
 
 /* Aparece cuando hay autos elegidos. */
-export function BarraSeleccion({ cantidad, onEliminar, onQuitar }) {
+export function BarraSeleccion({ cantidad, onEliminar, onEstado, onQuitar }) {
   if (!cantidad) return null
   return (
     <div
@@ -69,7 +70,27 @@ export function BarraSeleccion({ cantidad, onEliminar, onQuitar }) {
       <p className="text-sm" aria-live="polite">
         {cantidad} {cantidad === 1 ? 'auto elegido' : 'autos elegidos'}
       </p>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        {onEstado && (
+          <>
+            <label className="sr-only" htmlFor="estado-lote">
+              Cambiar el estado de los autos elegidos
+            </label>
+            <select
+              id="estado-lote"
+              value=""
+              onChange={(e) => e.target.value && onEstado(e.target.value)}
+              className="cursor-pointer rounded-full border border-white/[0.12] bg-[#151516] px-4 py-2 text-sm text-white transition-colors hover:border-white/30 focus:border-white/40 focus:outline-none"
+            >
+              <option value="">Cambiar estado…</option>
+              {ESTADOS.map((e) => (
+                <option key={e} value={e}>
+                  Marcar como {ESTADO_LABEL[e]}
+                </option>
+              ))}
+            </select>
+          </>
+        )}
         <button
           type="button"
           onClick={onQuitar}

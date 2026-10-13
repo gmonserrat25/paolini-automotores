@@ -81,6 +81,7 @@ export default function TablaStock({
   onEliminar,
   onVer,
   onEditar,
+  onEstados,
   onLimpiarBusqueda,
 }) {
   const [estado, setEstado] = useState(null)
@@ -130,6 +131,9 @@ export default function TablaStock({
       <BarraSeleccion
         cantidad={elegidas.length}
         onEliminar={() => setPorEliminar(elegidas)}
+        onEstado={async (nuevo) => {
+          if (await onEstados(elegidas.map((v) => v.id), nuevo)) sel.limpiar()
+        }}
         onQuitar={sel.limpiar}
       />
 

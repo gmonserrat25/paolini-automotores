@@ -63,6 +63,17 @@ export async function cambiarEstadoAuto(id, estado) {
   await pedir(`/api/autos?id=${id}`, { method: 'PATCH', body: JSON.stringify({ estado }) })
 }
 
+/* Cambia el estado de varios autos a la vez. De a 100 por pedido. */
+export async function cambiarEstadoAutos(ids, estado) {
+  if (DEMO) {
+    const { estadoDemo } = await import('./demo')
+    return ids.forEach((id) => estadoDemo(id, estado))
+  }
+  for (let i = 0; i < ids.length; i += 100) {
+    await pedir(`/api/autos?ids=${ids.slice(i, i + 100).join(',')}`, { method: 'PATCH', body: JSON.stringify({ estado }) })
+  }
+}
+
 /* Edita los datos de un auto. Devuelve la fila ya guardada. */
 export async function editarAuto(id, cambios) {
   if (DEMO) return (await import('./demo')).editarDemo(id, cambios)
