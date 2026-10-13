@@ -29,9 +29,10 @@ export default async function handler(req, res) {
       const autos = await sql`select * from autos order by creado asc`
       return res.status(200).json(autos.map((a) => ({ ...fila(a), foto: a.foto_url })))
     }
-    /* Público: se refresca solo cada medio minuto, sin pegarle a la base en
-       cada visita. */
-    res.setHeader('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=300')
+    /* Público: se refresca solo cada 5 segundos, así lo que los dueños cargan
+       o borran se ve enseguida, sin pegarle a la base en cada visita. Sin
+       stale-while-revalidate: no se sirve nunca una lista vieja. */
+    res.setHeader('Cache-Control', 'public, s-maxage=5')
     const autos = await sql`
       select id, marca, modelo, tipo, combustible, anio, km, precio, foto_url as foto
       from autos where estado <> 'vendido' order by creado asc`
