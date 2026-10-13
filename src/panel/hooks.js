@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { agregarUnidades as guardarUnidades, cargarPanel, editarUnidad as guardarEdicion, eliminarUnidades as borrarUnidades, guardarEstado, guardarEstadoConsulta, guardarTasacion } from './api'
+import { agregarUnidades as guardarUnidades, cargarPanel, editarUnidad as guardarEdicion, eliminarUnidades as borrarUnidades, guardarEstado, guardarEstados, guardarEstadoConsulta, guardarTasacion } from './api'
+import { ESTADO_LABEL } from './mock'
 
 const reduceMotion = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -106,6 +107,35 @@ export function usePanel() {
     [cambiar],
   )
 
+  /* Cambia el estado de varios autos a la vez. Se ve al instante y, si falla,
+     vuelve a como estaba y avisa. Devuelve si salió bien. */
+  const cambiarEstados = useCallback(async (ids, nuevo) => {
+    const idas = new Set(ids)
+    let anteriores
+    setDatos((d) => {
+      anteriores = new Map(d.stock.filter((u) => idas.has(u.id)).map((u) => [u.id, u]))
+      return {
+        ...d,
+        stock: d.stock.map((u) =>
+          idas.has(u.id) ? { ...u, estado: nuevo, vendidoHaceDias: nuevo === 'vendido' ? 0 : undefined } : u,
+        ),
+      }
+    })
+    try {
+      await guardarEstados(ids, nuevo)
+      setAviso(
+        ids.length === 1
+          ? `Se marcó como ${ESTADO_LABEL[nuevo]}.`
+          : `Se marcaron ${ids.length} autos como ${ESTADO_LABEL[nuevo]}.`,
+      )
+      return true
+    } catch {
+      setDatos((d) => ({ ...d, stock: d.stock.map((u) => anteriores.get(u.id) ?? u) }))
+      setAviso('No se pudo cambiar el estado. Volvió a como estaba.')
+      return false
+    }
+  }, [])
+
   const cambiarEstadoConsulta = useCallback(
     (id, nuevo) => cambiar('consultas', id, { estado: nuevo }, () => guardarEstadoConsulta(id, nuevo)),
     [cambiar],
@@ -161,5 +191,5 @@ export function usePanel() {
     }
   }, [])
 
-  return { estado, datos, aviso, recargar, agregarUnidades, editarUnidad, eliminarUnidades, cambiarEstado, cambiarEstadoConsulta, marcarTasacion }
+  return { estado, datos, aviso, recargar, agregarUnidades, editarUnidad, eliminarUnidades, cambiarEstado, cambiarEstados, cambiarEstadoConsulta, marcarTasacion }
 }

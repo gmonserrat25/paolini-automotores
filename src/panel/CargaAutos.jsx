@@ -129,7 +129,7 @@ function FilaCarga({ item, asignado, metodo, libres, onElegir, onQuitar }) {
   )
 }
 
-export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onEliminar }) {
+export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onEliminar, onEstados }) {
   const entrada = useRef(null)
   const [arrastrando, setArrastrando] = useState(false)
   const [filas, setFilas] = useState([])
@@ -418,6 +418,9 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
         <BarraSeleccion
           cantidad={elegidas.length}
           onEliminar={() => setPorEliminar(elegidas)}
+          onEstado={async (nuevo) => {
+            if (await onEstados(elegidas.map((u) => u.id), nuevo)) sel.limpiar()
+          }}
           onQuitar={sel.limpiar}
         />
         <ul className="mt-3">

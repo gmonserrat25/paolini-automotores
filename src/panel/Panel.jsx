@@ -93,7 +93,7 @@ function ErrorPanel({ onReintentar }) {
 
 export default function Panel({ onSalir }) {
   useFichaInterna()
-  const { estado, datos, aviso, recargar, agregarUnidades, editarUnidad, eliminarUnidades, cambiarEstado, cambiarEstadoConsulta, marcarTasacion } =
+  const { estado, datos, aviso, recargar, agregarUnidades, editarUnidad, eliminarUnidades, cambiarEstado, cambiarEstados, cambiarEstadoConsulta, marcarTasacion } =
     usePanel()
   const vista = useVista()
   const [busqueda, setBusqueda] = useState('')
@@ -146,6 +146,7 @@ export default function Panel({ onSalir }) {
                   onVer={verFicha}
                   onEditar={editarFicha}
                   onEliminar={eliminarUnidades}
+                  onEstados={cambiarEstados}
                 />
               </div>
             )}
@@ -181,6 +182,7 @@ export default function Panel({ onSalir }) {
                   onEliminar={eliminarUnidades}
                   onVer={verFicha}
                   onEditar={editarFicha}
+                  onEstados={cambiarEstados}
                   onLimpiarBusqueda={() => setBusqueda('')}
                 />
                 <div className="grid gap-4 lg:grid-cols-2">
