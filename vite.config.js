@@ -2,7 +2,7 @@ import react from '@vitejs/plugin-react'
 import { defineConfig, loadEnv } from 'vite'
 
 /* Sólo para la demo local del panel (VITE_PANEL_DEMO=1, `npm run dev`): sirve
-   /api/reconocer sin pasar por Supabase y con la OPENAI_API_KEY del entorno
+   /api/reconocer sin pasar por la base ni la sesión y con la OPENAI_API_KEY del entorno
    (`key usar openai=OPENAI_API_KEY -- npm run dev`). En producción esto no
    existe: ahí responde la función de Vercel, que exige sesión. */
 function reconocerLocal(env) {

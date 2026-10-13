@@ -1,4 +1,4 @@
-/* Arma supabase/seed/inventario-demo.xlsx con los autos de inventario.json, en
+/* Arma demo-datos/inventario-demo.xlsx con los autos de inventario.json, en
    el formato que lee la pantalla Carga (sin fila de títulos): marca, modelo,
    precio, año, patente, km, color. Sirve para probar y mostrar la carga.
 
@@ -9,7 +9,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { strToU8, zipSync } from 'fflate'
 
-const semilla = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'supabase', 'seed')
+const semilla = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'demo-datos')
 const { autos } = JSON.parse(readFileSync(join(semilla, 'inventario.json'), 'utf8'))
 
 const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;')

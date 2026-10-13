@@ -3,16 +3,12 @@ import { BRANDS } from '../data/vehicles'
 import { asset } from './asset'
 
 /* El catálogo del sitio público: los autos que cargan los dueños desde el
-   panel (/panel). Se leen en vivo de la vista pública `autos_publicos` de
-   Supabase (ver supabase/001_autos.sql), así que un Excel nuevo aparece en la
-   página sin publicar nada. Es un fetch común: no carga el SDK de Supabase.
+   panel (/panel). Se leen en vivo de GET /api/autos (api/autos.js), así que un
+   Excel nuevo aparece en la página sin publicar nada (la respuesta se
+   refresca sola cada medio minuto).
 
-   La URL y la clave "anon" son públicas por diseño; la vista sólo expone
-   los datos que ya se ven en la tarjeta (sin patente) y no los vendidos. */
-
-const URL_BASE = import.meta.env.VITE_SUPABASE_URL
-const CLAVE = import.meta.env.VITE_SUPABASE_ANON_KEY
-const CAMPOS = 'id,marca,modelo,tipo,combustible,anio,km,precio,foto_path'
+   Esa respuesta es pública y sólo trae lo que ya se ve en la tarjeta: sin
+   patente y sin los autos vendidos. */
 
 const CatalogoContext = createContext({ vehicles: [], estado: 'listo' })
 
@@ -49,28 +45,20 @@ function aVehiculo(a) {
     detail: [a.tipo, ficha].filter(Boolean).join(' · '),
     tag: a.precio ? pesos.format(a.precio) : 'A consultar',
     specs: [a.combustible],
-    image: a.foto_path
-      ? `${URL_BASE}/storage/v1/object/public/autos/${a.foto_path}`
-      : asset('/ig/logo-paolini.svg'),
+    image: a.foto ?? asset('/ig/logo-paolini.svg'),
   }
 }
 
 async function leerAutos(senal) {
-  const r = await fetch(`${URL_BASE}/rest/v1/autos_publicos?select=${CAMPOS}&order=creado.asc`, {
-    headers: { apikey: CLAVE, Authorization: `Bearer ${CLAVE}` },
-    cache: 'no-store',
-    signal: senal,
-  })
-  if (!r.ok) throw new Error(`autos_publicos ${r.status}`)
+  const r = await fetch('/api/autos', { signal: senal })
+  if (!r.ok) throw new Error(`autos ${r.status}`)
   return (await r.json()).map(aVehiculo)
 }
 
 export function CatalogoProvider({ children }) {
-  const configurado = Boolean(URL_BASE && CLAVE)
-  const [datos, setDatos] = useState({ vehicles: [], estado: configurado ? 'cargando' : 'listo' })
+  const [datos, setDatos] = useState({ vehicles: [], estado: 'cargando' })
 
   useEffect(() => {
-    if (!configurado) return
     const control = new AbortController()
     const cargar = () =>
       leerAutos(control.signal)
@@ -87,7 +75,7 @@ export function CatalogoProvider({ children }) {
       control.abort()
       document.removeEventListener('visibilitychange', alVolver)
     }
-  }, [configurado])
+  }, [])
 
   return <CatalogoContext.Provider value={datos}>{children}</CatalogoContext.Provider>
 }

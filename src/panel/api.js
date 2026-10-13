@@ -90,7 +90,6 @@ function armarUnidad(a) {
     tag: `${a.anio ?? '—'} · ${(a.km ?? 0).toLocaleString('es-AR')} km`,
     specs: [a.combustible],
     image: a.foto,
-    fotoPath: a.foto_path,
     patente: a.patente,
     color: a.color,
     condicion: 'usado',
@@ -128,7 +127,7 @@ export async function cargarPanel() {
     }
   })
 
-  /* Los autos reales, de la base de Supabase. */
+  /* Los autos reales, de la base de datos. */
   stock.push(...(await listarAutos()).map(armarUnidad))
 
   const consultas = (RELLENO ? CONSULTAS : []).map((c) => {
@@ -176,7 +175,7 @@ export async function cargarPanel() {
 
 /* DELETE /stock/:id */
 export async function eliminarUnidad(unidad) {
-  await eliminarAuto(unidad.id, unidad.fotoPath)
+  await eliminarAuto(unidad.id)
 }
 
 /* PATCH /stock/:id */

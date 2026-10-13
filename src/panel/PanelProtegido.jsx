@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import './panel.css'
-import { alCambiarSesion, configurado, entrar, salir, sesionActual } from './acceso'
+import { alCambiarSesion, entrar, salir, sesionActual } from './acceso'
 import Panel from './Panel'
 
 /* La puerta del panel: sin sesión se ve el login y nada más. Panel.jsx se baja
@@ -40,52 +40,46 @@ function Login() {
         <h1 className="text-center font-jost text-2xl font-medium">Panel de Paolini</h1>
         <p className="mt-1 text-center text-sm text-white/60">Acceso sólo para el equipo de la agencia.</p>
 
-        {configurado ? (
-          <form onSubmit={enviar} className="p-card mt-6 space-y-4 p-5">
-            <label className="block text-sm">
-              Mail
-              <input
-                type="email"
-                required
-                autoComplete="username"
-                autoFocus
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={campo}
-              />
-            </label>
-            <label className="block text-sm">
-              Contraseña
-              <input
-                type="password"
-                required
-                autoComplete="current-password"
-                value={contrasena}
-                onChange={(e) => setContrasena(e.target.value)}
-                className={campo}
-              />
-            </label>
-            {error && (
-              <p role="alert" className="text-sm text-[#FF6B76]">
-                {error}
-              </p>
-            )}
-            <button
-              type="submit"
-              disabled={enviando}
-              className="w-full rounded-full bg-[#E0323F] py-3 text-sm font-medium transition-colors hover:bg-[#EA4350] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {enviando ? 'Entrando…' : 'Entrar'}
-            </button>
-            <p className="text-center text-xs text-white/60">
-              ¿Perdiste la contraseña? Pedísela a quien administra el panel.
+        <form onSubmit={enviar} className="p-card mt-6 space-y-4 p-5">
+          <label className="block text-sm">
+            Mail
+            <input
+              type="email"
+              required
+              autoComplete="username"
+              autoFocus
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={campo}
+            />
+          </label>
+          <label className="block text-sm">
+            Contraseña
+            <input
+              type="password"
+              required
+              autoComplete="current-password"
+              value={contrasena}
+              onChange={(e) => setContrasena(e.target.value)}
+              className={campo}
+            />
+          </label>
+          {error && (
+            <p role="alert" className="text-sm text-[#FF6B76]">
+              {error}
             </p>
-          </form>
-        ) : (
-          <p role="alert" className="p-card mt-6 p-5 text-sm text-white/80">
-            El acceso todavía no está configurado. Faltan las claves de Supabase en el proyecto.
+          )}
+          <button
+            type="submit"
+            disabled={enviando}
+            className="w-full rounded-full bg-[#E0323F] py-3 text-sm font-medium transition-colors hover:bg-[#EA4350] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {enviando ? 'Entrando…' : 'Entrar'}
+          </button>
+          <p className="text-center text-xs text-white/60">
+            ¿Perdiste la contraseña? Pedísela a quien administra el panel.
           </p>
-        )}
+        </form>
       </div>
     </main>
   )

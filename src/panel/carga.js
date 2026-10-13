@@ -1,5 +1,4 @@
 import { unzipSync, strFromU8 } from 'fflate'
-import { tokenActual } from './acceso'
 
 /* La parte de la carga que no es pantalla: leer el Excel, reconocer la foto y
    cruzar las dos cosas. El cruce es el mismo que hace
@@ -109,10 +108,10 @@ export async function achicar(archivo, lado = 1600, formato = 'url') {
    publicada o si le falta la key: la pantalla lo cuenta y deja elegir a mano. */
 export async function reconocerFoto(archivo) {
   const imagen = await achicar(archivo)
-  const token = await tokenActual()
   const r = await fetch('/api/reconocer', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ imagen }),
   })
   if (!r.ok) throw new Error(`reconocer ${r.status}`)

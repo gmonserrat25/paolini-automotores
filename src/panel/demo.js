@@ -1,11 +1,11 @@
-/* Modo demo del panel: para mostrarlo en local sin Supabase. Sólo existe en
+/* Modo demo del panel: para mostrarlo en local sin base de datos. Sólo existe en
    desarrollo (`npm run dev`) y con VITE_PANEL_DEMO=1 en `.env.local`. La
    bandera `DEMO` vive en acceso.js y este archivo se carga con import()
    dinámico sólo si está prendida: en un build de producción no entra.
 
    La cuenta es ficticia y nada se guarda: arranca sin autos, los que se cargan
    viven en memoria y al recargar la página desaparecen. Para probar, usá
-   supabase/seed/inventario-demo.xlsx y las fotos de supabase/seed/fotos. */
+   demo-datos/inventario-demo.xlsx y las fotos de demo-datos/fotos. */
 
 const rutaDe = (patente) => `${patente.replace(/[^A-Za-z0-9]/g, '').toLowerCase()}.jpg`
 
