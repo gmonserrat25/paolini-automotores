@@ -17,8 +17,8 @@ import "./VehicleArc.css";
 const SPEED = 360 / 48000;
 
 export default function VehicleArc({ className = "" }) {
-  const { vehicles } = useCatalogo();
-  const CARDS = [...vehicles, ...vehicles];
+  const { disponibles } = useCatalogo();
+  const CARDS = [...disponibles, ...disponibles];
   const STEP = 360 / (CARDS.length || 1);
   const stageRef = useRef(null);
   const cylinderRef = useRef(null);

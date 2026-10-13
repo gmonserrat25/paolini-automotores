@@ -45,7 +45,7 @@ function Select({ label, value, options, onChange }) {
 const combustibleDe = (v) => v.specs[0]
 
 export default function Buscador() {
-  const { vehicles: VEHICLES } = useCatalogo()
+  const { disponibles: VEHICLES } = useCatalogo()
   const [tipo, setTipo] = useState(TODOS)
   const [marca, setMarca] = useState(TODOS)
   const [modelo, setModelo] = useState(TODOS)

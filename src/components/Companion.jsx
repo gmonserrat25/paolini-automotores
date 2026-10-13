@@ -19,7 +19,7 @@ function offsetFor(index, active, total) {
 
 export default function Companion() {
   const [active, setActive] = useState(0)
-  const { vehicles: VEHICLES } = useCatalogo()
+  const { disponibles: VEHICLES } = useCatalogo()
   const total = VEHICLES.length
   const arrastre = useRef(null)
 
