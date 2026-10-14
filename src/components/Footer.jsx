@@ -164,6 +164,18 @@ export default function Footer() {
             <Item href={MAPS}>Ubicación</Item>
           </ul>
         </div>
+
+        <p className="pb-6 text-center font-sans text-[10px] text-white/25">
+          Sitio web por{' '}
+          <a
+            href="https://neurolabs.ar"
+            target="_blank"
+            rel="noreferrer"
+            className="transition-colors hover:text-white/60"
+          >
+            Neurolabs
+          </a>
+        </p>
       </div>
     </footer>
   )
