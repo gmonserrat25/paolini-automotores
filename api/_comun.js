@@ -62,6 +62,17 @@ export function esquema() {
       candidatos jsonb,
       asignado   text
     )`
+    /* Las entregas: la foto con quien se llevó el auto y qué auto. Es lo que
+       muestra la sección "Entregas" del sitio. No se liga a la tabla `autos`
+       a propósito: el auto vendido puede haberse borrado del stock. */
+    await sql`create table if not exists entregas (
+      id       uuid primary key default gen_random_uuid(),
+      cliente  text not null,
+      plural   boolean not null default false,
+      vehiculo text not null,
+      foto_url text not null,
+      creado   timestamptz not null default now()
+    )`
     await sql`create table if not exists intentos (
       email  text not null,
       cuando timestamptz not null default now()
