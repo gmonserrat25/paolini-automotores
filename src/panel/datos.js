@@ -90,3 +90,27 @@ export async function editarAuto(id, cambios) {
   if (DEMO) return (await import('./demo')).editarDemo(id, cambios)
   return pedir(`/api/autos?id=${id}`, { method: 'PATCH', body: JSON.stringify(cambios) })
 }
+
+/* Las entregas: la foto con quien se llevó el auto (tabla `entregas`). */
+export async function listarEntregas() {
+  if (DEMO) return (await import('./demo')).listarEntregasDemo()
+  try {
+    return await pedir('/api/entregas?vista=panel')
+  } catch (e) {
+    throw new Error(`No se pudieron leer las entregas: ${e.message}`)
+  }
+}
+
+/* Sube la foto (achicada) y crea la entrega. */
+export async function agregarEntrega({ cliente, plural, vehiculo, archivo }) {
+  if (DEMO) return (await import('./demo')).agregarEntregaDemo({ cliente, plural, vehiculo, archivo })
+  return pedir('/api/entregas', {
+    method: 'POST',
+    body: JSON.stringify({ cliente, plural, vehiculo, foto: await achicar(archivo, 1600, 'url') }),
+  })
+}
+
+export async function eliminarEntrega(id) {
+  if (DEMO) return (await import('./demo')).eliminarEntregaDemo(id)
+  await pedir(`/api/entregas?id=${id}`, { method: 'DELETE' })
+}

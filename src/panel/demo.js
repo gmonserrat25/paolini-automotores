@@ -59,3 +59,26 @@ export function editarDemo(id, cambios) {
   Object.assign(auto, cambios)
   return { ...auto }
 }
+
+/* Las entregas de la demo: también en memoria. */
+const entregas = []
+
+export const listarEntregasDemo = () => entregas.map((e) => ({ ...e }))
+
+export function agregarEntregaDemo({ cliente, plural, vehiculo, archivo }) {
+  const entrega = {
+    id: `demo-entrega-${++contador}`,
+    cliente,
+    plural,
+    vehiculo,
+    foto: URL.createObjectURL(archivo),
+    creado: new Date().toISOString(),
+  }
+  entregas.unshift(entrega)
+  return { ...entrega }
+}
+
+export function eliminarEntregaDemo(id) {
+  const i = entregas.findIndex((e) => e.id === id)
+  if (i >= 0) entregas.splice(i, 1)
+}

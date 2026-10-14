@@ -5,14 +5,15 @@ import BrandStrip from './components/BrandStrip'
 import Vehicles from './components/Vehicles'
 import Banner from './components/Banner'
 import Companion from './components/Companion'
+import Entregas from './components/Entregas'
 import Financiacion from './components/Financiacion'
 import Buscador from './components/Buscador'
 import Footer from './components/Footer'
 import { CatalogoProvider } from './lib/catalogo'
 
 /* El orden de las secciones es el mismo de la maqueta que copiamos: hero,
-   tira de marcas, destacados, bloque a sangre, carrusel en abanico, la
-   sección de financiación (en el original, la de la app) y el buscador.
+   tira de marcas, destacados, bloque a sangre, carrusel en abanico, las
+   entregas (sólo si hay), la sección de financiación (en el original, la de la app) y el buscador.
 
    La marca elegida vive acá y no adentro de la tira porque el listado de
    vehículos es el que tiene que reaccionar: al tocar una marca, la tira la
@@ -30,6 +31,7 @@ export default function App() {
         <Vehicles marca={marca} onLimpiar={() => setMarca(null)} />
         <Banner />
         <Companion />
+        <Entregas />
         <Financiacion />
         <Buscador />
       </main>

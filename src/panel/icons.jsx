@@ -101,3 +101,10 @@ export const IconoBasura = (p) => (
     <path d="M3.5 5.5h13M8 5.5V3.75h4V5.5M5.25 5.5l.75 10.25h8l.75-10.25M8.5 8.5v4.5M11.5 8.5v4.5" />
   </Icono>
 )
+
+export const IconoEntrega = (p) => (
+  <Icono {...p}>
+    <path d="M3 6.5h2.75l1-1.75h6.5l1 1.75H17a.75.75 0 0 1 .75.75v8a.75.75 0 0 1-.75.75H3a.75.75 0 0 1-.75-.75v-8A.75.75 0 0 1 3 6.5z" />
+    <circle cx="10" cy="11" r="2.75" />
+  </Icono>
+)

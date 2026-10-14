@@ -3,6 +3,7 @@ import './panel.css'
 import Agenda from './Agenda'
 import Atencion from './Atencion'
 import CargaAutos from './CargaAutos'
+import Entregas from './Entregas'
 import { ConsultasPorSemana, GraficosEsqueleto, StockPorMarca } from './Graficos'
 import { IconoAlerta } from './icons'
 import Metricas, { MetricasEsqueleto } from './Metricas'
@@ -39,15 +40,19 @@ function saludo(hora) {
   return hora < 20 ? 'Buenas tardes' : 'Buenas noches'
 }
 
-/* "Carga" es una pantalla aparte: se elige con #carga en la dirección. */
+/* "Carga" y "Entregas" son pantallas aparte: se eligen con #carga o #entregas
+   en la dirección. */
+const PANTALLAS = ['carga', 'entregas']
+const vistaDe = (hash) => (PANTALLAS.includes(hash) ? hash : 'panel')
+
 function useVista() {
-  const [vista, setVista] = useState(() => (window.location.hash === '#carga' ? 'carga' : 'panel'))
+  const [vista, setVista] = useState(() => vistaDe(window.location.hash.slice(1)))
   useEffect(() => {
     const alCambiar = () => {
       const hash = window.location.hash.slice(1)
-      setVista(hash === 'carga' ? 'carga' : 'panel')
+      setVista(vistaDe(hash))
       window.scrollTo(0, 0)
-      if (hash && hash !== 'carga') irA(hash)
+      if (hash && !PANTALLAS.includes(hash)) irA(hash)
     }
     window.addEventListener('hashchange', alCambiar)
     return () => window.removeEventListener('hashchange', alCambiar)
@@ -148,6 +153,12 @@ export default function Panel({ onSalir }) {
                   onEliminar={eliminarUnidades}
                   onEstados={cambiarEstados}
                 />
+              </div>
+            )}
+
+            {vista === 'entregas' && (
+              <div className="pt-1">
+                <Entregas />
               </div>
             )}
 

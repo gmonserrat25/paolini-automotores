@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { IconoAuto, IconoCarga, IconoBuscar, IconoConsultas, IconoResumen, IconoSitio, IconoVentas } from './icons'
+import { IconoAuto, IconoCarga, IconoEntrega, IconoBuscar, IconoConsultas, IconoResumen, IconoSitio, IconoVentas } from './icons'
 
 const SECCIONES = [
   { id: 'resumen', etiqueta: 'Resumen', Icono: IconoResumen },
@@ -7,7 +7,15 @@ const SECCIONES = [
   { id: 'stock', etiqueta: 'Stock', Icono: IconoAuto },
   { id: 'consultas', etiqueta: 'Consultas', Icono: IconoConsultas },
   { id: 'carga', etiqueta: 'Carga', Icono: IconoCarga },
+  { id: 'entregas', etiqueta: 'Entregas', Icono: IconoEntrega },
 ]
+
+/* Las que son pantalla aparte (el resto son anclas del resumen). */
+const PANTALLAS = ['carga', 'entregas']
+const pantallaDe = () => {
+  const hash = window.location.hash.slice(1)
+  return PANTALLAS.includes(hash) ? hash : null
+}
 
 const ITEM =
   'group relative flex h-11 w-11 items-center justify-center rounded-xl transition-colors'
@@ -27,11 +35,14 @@ function Tip({ children }) {
 
 /* Barra lateral de íconos; en el celular pasa a barra inferior. */
 export default function Navegacion() {
-  const [activa, setActiva] = useState(() => (window.location.hash === '#carga' ? 'carga' : 'resumen'))
+  const [activa, setActiva] = useState(() => pantallaDe() ?? 'resumen')
 
   /* El botón "atrás" también cambia de pantalla. */
   useEffect(() => {
-    const alCambiar = () => window.location.hash === '#carga' && setActiva('carga')
+    const alCambiar = () => {
+      const pantalla = pantallaDe()
+      if (pantalla) setActiva(pantalla)
+    }
     window.addEventListener('hashchange', alCambiar)
     return () => window.removeEventListener('hashchange', alCambiar)
   }, [])
