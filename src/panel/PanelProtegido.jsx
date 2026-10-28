@@ -114,5 +114,5 @@ export default function PanelProtegido() {
 
   if (sesion === undefined) return <div className="min-h-screen bg-[#010101]" />
   if (!sesion) return <Login />
-  return <Panel onSalir={salir} />
+  return <Panel onSalir={salir} email={sesion.email} />
 }

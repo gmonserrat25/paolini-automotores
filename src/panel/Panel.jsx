@@ -68,12 +68,15 @@ function irA(id) {
   )
 }
 
-function Encabezado() {
+/* Cómo se llama a cada cuenta en el saludo; el resto de las cuentas, "Paolini". */
+const NOMBRES = { 'paolinifabrizio10@gmail.com': 'Fabrizio' }
+
+function Encabezado({ email }) {
   const ahora = new Date()
   const hoy = fechaLarga.format(ahora)
   return (
     <div id="resumen" className="scroll-mt-24 pt-1">
-      <h1 className="font-jost text-[28px] font-medium leading-tight md:text-[34px]">{saludo(ahora.getHours())}, Paolini</h1>
+      <h1 className="font-jost text-[28px] font-medium leading-tight md:text-[34px]">{saludo(ahora.getHours())}, {NOMBRES[email?.toLowerCase()] ?? 'Paolini'}</h1>
       <p className="mt-1 text-sm text-white/60 first-letter:uppercase">{hoy}</p>
     </div>
   )
@@ -96,7 +99,7 @@ function ErrorPanel({ onReintentar }) {
   )
 }
 
-export default function Panel({ onSalir }) {
+export default function Panel({ onSalir, email }) {
   useFichaInterna()
   const { estado, datos, aviso, recargar, agregarUnidades, editarUnidad, eliminarUnidades, cambiarEstado, cambiarEstados, cambiarEstadoConsulta, marcarTasacion } =
     usePanel()
@@ -131,7 +134,7 @@ export default function Panel({ onSalir }) {
 
         <main className={`grid gap-5 px-4 md:px-6 ${vista === 'panel' ? 'xl:grid-cols-[minmax(0,1fr)_340px]' : ''}`}>
           <div className="min-w-0 space-y-4">
-            {vista === 'panel' && <Encabezado />}
+            {vista === 'panel' && <Encabezado email={email} />}
 
             {estado === 'error' && <ErrorPanel onReintentar={recargar} />}
 
