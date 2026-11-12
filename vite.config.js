@@ -1,5 +1,29 @@
 import react from '@vitejs/plugin-react'
+import { rename } from 'node:fs/promises'
+import { join } from 'node:path'
 import { defineConfig, loadEnv } from 'vite'
+import { armarPagina } from './api/_estatico.js'
+
+/* La home para quien no corre JavaScript (api/_estatico.js).
+
+   Al compilar se escribe el bloque en el index.html (sin autos: el stock lo
+   pone api/inicio.js en cada visita) y después el archivo se renombra a
+   `plantilla.html`. Sin un index.html en la salida, Vercel no tiene un archivo
+   estático que gane en la raíz y manda `/` a esa función (ver vercel.json). */
+function htmlEstatico() {
+  let salida
+  return {
+    name: 'html-estatico',
+    apply: 'build',
+    configResolved(config) {
+      salida = join(config.root, config.build.outDir)
+    },
+    transformIndexHtml: { order: 'post', handler: (html) => armarPagina(html, []) },
+    async writeBundle() {
+      await rename(join(salida, 'index.html'), join(salida, 'plantilla.html'))
+    },
+  }
+}
 
 /* Sólo para la demo local del panel (VITE_PANEL_DEMO=1, `npm run dev`): sirve
    /api/reconocer sin pasar por la base ni la sesión y con la ANTHROPIC_API_KEY del entorno
@@ -33,7 +57,7 @@ function reconocerLocal(env) {
 
 // El sitio se publica en Vercel, en la raíz de https://paoliniautomotores.com/.
 export default defineConfig(({ mode }) => ({
-  plugins: [react(), reconocerLocal(loadEnv(mode, process.cwd(), ''))],
+  plugins: [react(), htmlEstatico(), reconocerLocal(loadEnv(mode, process.cwd(), ''))],
   /* Con API_LOCAL=http://localhost:3001 el servidor de desarrollo manda /api a
      otro proceso que corre las funciones (en Vercel no hace falta). */
   server: process.env.API_LOCAL ? { proxy: { '/api': process.env.API_LOCAL } } : undefined,

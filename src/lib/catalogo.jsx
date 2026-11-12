@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
-import { BRANDS } from '../data/vehicles'
+import { fichaTexto, marcaBonita, modeloBonito, precioTexto } from './formato'
 import { asset } from './asset'
 
 /* El catálogo del sitio público: los autos que cargan los dueños desde el
@@ -12,30 +12,9 @@ import { asset } from './asset'
 
 const CatalogoContext = createContext({ vehicles: [], disponibles: [], estado: 'listo' })
 
-const pesos = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 })
-
-const capitalizar = (palabra) => palabra.charAt(0) + palabra.slice(1).toLowerCase()
-
-/* Las marcas conocidas salen con su nombre de siempre (BYD, no Byd). */
-function marcaBonita(marca) {
-  const conocida = BRANDS.find((b) => b.toLowerCase() === marca.toLowerCase())
-  return conocida ?? marca.split(' ').map(capitalizar).join(' ')
-}
-
-/* Los Excel suelen venir todo en mayúsculas ("HILUX SRV 4X4 2.8"). Si es así
-   se pasa a "Hilux SRV 4X4 2.8": las palabras cortas o con números quedan como
-   están (versiones, siglas). Si ya viene con minúsculas, no se toca. */
-function modeloBonito(modelo) {
-  if (modelo !== modelo.toUpperCase()) return modelo
-  return modelo
-    .split(' ')
-    .map((p) => (p.length <= 3 || /\d/.test(p) ? p : capitalizar(p)))
-    .join(' ')
-}
-
 /* Una fila de la vista, con la forma de las tarjetas del sitio. */
 function aVehiculo(a) {
-  const ficha = [a.anio, a.km != null && `${a.km.toLocaleString('es-AR')} km`].filter(Boolean).join(' · ')
+  const ficha = fichaTexto(a)
   return {
     id: a.id,
     reservado: a.estado === 'reservado',
@@ -44,7 +23,7 @@ function aVehiculo(a) {
     type: a.tipo,
     ficha,
     detail: [a.tipo, ficha].filter(Boolean).join(' · '),
-    tag: a.precio ? pesos.format(a.precio) : 'A consultar',
+    tag: precioTexto(a.precio),
     specs: [a.combustible],
     image: a.foto ?? asset('/ig/logo-paolini.svg'),
   }

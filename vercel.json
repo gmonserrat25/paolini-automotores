@@ -1,3 +1,9 @@
 {
-  "rewrites": [{ "source": "/panel", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/", "destination": "/api/inicio" },
+    { "source": "/panel", "destination": "/api/inicio?panel=1" }
+  ],
+  "functions": {
+    "api/inicio.js": { "includeFiles": "dist/plantilla.html" }
+  }
 }
