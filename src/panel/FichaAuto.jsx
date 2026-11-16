@@ -40,6 +40,7 @@ const inicial = (f) => ({
   ...Object.fromEntries([...TEXTOS, ...NUMEROS].map(({ k }) => [k, f[k] == null ? '' : String(f[k])])),
   tipo: f.tipo,
   combustible: f.combustible,
+  descripcion: f.descripcion ?? '',
 })
 
 function Dato({ etiqueta, children }) {
@@ -108,6 +109,8 @@ export default function FichaAuto({ unidad, empezarEditando = false, onCerrar, o
       if (n !== null && (!Number.isInteger(n) || n < 0)) return setError(`${label} tiene que ser un número entero.`)
       if (n !== (f[k] ?? null)) cambios[k] = n
     }
+    const desc = form.descripcion.trim()
+    if (desc !== (f.descripcion ?? '')) cambios.descripcion = desc || null
     if (form.tipo !== f.tipo) cambios.tipo = form.tipo
     if (form.combustible !== f.combustible) cambios.combustible = form.combustible
     if (form.estado !== unidad.estado) cambios.estado = form.estado
@@ -167,6 +170,12 @@ export default function FichaAuto({ unidad, empezarEditando = false, onCerrar, o
               <Dato etiqueta="Estado">{ESTADO_LABEL[unidad.estado]}</Dato>
               <Dato etiqueta="Cómo se reconoció">{RECONOCIDO[unidad.reconocidoPor]}</Dato>
             </dl>
+            {f.descripcion ? (
+              <div className="mt-5">
+                <p className="text-xs text-white/60">Descripción en el sitio</p>
+                <p className="mt-0.5 whitespace-pre-line text-sm text-white/85">{f.descripcion}</p>
+              </div>
+            ) : null}
             {onFotos && <FotosRedes unidad={unidad} onFotos={onFotos} />}
             <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
               <button
@@ -230,6 +239,18 @@ export default function FichaAuto({ unidad, empezarEditando = false, onCerrar, o
                 onChange={cambiar('estado')}
               />
             </div>
+            <label className="mt-4 block text-sm" htmlFor="f-descripcion">
+              Descripción (se ve en la página del auto)
+              <textarea
+                id="f-descripcion"
+                rows={4}
+                maxLength={1500}
+                value={form.descripcion}
+                onChange={(e) => cambiar('descripcion')(e.target.value)}
+                placeholder="Estado, equipamiento, service al día, único dueño…"
+                className={campo}
+              />
+            </label>
             <p className="mt-3 text-xs text-white/60">
               Lo que cambies se ve en el sitio en unos segundos. Un auto en «vendido» deja de mostrarse.
             </p>
