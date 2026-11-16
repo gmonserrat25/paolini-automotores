@@ -43,12 +43,20 @@ function aVehiculo(a) {
     model: modeloBonito(a.modelo),
     type: a.tipo,
     ficha,
+    anio: a.anio,
+    km: a.km,
+    color: a.color,
+    descripcion: a.descripcion,
+    combustible: a.combustible,
+    precio: a.precio,
     detail: [a.tipo, ficha].filter(Boolean).join(' · '),
     tag: a.precio ? pesos.format(a.precio) : 'A consultar',
     specs: [a.combustible],
     image: a.foto ?? asset('/ig/logo-paolini.svg'),
   }
 }
+
+export const aVehiculoPublico = aVehiculo
 
 async function leerAutos(senal) {
   const r = await fetch('/api/autos', { signal: senal })

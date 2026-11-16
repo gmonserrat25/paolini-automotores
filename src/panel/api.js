@@ -105,6 +105,7 @@ function armarUnidad(a) {
       tipo: a.tipo,
       combustible: a.combustible,
       color: a.color,
+      descripcion: a.descripcion,
       anio: a.anio,
       km: a.km,
       precio: a.precio,

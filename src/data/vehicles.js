@@ -30,8 +30,8 @@ export const WHATSAPP_URL = `https://wa.me/${CONTACT.whatsapp}`
    el pie de página y el menú del celular usan la misma lista, y si la
    exportara la barra los tres archivos se importarían en círculo. */
 export const NAV_LINKS = [
-  { label: 'Nosotros', href: '#nosotros' },
-  { label: 'Vehículos', href: '#vehiculos' },
-  { label: 'Financiación', href: '#financiacion' },
-  { label: 'Contacto', href: '#contacto' },
+  { label: 'Nosotros', href: '/#nosotros' },
+  { label: 'Vehículos', href: '/autos' },
+  { label: 'Financiación', href: '/#financiacion' },
+  { label: 'Contacto', href: '/#contacto' },
 ]

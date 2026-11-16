@@ -59,16 +59,16 @@ export default function Footer() {
 
             <Column title="Tipos de vehículo">
               {TIPOS.map((tipo) => (
-                <Item key={tipo} href="#buscador">
+                <Item key={tipo} href="/#buscador">
                   {tipo}
                 </Item>
               ))}
-              <Item href="#vehiculos">Usados certificados</Item>
+              <Item href="/autos">Usados certificados</Item>
             </Column>
 
             <Column title="Marcas">
               {BRANDS.slice(0, 6).map((brand) => (
-                <Item key={brand} href="#buscador">
+                <Item key={brand} href="/#buscador">
                   {brand}
                 </Item>
               ))}
@@ -159,8 +159,8 @@ export default function Footer() {
             © {new Date().getFullYear()} Automotores Paolini · La Falda, Córdoba
           </p>
           <ul className="flex flex-wrap gap-5">
-            <Item href="#vehiculos">Stock</Item>
-            <Item href="#financiacion">Financiación</Item>
+            <Item href="/autos">Stock</Item>
+            <Item href="/#financiacion">Financiación</Item>
             <Item href={MAPS}>Ubicación</Item>
           </ul>
         </div>

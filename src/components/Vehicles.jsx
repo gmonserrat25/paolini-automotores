@@ -5,7 +5,7 @@ import { Corner, Cta, SectionTitle } from './Ui'
 
 const SPEC_ICONS = [FuelIcon, GearboxIcon]
 
-function VehicleCard({ vehicle }) {
+export function VehicleCard({ vehicle }) {
   const consulta = `${WHATSAPP_URL}?text=${encodeURIComponent(
     `Hola Paolini, quiero consultar por el ${vehicle.brand} ${vehicle.model}.`,
   )}`
@@ -15,7 +15,11 @@ function VehicleCard({ vehicle }) {
       <header className="px-5 pt-5">
         <div>
           <h3 className="font-sans text-[18px] font-semibold leading-tight text-white">
-            {vehicle.model}
+            {/* Toda la tarjeta lleva a la página del auto (la cubre este enlace);
+                "Consultar" queda por encima para seguir yendo a WhatsApp. */}
+            <a href={`/autos/${vehicle.id}`} className="after:absolute after:inset-0 after:z-[1] after:content-['']">
+              {vehicle.model}
+            </a>
           </h3>
           <p className="mt-1 font-sans text-[13px] text-white/55">
             {vehicle.brand} · {vehicle.type}
@@ -62,6 +66,7 @@ function VehicleCard({ vehicle }) {
           size="sm"
           target="_blank"
           rel="noreferrer"
+          className="relative z-10"
           icon={<WhatsAppIcon className="h-[18px] w-[18px]" />}
         >
           Consultar
@@ -154,6 +159,12 @@ export default function Vehicles({ marca = null, onLimpiar }) {
                 {disponibles.map((vehicle) => (
                   <VehicleCard key={vehicle.id} vehicle={vehicle} />
                 ))}
+              </div>
+            ) : null}
+
+            {!marca ? (
+              <div className="mt-8 flex justify-center lg:mt-10">
+                <Cta href="/autos">Ver todos los vehículos</Cta>
               </div>
             ) : null}
 
