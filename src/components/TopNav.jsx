@@ -11,7 +11,7 @@ export default function TopNav() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#080808]">
       <nav className="mx-auto flex h-[68px] max-w-[1440px] items-center justify-between gap-4 px-5 sm:px-8 lg:h-[76px] lg:px-[60px]">
-        <a href="#inicio" className="flex shrink-0 items-center">
+        <a href="/" className="flex shrink-0 items-center">
           <img
             src={asset('/ig/logo-paolini.svg')}
             alt="Automotores Paolini"

@@ -99,7 +99,7 @@ export default function VehicleArc({ className = "" }) {
         {CARDS.map((v, i) => (
           <a
             key={`${v.id}-${i}`}
-            href="#vehiculos"
+            href={`/autos/${v.id}`}
             ref={(el) => {
               cardRefs.current[i] = el;
             }}
