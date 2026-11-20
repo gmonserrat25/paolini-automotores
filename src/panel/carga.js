@@ -9,36 +9,264 @@ const COLUMNAS = ['marca', 'modelo', 'precio', 'anio', 'patente', 'km', 'color']
 
 export const normPatente = (p) => (p ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '')
 const norm = (s) => (s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '')
-const limpiar = (s) => (s ?? '').replace(/\s+/g, ' ').trim()
+const limpiar = (s) => String(s ?? '').replace(/\s+/g, ' ').trim()
 
-/* Columnas del Excel, en este orden: marca, modelo, precio, año, patente, km,
-   color. Sin fila de títulos (si la hubiera, se descarta sola porque no trae
-   patente válida). */
-export function leerExcel(buffer) {
+/* Número de una celda. Si viene como texto se lee a la argentina: "$10.900.000,00"
+   es 10900000 y "145.600" km son 145600 (el punto separa miles; una coma o un
+   punto seguidos de uno o dos dígitos al final son decimales y se descartan). */
+export function numero(x) {
+  if (x == null || x === '') return null
+  if (typeof x === 'number') return Number.isFinite(x) ? Math.round(x) : null
+  const s = String(x).replace(/[^\d.,]/g, '').replace(/[.,]\d{1,2}$/, '').replace(/[.,]/g, '')
+  return s ? Number(s) : null
+}
+
+/* Una patente tiene letras y números (AAA 123 o AA 123 BB). Así se descarta la
+   fila de títulos, que dice "PATENTE". */
+const pareceUnaPatente = (p) => {
+  const n = normPatente(p)
+  return n.length >= 6 && n.length <= 8 && /[A-Z]/.test(n) && /\d/.test(n)
+}
+
+/* Títulos de columna que se reconocen (sin tildes ni espacios). "Año" queda "ano". */
+const TITULOS = {
+  marca: ['marca'],
+  modelo: ['modelo', 'version', 'vehiculo', 'unidad', 'descripcion'],
+  precio: ['precio', 'valor', 'importe', 'contado'],
+  anio: ['ano', 'anio', 'year'],
+  patente: ['patente', 'dominio', 'chapa'],
+  km: ['km', 'kms', 'kilometraje', 'kilometros'],
+  color: ['color'],
+}
+const clave = (s) =>
+  String(s ?? '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+
+/* Si la fila es la de títulos, en qué columna está cada dato. Hace falta la
+   patente y al menos dos datos más, para no confundirla con un auto. */
+function columnasDeTitulos(fila) {
+  const cols = {}
+  fila.forEach((v, i) => {
+    const k = clave(v)
+    if (!k) return
+    const campo = Object.keys(TITULOS).find(
+      (c) => !(c in cols) && TITULOS[c].some((t) => k === t || (t.length >= 4 && k.startsWith(t))),
+    )
+    if (campo) cols[campo] = i
+  })
+  return 'patente' in cols && Object.keys(cols).length >= 3 ? cols : null
+}
+
+/* Un auto con la forma que usa el panel, o null si no tiene patente. */
+export function normalizarFila(crudo) {
+  const f = {}
+  for (const k of ['marca', 'modelo', 'color', 'patente']) f[k] = limpiar(crudo[k])
+  for (const k of ['precio', 'anio', 'km']) f[k] = numero(crudo[k])
+  return pareceUnaPatente(f.patente) ? { ...f, ...clasificar(f.modelo) } : null
+}
+
+/* Filas de autos a partir de una tabla (lista de filas, cada una lista de
+   celdas). Busca la fila de títulos en las primeras 30 para saber dónde está
+   cada dato, así no importa el orden de las columnas, si hay columnas de más
+   o filas vacías. Sin títulos, se asume el orden de siempre: marca, modelo,
+   precio, año, patente, km, color. Devuelve { filas, sinPatente }, con los
+   autos que quedaron afuera por no tener patente ("PEUGEOT 208"). */
+export function filasDeTabla(tabla) {
+  let cols = null
+  let desde = 0
+  for (let i = 0; i < Math.min(tabla.length, 30) && !cols; i++) {
+    cols = columnasDeTitulos(tabla[i] ?? [])
+    desde = i + 1
+  }
+  if (!cols) {
+    cols = Object.fromEntries(COLUMNAS.map((k, i) => [k, i]))
+    desde = 0
+  }
+  const filas = []
+  const sinPatente = []
+  for (const t of tabla.slice(desde)) {
+    const crudo = Object.fromEntries(COLUMNAS.map((k) => [k, cols[k] == null ? null : t?.[cols[k]]]))
+    const f = normalizarFila(crudo)
+    if (f) filas.push(f)
+    else if (limpiar(crudo.modelo) && !columnasDeTitulos(t ?? [])) {
+      sinPatente.push(limpiar(`${limpiar(crudo.marca)} ${limpiar(crudo.modelo)}`))
+    }
+  }
+  return { filas, sinPatente }
+}
+
+/* Las hojas de un .xlsx como tablas, en orden. Las celdas pueden venir como
+   número, como texto compartido (lo que guarda Excel) o como texto en línea
+   (lo que guardan Numbers, ChatGPT o Python/openpyxl). */
+export function tablasDeXlsx(buffer) {
   const zip = unzipSync(new Uint8Array(buffer))
   const xml = (ruta) => new DOMParser().parseFromString(strFromU8(zip[ruta]), 'application/xml')
+  const texto = (nodo) => [...nodo.getElementsByTagName('t')].map((t) => t.textContent).join('')
 
   const compartidas = zip['xl/sharedStrings.xml']
-    ? [...xml('xl/sharedStrings.xml').getElementsByTagName('si')].map((si) =>
-        [...si.getElementsByTagName('t')].map((t) => t.textContent).join(''),
-      )
+    ? [...xml('xl/sharedStrings.xml').getElementsByTagName('si')].map(texto)
     : []
+  const hojas = Object.keys(zip)
+    .map((r) => [r, r.match(/^xl\/worksheets\/sheet(\d+)\.xml$/)?.[1]])
+    .filter(([, n]) => n)
+    .sort((a, b) => a[1] - b[1])
+    .map(([r]) => r)
+  if (!hojas.length) throw new Error('no es xlsx')
 
-  const filas = []
-  for (const row of xml('xl/worksheets/sheet1.xml').getElementsByTagName('row')) {
-    const celdas = {}
-    for (const c of row.getElementsByTagName('c')) {
-      const col = c.getAttribute('r').match(/^[A-Z]+/)[0]
-      const v = c.getElementsByTagName('v')[0]
-      if (!v) continue
-      celdas[col] = c.getAttribute('t') === 's' ? compartidas[Number(v.textContent)] : Number(v.textContent)
-    }
-    const f = Object.fromEntries(COLUMNAS.map((k, i) => [k, celdas[String.fromCharCode(65 + i)]]))
-    for (const k of ['marca', 'modelo', 'color', 'patente']) f[k] = limpiar(f[k])
-    for (const k of ['precio', 'anio', 'km']) f[k] = f[k] == null ? null : Math.round(Number(f[k]))
-    if (normPatente(f.patente).length >= 6) filas.push({ ...f, ...clasificar(f.modelo) })
+  const indice = (letras) => [...letras].reduce((n, c) => n * 26 + c.charCodeAt(0) - 64, 0) - 1
+  return hojas.map((hoja) =>
+    [...xml(hoja).getElementsByTagName('row')].map((row) => {
+      const celdas = []
+      for (const c of row.getElementsByTagName('c')) {
+        const letras = c.getAttribute('r')?.match(/^[A-Z]+/)?.[0]
+        const i = letras ? indice(letras) : celdas.length
+        const tipo = c.getAttribute('t')
+        const v = c.getElementsByTagName('v')[0]?.textContent
+        if (tipo === 'inlineStr') celdas[i] = texto(c)
+        else if (v == null) continue
+        else if (tipo === 's') celdas[i] = compartidas[Number(v)]
+        else if (tipo === 'str' || tipo === 'e' || tipo === 'b') celdas[i] = v
+        else celdas[i] = Number(v)
+      }
+      return celdas
+    }),
+  )
+}
+
+/* Un CSV como tabla. El separador (; , o tabulación) se deduce de la primera
+   línea con datos; respeta comillas. */
+export function tablaDeCsv(texto) {
+  const limpio = texto.replace(/^﻿/, '')
+  const primera = limpio.split(/\r?\n/).find((l) => l.trim()) ?? ''
+  const sep = [';', '\t', ','].map((s) => [s, primera.split(s).length]).sort((a, b) => b[1] - a[1])[0][0]
+  const tabla = []
+  let fila = []
+  let campo = ''
+  let comillas = false
+  for (let i = 0; i < limpio.length; i++) {
+    const ch = limpio[i]
+    if (comillas) {
+      if (ch !== '"') campo += ch
+      else if (limpio[i + 1] === '"') {
+        campo += '"'
+        i++
+      } else comillas = false
+    } else if (ch === '"') comillas = true
+    else if (ch === sep) {
+      fila.push(campo)
+      campo = ''
+    } else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && limpio[i + 1] === '\n') i++
+      fila.push(campo)
+      tabla.push(fila)
+      fila = []
+      campo = ''
+    } else campo += ch
   }
-  return filas
+  if (campo || fila.length) {
+    fila.push(campo)
+    tabla.push(fila)
+  }
+  return tabla
+}
+
+/* Texto de un archivo: UTF-8 y, si no lo es, Windows-1252 (lo que guarda Excel). */
+function decodificar(bytes) {
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(bytes)
+  } catch {
+    return new TextDecoder('windows-1252').decode(bytes)
+  }
+}
+
+const aCsv = (tabla) =>
+  tabla
+    .filter((f) => f.some((c) => limpiar(c)))
+    .map((f) => Array.from(f, (c) => limpiar(c).replaceAll(';', ',')).join(';'))
+    .join('\n')
+
+async function base64(buffer) {
+  const url = await new Promise((ok, mal) => {
+    const lector = new FileReader()
+    lector.onload = () => ok(lector.result)
+    lector.onerror = mal
+    lector.readAsDataURL(new Blob([buffer]))
+  })
+  return url.slice(url.indexOf(',') + 1)
+}
+
+/* Le pide a la IA del servidor que lea la lista (un PDF o el texto de una
+   planilla con títulos raros). */
+async function leerConIA(cuerpo) {
+  const r = await fetch('/api/lista', {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(cuerpo),
+  })
+  if (!r.ok) throw Object.assign(new Error(`lista ${r.status}`), { status: r.status })
+  const { autos } = await r.json()
+  const filas = []
+  const sinPatente = []
+  for (const a of autos) {
+    const f = normalizarFila(a)
+    if (f) filas.push(f)
+    else if (limpiar(a.modelo)) sinPatente.push(limpiar(`${limpiar(a.marca)} ${limpiar(a.modelo)}`))
+  }
+  return { filas, sinPatente, conIA: true }
+}
+
+export const LISTA_PDF_MAX = 3_000_000 // bytes; el servidor no acepta más
+
+/* Formatos de lista que se aceptan. Las extensiones viejas (.xls, .ods,
+   .numbers) se reconocen sólo para explicar que hay que mandarlas de otra forma. */
+export const esLista = (a) =>
+  /\.(xlsx|xlsm|csv|txt|pdf|xls|ods|numbers)$/i.test(a.name) || a.type === 'application/pdf' || a.type === 'text/csv'
+
+/* Lee la lista de stock, venga como venga: .xlsx (cualquier hoja, columnas en
+   cualquier orden), CSV, o PDF (lo lee la IA). Si la planilla se puede abrir
+   pero no se encuentran las columnas, también se la pasa a la IA. Devuelve
+   { filas, sinPatente, conIA }; lanza un Error con `.motivo` para el mensaje. */
+export async function leerLista(archivo) {
+  const nombre = archivo.name.toLowerCase()
+  const buffer = await archivo.arrayBuffer()
+  const bytes = new Uint8Array(buffer)
+  const motivo = (m) => Object.assign(new Error(m), { motivo: m })
+
+  if (nombre.endsWith('.pdf') || archivo.type === 'application/pdf') {
+    if (bytes.length > LISTA_PDF_MAX) throw motivo('pdf-grande')
+    return leerConIA({ pdf: await base64(buffer) })
+  }
+  if (/\.(xls|ods|numbers)$/.test(nombre) || (bytes[0] === 0xd0 && bytes[1] === 0xcf)) throw motivo('formato')
+
+  let tablas
+  if (bytes[0] === 0x50 && bytes[1] === 0x4b) {
+    try {
+      tablas = tablasDeXlsx(buffer)
+    } catch {
+      throw motivo('formato')
+    }
+  } else tablas = [tablaDeCsv(decodificar(bytes))]
+
+  for (const t of tablas) {
+    const r = filasDeTabla(t)
+    if (r.filas.length) return { ...r, conIA: false }
+  }
+  const csv = tablas.map(aCsv).filter(Boolean).join('\n\n')
+  if (!csv) throw motivo('vacio')
+  return leerConIA({ texto: csv.slice(0, 400_000) })
+}
+
+/* Lo de antes, para quien lo use con un .xlsx ya en memoria. */
+export function leerExcel(buffer) {
+  for (const t of tablasDeXlsx(buffer)) {
+    const { filas } = filasDeTabla(t)
+    if (filas.length) return filas
+  }
+  return []
 }
 
 /* El Excel no trae carrocería ni combustible: se deducen del modelo. Lo que no

@@ -27,6 +27,23 @@ function reconocerLocal(env) {
           responder(e.status ?? 502, { error: e.message })
         }
       })
+      /* Igual para /api/lista (la lista de stock en PDF). */
+      server.middlewares.use('/api/lista', async (req, res) => {
+        res.setHeader('Content-Type', 'application/json')
+        if (req.method !== 'POST') {
+          res.statusCode = 405
+          return res.end(JSON.stringify({ error: 'Usá POST' }))
+        }
+        let texto = ''
+        for await (const trozo of req) texto += trozo
+        try {
+          const { leerListaConIA } = await server.ssrLoadModule('/api/_lista.js')
+          res.end(JSON.stringify(await leerListaConIA(JSON.parse(texto), process.env.ANTHROPIC_API_KEY)))
+        } catch (e) {
+          res.statusCode = e.status ?? 502
+          res.end(JSON.stringify({ error: e.message }))
+        }
+      })
     },
   }
 }
