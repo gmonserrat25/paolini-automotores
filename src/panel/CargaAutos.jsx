@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import BrandLogo from '../components/BrandLogos'
 import { pesos } from './calculos'
-import { cruzarTodos, explicarSinCruce, filaDeStock, leerExcel, normPatente, reconocerFoto } from './carga'
+import { cruzarTodos, explicarSinCruce, esLista, filaDeStock, leerLista, normPatente, reconocerFoto } from './carga'
 import { registrarCarga } from './datos'
 import ConfirmarEliminar from './ConfirmarEliminar'
 import { IconoCarga } from './icons'
@@ -34,8 +34,13 @@ function enLaFoto(visto) {
   return partes.filter(Boolean).join(' · ')
 }
 
-const esExcel = (a) => /\.xlsx$/i.test(a.name)
 const esFoto = (a) => a.type.startsWith('image/')
+
+const MOTIVOS = {
+  formato: 'Ese formato no lo puedo abrir. Mandá la lista como Excel (.xlsx), PDF o CSV: desde Google Sheets o Numbers, «Compartir» → «Descargar» o «Exportar».',
+  'pdf-grande': 'Ese PDF es muy pesado (más de 3 MB). Probá exportarlo de nuevo sólo con la hoja del stock.',
+  vacio: 'La lista está vacía.',
+}
 
 function Boton({ children, onClick, primario, disabled }) {
   return (
@@ -145,6 +150,8 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
   const [arrastrando, setArrastrando] = useState(false)
   const [filas, setFilas] = useState([])
   const [excelNombre, setExcelNombre] = useState(null)
+  const [sinPatente, setSinPatente] = useState([])
+  const [leyendoLista, setLeyendoLista] = useState(null)
   const [items, setItems] = useState([])
   const [error, setError] = useState(null)
   const [sinReconocimiento, setSinReconocimiento] = useState(false)
@@ -276,6 +283,8 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
     setItems([])
     setFilas([])
     setExcelNombre(null)
+    setSinPatente([])
+    setLeyendoLista(null)
     setError(null)
     setSinReconocimiento(false)
     setCargadasSolas(0)
@@ -286,16 +295,36 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
     const g = generacion.current
     setError(null)
     const lista = [...archivos]
-    const excel = lista.find(esExcel)
+    /* La lista se lee aparte, sin frenar las fotos: un PDF lo lee la IA y
+       tarda unos segundos. Cuando llega, el cruce se rehace solo. */
+    const excel = lista.find((a) => esLista(a) && !esFoto(a))
     if (excel) {
-      try {
-        const leidas = leerExcel(await excel.arrayBuffer())
-        if (!leidas.length) throw new Error('vacío')
-        setFilas(leidas)
-        setExcelNombre(excel.name)
-      } catch {
-        setError('No pude leer ese Excel. Tiene que ser .xlsx con las columnas marca, modelo, precio, año, patente, km y color.')
-      }
+      setLeyendoLista(excel.name)
+      leerLista(excel)
+        .then(({ filas: leidas, sinPatente: afuera }) => {
+          if (generacion.current !== g) return
+          if (!leidas.length) {
+            setError(
+              afuera.length
+                ? `Leí la lista pero ningún auto tiene patente (${afuera.length} sin patente). La patente hace falta para cruzarlo con la foto.`
+                : 'No encontré autos en esa lista. Fijate que tenga marca, modelo y patente (o dominio).',
+            )
+            return
+          }
+          setFilas(leidas)
+          setSinPatente(afuera)
+          setExcelNombre(excel.name)
+        })
+        .catch((e) => {
+          if (generacion.current !== g) return
+          setError(
+            MOTIVOS[e.motivo] ??
+              (e.status === 401
+                ? 'Se venció la sesión: volvé a entrar al panel y subí la lista de nuevo.'
+                : 'No pude leer esa lista. Probá de nuevo; si sigue fallando, mandala como Excel (.xlsx) o PDF.'),
+          )
+        })
+        .finally(() => generacion.current === g && setLeyendoLista(null))
     }
     const nuevas = lista.filter(esFoto).map((archivo, n) => ({
       id: `${Date.now()}-${n}`,
@@ -305,7 +334,7 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
       visto: null,
       manual: null,
     }))
-    if (lista.some((a) => !esExcel(a) && !esFoto(a))) setError('Sólo se aceptan fotos y un Excel (.xlsx).')
+    if (lista.some((a) => !esLista(a) && !esFoto(a))) setError('Sólo se aceptan fotos y la lista de stock (Excel, PDF o CSV).')
     if (!nuevas.length) return
     setItems((actuales) => [...actuales, ...nuevas])
     for (const n of nuevas) {
@@ -410,7 +439,7 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
               Carga de autos
             </h2>
             <p className="mt-1 text-sm text-white/60">
-              Subí las fotos y el Excel juntos: cada foto se reconoce sola por la patente y, si coincide exacto con
+              Subí las fotos y la lista de stock juntas (Excel, PDF o CSV, como venga): cada foto se reconoce sola por la patente y, si coincide exacto con
               el Excel, el auto entra al stock sin que hagas nada. Si la chapa no se lee, se busca por modelo y
               color. Si una sola letra de la patente se lee distinta, también entra sola. Si la IA tiene otra duda
               (una patente que no se parece a ninguna del Excel), la foto queda marcada para que la revises vos
@@ -425,16 +454,16 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
             )}
             <Boton primario onClick={() => entrada.current?.click()}>
               <IconoCarga className="h-[18px] w-[18px]" />
-              Cargar fotos y Excel
+              Cargar fotos y lista
             </Boton>
           </div>
           <input
             ref={entrada}
             type="file"
             multiple
-            accept="image/*,.xlsx"
+            accept="image/*,.xlsx,.xlsm,.csv,.pdf,.xls,.ods,.numbers,application/pdf,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             className="sr-only"
-            aria-label="Elegir fotos y Excel"
+            aria-label="Elegir fotos y lista de stock"
             onChange={(e) => {
               recibir(e.target.files)
               e.target.value = ''
@@ -443,7 +472,13 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
         </div>
 
         <p className="mt-4 text-xs text-white/60">
-          {excelNombre ? `Excel: ${excelNombre} · ${filas.length} autos leídos` : 'Todavía no cargaste el Excel.'}
+          {leyendoLista
+            ? `Leyendo ${leyendoLista}…`
+            : excelNombre
+              ? `Lista: ${excelNombre} · ${filas.length} autos leídos`
+              : 'Todavía no cargaste la lista.'}
+          {!leyendoLista && sinPatente.length > 0 &&
+            ` · ${sinPatente.length} sin patente quedaron afuera (${sinPatente.join(', ')})`}
           {' · '}También podés arrastrar los archivos acá. Podés cargar varias tandas: los autos que ya están en el
           stock no se vuelven a agregar.
         </p>
