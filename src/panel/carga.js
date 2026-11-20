@@ -9,34 +9,57 @@ const COLUMNAS = ['marca', 'modelo', 'precio', 'anio', 'patente', 'km', 'color']
 
 export const normPatente = (p) => (p ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '')
 const norm = (s) => (s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '')
-const limpiar = (s) => (s ?? '').replace(/\s+/g, ' ').trim()
+const limpiar = (s) => String(s ?? '').replace(/\s+/g, ' ').trim()
+
+/* Número de una celda. Si viene como texto se lee a la argentina: "$10.900.000,00"
+   es 10900000 y "145.600" km son 145600 (el punto separa miles, la coma los
+   decimales, que se descartan). */
+export function numero(x) {
+  if (x == null || x === '') return null
+  if (typeof x === 'number') return Number.isFinite(x) ? Math.round(x) : null
+  const s = String(x).replace(/[^\d.,]/g, '').replace(/,\d*$/, '').replace(/[.,]/g, '')
+  return s ? Number(s) : null
+}
+
+/* Una patente tiene letras y números (AAA 123 o AA 123 BB). Así se descarta la
+   fila de títulos, que dice "PATENTE". */
+const pareceUnaPatente = (p) => {
+  const n = normPatente(p)
+  return n.length >= 6 && n.length <= 8 && /[A-Z]/.test(n) && /\d/.test(n)
+}
 
 /* Columnas del Excel, en este orden: marca, modelo, precio, año, patente, km,
-   color. Sin fila de títulos (si la hubiera, se descarta sola porque no trae
-   patente válida). */
+   color. La fila de títulos es opcional. Las celdas pueden venir como número,
+   como texto compartido (lo que guarda Excel) o como texto en línea (lo que
+   guardan Numbers, Google Sheets en el celular, ChatGPT o Python/openpyxl). */
 export function leerExcel(buffer) {
   const zip = unzipSync(new Uint8Array(buffer))
   const xml = (ruta) => new DOMParser().parseFromString(strFromU8(zip[ruta]), 'application/xml')
+  const texto = (nodo) => [...nodo.getElementsByTagName('t')].map((t) => t.textContent).join('')
 
   const compartidas = zip['xl/sharedStrings.xml']
-    ? [...xml('xl/sharedStrings.xml').getElementsByTagName('si')].map((si) =>
-        [...si.getElementsByTagName('t')].map((t) => t.textContent).join(''),
-      )
+    ? [...xml('xl/sharedStrings.xml').getElementsByTagName('si')].map(texto)
     : []
 
   const filas = []
   for (const row of xml('xl/worksheets/sheet1.xml').getElementsByTagName('row')) {
     const celdas = {}
+    let pos = 0
     for (const c of row.getElementsByTagName('c')) {
-      const col = c.getAttribute('r').match(/^[A-Z]+/)[0]
-      const v = c.getElementsByTagName('v')[0]
-      if (!v) continue
-      celdas[col] = c.getAttribute('t') === 's' ? compartidas[Number(v.textContent)] : Number(v.textContent)
+      const col = c.getAttribute('r')?.match(/^[A-Z]+/)?.[0] ?? String.fromCharCode(65 + pos)
+      pos = col.charCodeAt(0) - 64
+      const tipo = c.getAttribute('t')
+      const v = c.getElementsByTagName('v')[0]?.textContent
+      if (tipo === 'inlineStr') celdas[col] = texto(c)
+      else if (v == null) continue
+      else if (tipo === 's') celdas[col] = compartidas[Number(v)]
+      else if (tipo === 'str' || tipo === 'e') celdas[col] = v
+      else celdas[col] = Number(v)
     }
     const f = Object.fromEntries(COLUMNAS.map((k, i) => [k, celdas[String.fromCharCode(65 + i)]]))
     for (const k of ['marca', 'modelo', 'color', 'patente']) f[k] = limpiar(f[k])
-    for (const k of ['precio', 'anio', 'km']) f[k] = f[k] == null ? null : Math.round(Number(f[k]))
-    if (normPatente(f.patente).length >= 6) filas.push({ ...f, ...clasificar(f.modelo) })
+    for (const k of ['precio', 'anio', 'km']) f[k] = numero(f[k])
+    if (pareceUnaPatente(f.patente)) filas.push({ ...f, ...clasificar(f.modelo) })
   }
   return filas
 }
