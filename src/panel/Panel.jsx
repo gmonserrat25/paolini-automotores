@@ -69,7 +69,7 @@ function irA(id) {
 }
 
 /* Cómo se llama a cada cuenta en el saludo; el resto de las cuentas, "Paolini". */
-const NOMBRES = { 'paolinifabrizio10@gmail.com': 'Fabrizio' }
+const NOMBRES = { 'paolinifabrizio10@gmail.com': 'Fabrizio', 'soporte@neurolabs.ar': 'Soporte' }
 
 function Encabezado({ email }) {
   const ahora = new Date()
