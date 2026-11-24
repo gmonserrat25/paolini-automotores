@@ -20,8 +20,8 @@ const NEGOCIO = { whatsapp: '3548 468411', direccion: 'Av. España 601 · La Fal
 
 const ROJO = '#A8162A'
 const PALETAS = {
-  negro: { fondo: '#010101', texto: '#FFFFFF', suave: 'rgba(255,255,255,0.68)', linea: 'rgba(255,255,255,0.16)', acento: '#E0323F', logo: 'claro' },
-  rojo: { fondo: ROJO, texto: '#FFFFFF', suave: 'rgba(255,255,255,0.78)', linea: 'rgba(255,255,255,0.3)', acento: '#FFFFFF', logo: 'blanco' },
+  negro: { fondo: '#010101', texto: '#FFFFFF', suave: '#B8B8B8', linea: 'rgba(255,255,255,0.16)', acento: '#E0323F', logo: 'claro' },
+  rojo: { fondo: ROJO, texto: '#FFFFFF', suave: '#F0C9CF', linea: 'rgba(255,255,255,0.3)', acento: '#FFFFFF', logo: 'blanco' },
   hueso: { fondo: '#ECE8E1', texto: '#141414', suave: 'rgba(20,20,20,0.64)', linea: 'rgba(20,20,20,0.18)', acento: ROJO, logo: 'oscuro' },
 }
 
@@ -203,7 +203,7 @@ const RUTA_WPP = new Path2D(
 )
 
 /* El pie: WhatsApp a la izquierda, dirección a la derecha. */
-function pie(ctx, y, W, p, { k = 1, tam = 32 * k, conLinea = true, conLogo = null } = {}) {
+function pie(ctx, y, W, p, { k = 1, tam = 32 * k, conLinea = true, conLogo = null, derecha = NEGOCIO.direccion } = {}) {
   if (conLinea) linea(ctx, M, y, W - 2 * M, p.linea)
   const base = y + (conLinea ? 30 : 0) + tam
   ctx.save()
@@ -218,14 +218,17 @@ function pie(ctx, y, W, p, { k = 1, tam = 32 * k, conLinea = true, conLogo = nul
   ctx.fillText(NEGOCIO.whatsapp, M + tam * 1.5, base)
   if (conLogo) {
     /* En vez de la dirección, el logo (cuando no entra en otro lado). */
-    const ancho = 300
+    const ancho = 380
     ctx.drawImage(conLogo, W - M - ancho, base - tam * 0.72, ancho, (ancho * conLogo.height) / conLogo.width)
     return
   }
+  /* Lo de la derecha achica si no entra al lado del teléfono. */
+  const libre = W - 2 * M - tam * 1.5 - ctx.measureText(NEGOCIO.whatsapp).width - 40
   fuente(ctx, 400, tam)
+  for (let t = tam; t > tam * 0.6 && ctx.measureText(derecha).width > libre; t -= 1) fuente(ctx, 400, t)
   ctx.fillStyle = p.suave
   ctx.textAlign = 'right'
-  ctx.fillText(NEGOCIO.direccion, W - M, base)
+  ctx.fillText(derecha, W - M, base)
   ctx.textAlign = 'left'
 }
 
@@ -337,25 +340,28 @@ const selloFondo = (p) => (p === PALETAS.rojo ? '#010101' : ROJO)
 /* La marca va en la línea de datos, no en un renglón suelto. */
 const lineaDatos = (auto) => `${titulo(auto.marca)}  ·  ${datosDe(auto)}`
 
-/* Vitrina: la foto ocupa toda la pieza y el auto se escribe abajo a la
-   izquierda, sobre el piso, con un degradé a negro. Siempre oscura: el
-   color de fondo no se usa (va negro aunque pidan otro). */
+/* Vitrina: foto + modelo. La foto ocupa toda la pieza, el modelo va enorme
+   abajo y el precio en un sello rojo arriba a la derecha; los datos pasan al
+   pie. Siempre oscura (va negro aunque pidan otro fondo). */
 function vitrina(ctx, W, H, { auto, img, pieza }) {
   const { k, arriba, pieY } = zonas(H)
   const p = PALETAS.negro
   foto(ctx, img, 0, 0, W, H, pieza.encuadre)
-  velo(ctx, 0, 0, W, arriba + 240, '#000000', [[0, 0.6], [1, 0]])
-  velo(ctx, 0, H - (hist(H) ? 860 : 620), W, hist(H) ? 860 : 620, '#000000', [[0, 0], [0.45, 0.72], [1, 0.92]])
+  velo(ctx, 0, 0, W, arriba + (hist(H) ? 300 : 300), '#000000', [[0, 0.72], [1, 0]])
+  velo(ctx, 0, H - (hist(H) ? 760 : 520), W, hist(H) ? 760 : 520, '#000000', [[0, 0], [0.5, 0.7], [1, 0.92]])
   logo(ctx, pieza._lgClaro, M, arriba, 560)
 
-  const precioBase = pieY - 44 * k
-  const datosBase = precioBase - 106 * k
-  let y = datosBase - 40 * k - 112 * k
-  modelo(ctx, titulo(auto.modelo), M, y, { ancho: W - 2 * M, tam: 110 * k, color: p.texto, lineas: 1, min: 60 })
-  if (pieza.etiqueta) sello(ctx, pieza.etiqueta, M, y - 82 * k, { tam: 32 * k })
-  texto1(ctx, lineaDatos(auto), M, datosBase, { tam: 36 * k, color: p.suave, ancho: W - 2 * M })
-  texto1(ctx, precioTexto(auto, pieza), M, precioBase, { tam: 86 * k, peso: 700, color: p.texto })
-  pie(ctx, pieY, W, p, { k })
+  const precio = pieza.mostrarPrecio && precioDe(auto)
+  if (precio) {
+    fuente(ctx, 700, 52 * k, 'Saira', true)
+    const h = 52 * k * 1.6
+    const w = ctx.measureText(precio).width + 52 * k * 1.2 + h * INCLINACION
+    sello(ctx, precio, W - 64 - w, arriba + 80 * k, { tam: 52 * k })
+  }
+  const modeloY = pieY - 40 * k - 124 * k
+  modelo(ctx, titulo(auto.modelo), M, modeloY, { ancho: W - 2 * M, tam: 124 * k, color: p.texto, lineas: 1, min: 64 })
+  if (pieza.etiqueta) sello(ctx, pieza.etiqueta, M, modeloY - 80 * k, { tam: 32 * k })
+  pie(ctx, pieY, W, p, { k, derecha: `${titulo(auto.marca)} · ${datosDe(auto)}` })
 }
 
 /* Ficha: la foto a sangre arriba con corte recto y abajo el auto con sus
@@ -395,32 +401,42 @@ function ficha(ctx, W, H, { auto, img, lg, p, pieza }) {
   pie(ctx, pieY, W, p, { k, conLinea: false, conLogo: lg })
 }
 
-/* Titular: arriba un titular en Archivo Black sobre color liso, en el medio
-   la foto limpia y abajo auto y precio. No se escribe sobre el auto. */
+/* Titular: arriba un titular en Saira itálica sobre color liso, en el medio
+   la foto con el borde de arriba en diagonal y abajo auto y precio. No se
+   escribe sobre el auto. */
 function titular(ctx, W, H, { auto, img, lg, p, pieza }) {
   const { k, arriba, pieY } = zonas(H)
   logo(ctx, lg, M, arriba, 520)
-  let y = arriba + 76 * k
+  let y = arriba + 80 * k
   y += bloque(ctx, pieza.titular || pieza.etiqueta || `${titulo(auto.marca)} ${auto.anio ?? ''}`.trim(), M, y, {
     ancho: W - 2 * M,
-    tam: 108 * k,
-    min: 68,
+    tam: 100 * k,
+    min: 64,
     lineas: 2,
-    alto: 0.95,
-    peso: 900,
-    familia: 'Archivo',
-    italica: false,
+    alto: 0.96,
+    peso: 800,
+    familia: 'Saira',
+    italica: true,
     color: p.texto,
   })
-  const fotoY = Math.round(y + 34 * k)
+  const fotoY = Math.round(y + 24 * k)
   const bandaAbajo = 214 * k + (H - pieY)
-  const fotoH = H - bandaAbajo - fotoY
-  foto(ctx, img, 0, fotoY, W, fotoH, { ...pieza.encuadre, focoY: 0.6 })
+  const fin = H - bandaAbajo
+  ctx.save()
+  ctx.beginPath()
+  ctx.moveTo(0, fotoY + 110)
+  ctx.lineTo(W, fotoY)
+  ctx.lineTo(W, fin)
+  ctx.lineTo(0, fin)
+  ctx.closePath()
+  ctx.clip()
+  foto(ctx, img, 0, fotoY, W, fin - fotoY, { ...pieza.encuadre, focoY: 0.6 })
+  ctx.restore()
 
-  const by = fotoY + fotoH + 30 * k
-  modelo(ctx, `${titulo(auto.marca)} ${titulo(auto.modelo)}`, M, by, { ancho: W - 2 * M, tam: 44 * k, color: p.texto, lineas: 1, min: 34 })
-  texto1(ctx, datosDe(auto), M, by + 92 * k, { tam: 34 * k, color: p.suave })
-  texto1(ctx, precioTexto(auto, pieza), M, by + 168 * k, { tam: 70 * k, peso: 700, color: p.texto })
+  const by = fin + 30 * k
+  texto1(ctx, `${titulo(auto.marca)} ${titulo(auto.modelo)}`, M, by + 40 * k, { tam: 42 * k, peso: 600, color: p.texto, ancho: W - 2 * M })
+  texto1(ctx, datosDe(auto), M, by + 88 * k, { tam: 34 * k, color: p.suave })
+  texto1(ctx, precioTexto(auto, pieza), M, by + 168 * k, { tam: 72 * k, peso: 700, color: p.texto })
   pie(ctx, pieY, W, p, { k })
 }
 
@@ -461,12 +477,12 @@ function precio(ctx, W, H, { auto, img, lg, p, pieza }) {
   }
   ctx.fillStyle = p.texto
   ctx.fillText(precioDe(auto), M, y + t * 0.74)
-  y += t * 0.74 + 30 * k
+  y += t * 0.74 + 44 * k
   y += modelo(ctx, `${titulo(auto.marca)} ${titulo(auto.modelo)}`, M, y, { ancho: W - 2 * M, tam: 56 * k, color: p.texto, lineas: 1, min: 38 })
-  texto1(ctx, datosDe(auto), M, y + 40 * k, { tam: 34 * k, color: p.suave })
+  texto1(ctx, datosDe(auto), M, y + 44 * k, { tam: 38 * k, color: p.suave })
   /* El lado alto de la diagonal sube a la par del renglón de datos (que es
      corto y va a la izquierda), así la foto gana alto sin pisar texto. */
-  const fotoY = Math.round(y + 12 * k)
+  const fotoY = Math.round(y + 16 * k)
   const fin = pieY - 56 * k
   ctx.save()
   ctx.beginPath()
@@ -481,9 +497,10 @@ function precio(ctx, W, H, { auto, img, lg, p, pieza }) {
   pie(ctx, pieY, W, p, { k, conLinea: false })
 }
 
-/* La foto en blanco y negro (para "vendido": el rojo queda sólo en la
-   palabra). Se hace a mano: el filtro del canvas no anda en todos lados. */
-function fotoGris(img) {
+/* La foto con el color apagado al 60 % (para "vendido": que se lea como
+   festejo, no como baja). Se hace a mano: el filtro del canvas no anda en
+   todos lados. */
+function fotoApagada(img, cuanto = 0.6) {
   const c = document.createElement('canvas')
   c.width = img.width
   c.height = img.height
@@ -493,30 +510,34 @@ function fotoGris(img) {
   const d = datos.data
   for (let i = 0; i < d.length; i += 4) {
     const v = d[i] * 0.3 + d[i + 1] * 0.59 + d[i + 2] * 0.11
-    d[i] = d[i + 1] = d[i + 2] = v
+    d[i] += (v - d[i]) * cuanto
+    d[i + 1] += (v - d[i + 1]) * cuanto
+    d[i + 2] += (v - d[i + 2]) * cuanto
   }
   g.putImageData(datos, 0, 0)
   return c
 }
 
-/* Vendido / reservado / entregado: la palabra grande en rojo, la foto en
-   blanco y negro y, si hay, un cierre corto ("Gracias, Martín"). Nunca lleva
-   precio ni va sobre fondo rojo (la palabra roja se perdería). */
+/* Vendido / reservado / entregado: el auto y un cierre corto arriba, y la
+   palabra en un sello rojo gigante que cruza el borde de la foto. Nunca
+   lleva precio y va siempre sobre hueso. */
 function vendido(ctx, W, H, { auto, img, lg, p, pieza }) {
   const { k, arriba, pieY } = zonas(H)
   let y = arriba
   logo(ctx, lg, M, y, 520)
+  y += 84 * k
+  modelo(ctx, `${titulo(auto.marca)} ${titulo(auto.modelo)}`, M, y, { ancho: W - 2 * M, tam: 64 * k, color: p.texto, lineas: 1, min: 40 })
   y += 70 * k
-  y += modelo(ctx, pieza.etiqueta || 'Vendido', M, y, { ancho: W - 2 * M, tam: 190 * k, color: ROJO, lineas: 1 })
-  texto1(ctx, `${titulo(auto.marca)} ${titulo(auto.modelo)}`, M, y + 24 * k, { tam: 42 * k, peso: 600, color: p.texto, ancho: W - 2 * M })
-  y += 40 * k
   const cierre = pieza.bajada || pieza.titular
   if (cierre) {
-    texto1(ctx, cierre, M, y + 50 * k, { tam: 36 * k, peso: 400, color: p.suave, ancho: W - 2 * M })
-    y += 54 * k
+    texto1(ctx, cierre, M, y + 40 * k, { tam: 38 * k, peso: 400, color: p.suave, ancho: W - 2 * M })
+    y += 50 * k
   }
-  const fotoY = Math.round(y + 56 * k)
-  foto(ctx, fotoGris(img), 0, fotoY, W, pieY - 40 * k - fotoY, pieza.encuadre)
+  const selloY = y + 36 * k
+  const alto = 130 * k * 1.6
+  const fotoY = Math.round(selloY + alto - 40 * k)
+  foto(ctx, fotoApagada(img), 0, fotoY, W, pieY - 40 * k - fotoY, pieza.encuadre)
+  sello(ctx, pieza.etiqueta || 'Vendido', M - 8, selloY, { tam: 130 * k, color: PALETAS.hueso.fondo })
   pie(ctx, pieY, W, p, { k, conLinea: false })
 }
 
