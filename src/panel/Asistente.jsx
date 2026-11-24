@@ -170,14 +170,18 @@ function Respuesta({ mensaje, autos, desde }) {
 }
 
 /* Ejemplos con autos reales del stock, para que se entienda qué pedir. */
+const CAMIONETAS = /hilux|amarok|ranger|s10|frontier|saveiro|strada|toro|montana|oroch|alaskan|maverick/i
+
 function ejemplos(autos) {
   const disponibles = autos.filter((a) => a.estado === 'disponible')
   const nombre = (a) => titulo(a.modelo).split(' ')[0]
+  /* Las camionetas van en femenino: "la Hilux", "la Amarok". */
+  const de = (a) => (a.tipo === 'Pickup' || CAMIONETAS.test(a.modelo) ? 'de la' : 'del')
   const [a, b, c] = disponibles
   return [
-    a && `Haceme un post del ${titulo(a.marca)} ${nombre(a)} para insta`,
-    b && `Una historia del ${nombre(b)}, sin precio`,
-    c && `Post del ${nombre(c)} con la etiqueta «Recién ingresado»`,
+    a && `Haceme un post ${de(a)} ${titulo(a.marca)} ${nombre(a)} para insta`,
+    b && `Una historia ${de(b)} ${nombre(b)}, sin precio`,
+    c && `Post ${de(c)} ${nombre(c)} con la etiqueta «Recién ingresado»`,
   ].filter(Boolean)
 }
 
