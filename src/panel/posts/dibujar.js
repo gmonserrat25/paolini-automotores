@@ -203,7 +203,7 @@ const RUTA_WPP = new Path2D(
 )
 
 /* El pie: WhatsApp a la izquierda, dirección a la derecha. */
-function pie(ctx, y, W, p, { k = 1, tam = 30 * k, conLinea = true, conLogo = null } = {}) {
+function pie(ctx, y, W, p, { k = 1, tam = 32 * k, conLinea = true, conLogo = null } = {}) {
   if (conLinea) linea(ctx, M, y, W - 2 * M, p.linea)
   const base = y + (conLinea ? 30 : 0) + tam
   ctx.save()
@@ -235,17 +235,6 @@ function logo(ctx, lg, x, y, ancho, alinear = 'left') {
   return alto
 }
 
-/* Dibuja `escribir(ctx)` en una capa transparente del ancho de la pieza,
-   empezando en y = 0, y devuelve la capa y la altura que usó. Sirve para
-   medir un bloque de texto antes de decidir dónde va. */
-function capa(W, escribir) {
-  const c = document.createElement('canvas')
-  c.width = W
-  c.height = 1400
-  const alto = escribir(c.getContext('2d'))
-  return { c, alto }
-}
-
 /* ── Diseños ───────────────────────────────────────────────────────────── */
 
 /* Cada diseño recibe (ctx, W, H, d) con d = { auto, img, lg, p, pieza } y
@@ -260,6 +249,8 @@ function capa(W, escribir) {
      mucho 5 niveles de texto por pieza.
    - En las historias la foto manda, el texto crece ×1,25 y nada importante
      va en los 250 px de arriba ni por debajo de y = 1600. */
+
+const hist = (H) => H > 1500
 
 const zonas = (H) => {
   const hist = H > 1500
@@ -346,28 +337,24 @@ const selloFondo = (p) => (p === PALETAS.rojo ? '#010101' : ROJO)
 /* La marca va en la línea de datos, no en un renglón suelto. */
 const lineaDatos = (auto) => `${titulo(auto.marca)}  ·  ${datosDe(auto)}`
 
-/* Vitrina: la foto enmarcada con margen, sin efectos, y el auto debajo
-   alineado a la izquierda. El más sereno. */
-function vitrina(ctx, W, H, { auto, img, lg, p, pieza }) {
+/* Vitrina: la foto ocupa toda la pieza y el auto se escribe abajo a la
+   izquierda, sobre el piso, con un degradé a negro. Siempre oscura: el
+   color de fondo no se usa (va negro aunque pidan otro). */
+function vitrina(ctx, W, H, { auto, img, pieza }) {
   const { k, arriba, pieY } = zonas(H)
-  logo(ctx, lg, 48, arriba, 560)
+  const p = PALETAS.negro
+  foto(ctx, img, 0, 0, W, H, pieza.encuadre)
+  velo(ctx, 0, 0, W, arriba + 240, '#000000', [[0, 0.6], [1, 0]])
+  velo(ctx, 0, H - (hist(H) ? 860 : 620), W, hist(H) ? 860 : 620, '#000000', [[0, 0], [0.45, 0.72], [1, 0.92]])
+  logo(ctx, pieza._lgClaro, M, arriba, 560)
 
-  const capaTexto = capa(W, (c) => {
-    let y = 0
-    if (pieza.etiqueta) y += sello(c, pieza.etiqueta, 48, y, { tam: 32 * k, fondo: selloFondo(p) }) + 26 * k
-    y += modelo(c, titulo(auto.modelo), 48, y, { ancho: W - 96, tam: 100 * k, color: p.texto })
-    texto1(c, lineaDatos(auto), 48, y + 36 * k, { tam: 36 * k, color: p.suave, ancho: W - 96 })
-    y += 54 * k
-    if (pieza.bajada && !pieza.etiqueta) {
-      y += bloque(c, pieza.bajada, 48, y + 4, { ancho: W - 96, tam: 34 * k, min: 30, lineas: 2, alto: 1.3, peso: 400, familia: 'Archivo', italica: false, color: p.suave }) + 4
-    }
-    texto1(c, precioTexto(auto, pieza), 48, y + 96 * k, { tam: 86 * k, peso: 700, color: p.texto })
-    return y + 108 * k
-  })
-  const textoY = pieY - 34 * k - capaTexto.alto
-  const fotoY = arriba + 76 * k
-  foto(ctx, img, 48, fotoY, W - 96, textoY - 44 * k - fotoY, pieza.encuadre)
-  ctx.drawImage(capaTexto.c, 0, textoY)
+  const precioBase = pieY - 44 * k
+  const datosBase = precioBase - 106 * k
+  let y = datosBase - 40 * k - 112 * k
+  modelo(ctx, titulo(auto.modelo), M, y, { ancho: W - 2 * M, tam: 110 * k, color: p.texto, lineas: 1, min: 60 })
+  if (pieza.etiqueta) sello(ctx, pieza.etiqueta, M, y - 82 * k, { tam: 32 * k })
+  texto1(ctx, lineaDatos(auto), M, datosBase, { tam: 36 * k, color: p.suave, ancho: W - 2 * M })
+  texto1(ctx, precioTexto(auto, pieza), M, precioBase, { tam: 86 * k, peso: 700, color: p.texto })
   pie(ctx, pieY, W, p, { k })
 }
 
@@ -416,8 +403,8 @@ function titular(ctx, W, H, { auto, img, lg, p, pieza }) {
   let y = arriba + 76 * k
   y += bloque(ctx, pieza.titular || pieza.etiqueta || `${titulo(auto.marca)} ${auto.anio ?? ''}`.trim(), M, y, {
     ancho: W - 2 * M,
-    tam: 96 * k,
-    min: 64,
+    tam: 108 * k,
+    min: 68,
     lineas: 2,
     alto: 0.95,
     peso: 900,
@@ -426,14 +413,14 @@ function titular(ctx, W, H, { auto, img, lg, p, pieza }) {
     color: p.texto,
   })
   const fotoY = Math.round(y + 34 * k)
-  const bandaAbajo = 250 * k + (H - pieY)
+  const bandaAbajo = 214 * k + (H - pieY)
   const fotoH = H - bandaAbajo - fotoY
   foto(ctx, img, 0, fotoY, W, fotoH, { ...pieza.encuadre, focoY: 0.6 })
 
   const by = fotoY + fotoH + 30 * k
-  modelo(ctx, `${titulo(auto.marca)} ${titulo(auto.modelo)}`, M, by, { ancho: W - 2 * M, tam: 58 * k, color: p.texto, lineas: 1, min: 38 })
-  texto1(ctx, datosDe(auto), M, by + 108 * k, { tam: 34 * k, color: p.suave })
-  texto1(ctx, precioTexto(auto, pieza), M, by + 196 * k, { tam: 80 * k, peso: 700, color: p.texto })
+  modelo(ctx, `${titulo(auto.marca)} ${titulo(auto.modelo)}`, M, by, { ancho: W - 2 * M, tam: 44 * k, color: p.texto, lineas: 1, min: 34 })
+  texto1(ctx, datosDe(auto), M, by + 92 * k, { tam: 34 * k, color: p.suave })
+  texto1(ctx, precioTexto(auto, pieza), M, by + 168 * k, { tam: 70 * k, peso: 700, color: p.texto })
   pie(ctx, pieY, W, p, { k })
 }
 
@@ -448,7 +435,7 @@ function sangre(ctx, W, H, { auto, img, p, pieza }) {
   const selloY = modeloY - 30 * k - 51 * k
   const bandaY = (pieza.etiqueta ? selloY : modeloY) - 34 * k
   foto(ctx, img, 0, 0, W, bandaY + 4, pieza.encuadre)
-  velo(ctx, 0, 0, W, arriba + 180, '#000000', [[0, 0.5], [1, 0]])
+  velo(ctx, 0, 0, W, arriba + 260, '#000000', [[0, 0.68], [1, 0]])
   logo(ctx, pieza._lgClaro, M, arriba, 560)
   cuna(ctx, W, H, bandaY + 4, p.fondo)
   if (pieza.etiqueta) sello(ctx, pieza.etiqueta, M, selloY, { tam: 32 * k, fondo: selloFondo(p) })
@@ -467,7 +454,7 @@ function precio(ctx, W, H, { auto, img, lg, p, pieza }) {
   let y = arriba + 84 * k
   if (pieza.etiqueta) y += sello(ctx, pieza.etiqueta, M, y, { tam: 32 * k, fondo: selloFondo(p) }) + 26 * k
   /* Archivo Black lo más grande que entre en el ancho. */
-  let t = 180 * k
+  let t = 160 * k
   for (; t > 100; t -= 4) {
     fuente(ctx, 900, t)
     if (ctx.measureText(precioDe(auto)).width <= W - 2 * M) break
@@ -477,7 +464,9 @@ function precio(ctx, W, H, { auto, img, lg, p, pieza }) {
   y += t * 0.74 + 30 * k
   y += modelo(ctx, `${titulo(auto.marca)} ${titulo(auto.modelo)}`, M, y, { ancho: W - 2 * M, tam: 56 * k, color: p.texto, lineas: 1, min: 38 })
   texto1(ctx, datosDe(auto), M, y + 40 * k, { tam: 34 * k, color: p.suave })
-  const fotoY = Math.round(y + 80 * k)
+  /* El lado alto de la diagonal sube a la par del renglón de datos (que es
+     corto y va a la izquierda), así la foto gana alto sin pisar texto. */
+  const fotoY = Math.round(y + 12 * k)
   const fin = pieY - 56 * k
   ctx.save()
   ctx.beginPath()
@@ -547,8 +536,11 @@ export async function dibujarPieza(canvas, pieza, auto) {
   /* Un auto rojo sobre fondo rojo se pierde: pasa a negro. */
   const rojo = /rojo|bord|granate/i.test(auto.color ?? '')
   let p = (rojo && pieza.fondo === 'rojo' ? PALETAS.negro : PALETAS[pieza.fondo]) ?? PALETAS.negro
-  /* "Vendido" va en rojo: sobre fondo rojo se perdería. */
-  if (pieza.diseno === 'vendido' && p === PALETAS.rojo) p = PALETAS.hueso
+  /* "Vendido" va en rojo: sólo se lee fuerte sobre hueso. */
+  if (pieza.diseno === 'vendido') p = PALETAS.hueso
+  /* El rojo lleno sólo donde el bloque de color es grande y tiene
+     intención (ficha, sangre, precio); en titular pasa a hueso. */
+  if (pieza.diseno === 'titular' && p === PALETAS.rojo) p = PALETAS.hueso
   const lg = lgs[p.logo]
   ctx.fillStyle = p.fondo
   ctx.fillRect(0, 0, W, H)
