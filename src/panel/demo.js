@@ -12,6 +12,31 @@ const rutaDe = (patente) => `${patente.replace(/[^A-Za-z0-9]/g, '').toLowerCase(
 let contador = 0
 const autos = []
 
+/* Con VITE_PANEL_DEMO_STOCK=1 la demo arranca con los autos de
+   demo-datos/inventario.json (para probar el asistente de posts sin cargar
+   nada). Las fotos las sirve vite.config.js en /demo-fotos. */
+if (import.meta.env.VITE_PANEL_DEMO_STOCK === '1') {
+  const { autos: ejemplo } = (await import('../../demo-datos/inventario.json')).default
+  for (const a of ejemplo) {
+    autos.push({
+      id: `demo-${++contador}`,
+      patente: a.patente,
+      marca: a.marca,
+      modelo: a.modelo,
+      tipo: a.tipo ?? 'Auto',
+      combustible: a.combustible ?? 'Nafta',
+      color: a.color,
+      anio: a.anio,
+      km: a.km,
+      precio: a.precio,
+      estado: 'disponible',
+      foto_path: rutaDe(a.patente),
+      foto: `/demo-fotos/${a.foto.split('/').pop()}`,
+      reconocido_por: a.reconocido_por,
+    })
+  }
+}
+
 export const listarDemo = () => autos.map((a) => ({ ...a }))
 
 export function agregarDemo(cargas) {

@@ -114,3 +114,8 @@ export async function eliminarEntrega(id) {
   if (DEMO) return (await import('./demo')).eliminarEntregaDemo(id)
   await pedir(`/api/entregas?id=${id}`, { method: 'DELETE' })
 }
+
+/* El asistente de posts (api/asistente.js): manda el pedido, la charla y el
+   stock, y vuelve { respuesta, texto, piezas }. En la demo responde el
+   endpoint local de vite.config.js. */
+export const pedirAlAsistente = (cuerpo) => pedir('/api/asistente', { method: 'POST', body: JSON.stringify(cuerpo) })

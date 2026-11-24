@@ -1,4 +1,6 @@
 import react from '@vitejs/plugin-react'
+import fs from 'node:fs'
+import path from 'node:path'
 import { defineConfig, loadEnv } from 'vite'
 
 /* Sólo para la demo local del panel (VITE_PANEL_DEMO=1, `npm run dev`): sirve
@@ -43,6 +45,33 @@ function reconocerLocal(env) {
           res.statusCode = e.status ?? 502
           res.end(JSON.stringify({ error: e.message }))
         }
+      })
+      /* Igual para /api/asistente (el asistente de posts). */
+      server.middlewares.use('/api/asistente', async (req, res) => {
+        res.setHeader('Content-Type', 'application/json')
+        if (req.method !== 'POST') {
+          res.statusCode = 405
+          return res.end(JSON.stringify({ error: 'Usá POST' }))
+        }
+        let texto = ''
+        for await (const trozo of req) texto += trozo
+        try {
+          const { pedirPiezas } = await server.ssrLoadModule('/api/_asistente.js')
+          res.end(JSON.stringify(await pedirPiezas(JSON.parse(texto), process.env.ANTHROPIC_API_KEY)))
+        } catch (e) {
+          res.statusCode = e.status ?? 502
+          res.end(JSON.stringify({ error: e.message }))
+        }
+      })
+      /* Las fotos de demo-datos/fotos, para la demo con stock
+         (VITE_PANEL_DEMO_STOCK=1 npm run demo). */
+      server.middlewares.use('/demo-fotos', (req, res, siguiente) => {
+        const nombre = decodeURIComponent(req.url.slice(1).split('?')[0])
+        if (!/^[a-z0-9]+\.jpg$/.test(nombre)) return siguiente()
+        const ruta = path.join(process.cwd(), 'demo-datos/fotos', nombre)
+        if (!fs.existsSync(ruta)) return siguiente()
+        res.setHeader('Content-Type', 'image/jpeg')
+        fs.createReadStream(ruta).pipe(res)
       })
     },
   }

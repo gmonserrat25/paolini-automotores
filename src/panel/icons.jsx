@@ -108,3 +108,14 @@ export const IconoEntrega = (p) => (
     <circle cx="10" cy="11" r="2.75" />
   </Icono>
 )
+
+/* Un cuadro de post con su foto (montaña) y un destello: las piezas de
+   Instagram del asistente. */
+export const IconoPosts = (p) => (
+  <Icono {...p}>
+    <rect x="2.75" y="3.75" width="12.5" height="13.5" rx="2" />
+    <path d="m2.75 13.5 3.6-3.6a1.2 1.2 0 0 1 1.7 0l4.7 4.7" />
+    <path d="m11.25 12 1.2-1.2a1.2 1.2 0 0 1 1.7 0l1.1 1.1" />
+    <path d="M16.75 1.75v3.5M15 3.5h3.5" />
+  </Icono>
+)
