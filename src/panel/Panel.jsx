@@ -73,12 +73,28 @@ function irA(id) {
 /* Cómo se llama a cada cuenta en el saludo; el resto de las cuentas, "Paolini". */
 const NOMBRES = { 'paolinifabrizio10@gmail.com': 'Fabrizio', 'soporte@neurolabs.ar': 'Soporte' }
 
+/* La cuenta de soporte la comparten Guada y Rodo: en la compu de cada uno el
+   saludo lleva su nombre, guardado en ese navegador (localStorage
+   `panel-nombre`). En cualquier otra compu dice "Soporte". */
+function nombreDe(email) {
+  const e = email?.toLowerCase()
+  if (e === 'soporte@neurolabs.ar') {
+    try {
+      const propio = localStorage.getItem('panel-nombre')?.trim()
+      if (propio) return propio
+    } catch {
+      /* sin almacenamiento: queda "Soporte" */
+    }
+  }
+  return NOMBRES[e] ?? 'Paolini'
+}
+
 function Encabezado({ email }) {
   const ahora = new Date()
   const hoy = fechaLarga.format(ahora)
   return (
     <div id="resumen" className="scroll-mt-24 pt-1">
-      <h1 className="font-jost text-[28px] font-medium leading-tight md:text-[34px]">{saludo(ahora.getHours())}, {NOMBRES[email?.toLowerCase()] ?? 'Paolini'}</h1>
+      <h1 className="font-jost text-[28px] font-medium leading-tight md:text-[34px]">{saludo(ahora.getHours())}, {nombreDe(email)}</h1>
       <p className="mt-1 text-sm text-white/60 first-letter:uppercase">{hoy}</p>
     </div>
   )
