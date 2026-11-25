@@ -11,11 +11,10 @@ const SECCIONES = [
   { id: 'posts', etiqueta: 'Posts', Icono: IconoPosts },
 ]
 
-/* Las que son pantalla aparte (el resto son anclas del resumen). */
-const PANTALLAS = ['carga', 'entregas', 'posts']
+/* Todas son pantallas aparte; sin nada en la dirección, el resumen. */
 const pantallaDe = () => {
   const hash = window.location.hash.slice(1)
-  return PANTALLAS.includes(hash) ? hash : null
+  return SECCIONES.some((s) => s.id === hash) ? hash : 'resumen'
 }
 
 const ITEM =
@@ -36,14 +35,11 @@ function Tip({ children }) {
 
 /* Barra lateral de íconos; en el celular pasa a barra inferior. */
 export default function Navegacion() {
-  const [activa, setActiva] = useState(() => pantallaDe() ?? 'resumen')
+  const [activa, setActiva] = useState(pantallaDe)
 
   /* El botón "atrás" también cambia de pantalla. */
   useEffect(() => {
-    const alCambiar = () => {
-      const pantalla = pantallaDe()
-      if (pantalla) setActiva(pantalla)
-    }
+    const alCambiar = () => setActiva(pantallaDe())
     window.addEventListener('hashchange', alCambiar)
     return () => window.removeEventListener('hashchange', alCambiar)
   }, [])
