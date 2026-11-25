@@ -138,6 +138,18 @@ export function eliminarEntregaDemo(id) {
   if (i >= 0) entregas.splice(i, 1)
 }
 
+/* Visitas de ejemplo para la demo (en producción salen de api/visitas.js). */
+export function visitasDemo() {
+  const serie = Array.from({ length: 30 }, (_, i) => {
+    const d = new Date()
+    d.setDate(d.getDate() - (29 - i))
+    const finde = d.getDay() === 0 || d.getDay() === 6
+    const personas = Math.round(18 + i * 0.4 + (finde ? 9 : 0) + ((i * 7) % 5))
+    return { dia: d.toLocaleDateString('en-CA'), personas, vistas: Math.round(personas * 2.3) }
+  })
+  return { hoy: serie.at(-1).dia, serie, total: serie.reduce((s, p) => s + p.personas, 0), desde: serie[0].dia }
+}
+
 /* Las fotos extra de la demo: también en memoria. */
 function fotosDe(id) {
   const auto = autos.find((a) => a.id === id)

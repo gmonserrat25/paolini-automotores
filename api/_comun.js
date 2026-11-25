@@ -76,6 +76,15 @@ export function esquema() {
       foto_url text not null,
       creado   timestamptz not null default now()
     )`
+    /* El contador de visitas del sitio público: un renglón por persona por
+       día (`visitante` es una huella anónima, ver api/visitas.js) y cuántas
+       páginas abrió ese día. */
+    await sql`create table if not exists visitas (
+      dia       date not null,
+      visitante text not null,
+      vistas    integer not null default 1,
+      primary key (dia, visitante)
+    )`
     await sql`create table if not exists intentos (
       email  text not null,
       cuando timestamptz not null default now()

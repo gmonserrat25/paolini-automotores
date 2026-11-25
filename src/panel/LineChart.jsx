@@ -7,13 +7,13 @@ const M = { t: 14, r: 14, b: 30, l: 34 }
 
 /* Consultas por semana. Se dibuja en píxeles reales (mide su contenedor) para
    que los textos no se deformen, y el tooltip sigue al puntero. */
-export default function LineChart({ puntos }) {
+export default function LineChart({ puntos, nombre = 'Consultas' }) {
   const [caja, ancho] = useAncho()
   const [activo, setActivo] = useState(null)
   const idDegrade = useId()
 
   const n = puntos.length
-  const max = techo(Math.max(...puntos.map((p) => p.valor)))
+  const max = techo(Math.max(1, ...puntos.map((p) => p.valor)))
   const util = ancho - M.l - M.r
   const x = (i) => M.l + (i * util) / (n - 1)
   const y = (v) => M.t + (1 - v / max) * (ALTO - M.t - M.b)
@@ -40,7 +40,7 @@ export default function LineChart({ puntos }) {
           width={ancho}
           height={ALTO}
           role="img"
-          aria-label={`Consultas: ${puntos.map((p) => `${p.etiqueta} ${p.valor}`).join(', ')}`}
+          aria-label={`${nombre}: ${puntos.map((p) => `${p.etiqueta} ${p.valor}`).join(', ')}`}
           onPointerMove={mover}
           onPointerLeave={() => setActivo(null)}
           className="touch-pan-y"
