@@ -42,10 +42,18 @@ function saludo(hora) {
   return hora < 20 ? 'Buenas tardes' : 'Buenas noches'
 }
 
-/* "Carga", "Entregas" y "Posts" son pantallas aparte: se eligen con #carga,
-   #entregas o #posts en la dirección. */
-const PANTALLAS = ['carga', 'entregas', 'posts']
-const vistaDe = (hash) => (PANTALLAS.includes(hash) ? hash : 'panel')
+/* Cada botón del costado es una pantalla aparte y se elige con #ventas,
+   #stock, etc. en la dirección. Sin nada (o con algo que no es pantalla) se ve
+   el resumen. Antes Resumen, Ventas, Stock y Consultas eran anclas de un mismo
+   tablero largo y, al tocarlas, la página casi no se movía. */
+const PANTALLAS = ['resumen', 'ventas', 'stock', 'consultas', 'carga', 'entregas', 'posts']
+const vistaDe = (hash) => (PANTALLAS.includes(hash) ? hash : 'resumen')
+
+/* Cambia de pantalla y, si se pide, baja hasta una sección de la nueva. */
+function abrir(pantalla, ancla) {
+  if (window.location.hash.slice(1) !== pantalla) window.location.hash = pantalla
+  if (ancla) setTimeout(() => irA(ancla), 60)
+}
 
 function useVista() {
   const [vista, setVista] = useState(() => vistaDe(window.location.hash.slice(1)))
@@ -54,7 +62,6 @@ function useVista() {
       const hash = window.location.hash.slice(1)
       setVista(vistaDe(hash))
       window.scrollTo(0, 0)
-      if (hash && !PANTALLAS.includes(hash)) irA(hash)
     }
     window.addEventListener('hashchange', alCambiar)
     return () => window.removeEventListener('hashchange', alCambiar)
@@ -126,6 +133,14 @@ export default function Panel({ onSalir, email }) {
   const [marca, setMarca] = useState(null)
   const [soloViejas, setSoloViejas] = useState(false)
   const [soloSinResponder, setSoloSinResponder] = useState(false)
+  /* Los filtros que ponen los atajos de "Para atender" valen mientras se está
+     en esa pantalla: al volver por el menú se ve todo. */
+  const [vistaAnterior, setVistaAnterior] = useState(vista)
+  if (vista !== vistaAnterior) {
+    setVistaAnterior(vista)
+    if (vista !== 'stock') setSoloViejas(false)
+    if (vista !== 'consultas') setSoloSinResponder(false)
+  }
   /* La ficha abierta: { id, editar }. `editar` la abre ya en modo edición. */
   const [ficha, setFicha] = useState(null)
   const verFicha = (id) => setFicha({ id, editar: false })
@@ -135,24 +150,29 @@ export default function Panel({ onSalir, email }) {
 
   const verConsultas = () => {
     setSoloSinResponder(true)
-    irA('consultas')
+    abrir('consultas')
   }
   const verStock = () => {
     setMarca(null)
     setBusqueda('')
     setSoloViejas(true)
-    irA('stock')
+    abrir('stock')
+  }
+  /* El buscador de arriba filtra la tabla de stock: al escribir, se va ahí. */
+  const buscar = (texto) => {
+    setBusqueda(texto)
+    if (texto) abrir('stock')
   }
 
   return (
     <div className="panel min-h-screen bg-[#010101] text-white">
       <Navegacion />
       <div className="pb-24 md:pb-8 md:pl-[72px]">
-        <Topbar busqueda={busqueda} onBusqueda={setBusqueda} onSalir={onSalir} />
+        <Topbar busqueda={busqueda} onBusqueda={buscar} onSalir={onSalir} />
 
-        <main className={`grid gap-5 px-4 md:px-6 ${vista === 'panel' ? 'xl:grid-cols-[minmax(0,1fr)_340px]' : ''}`}>
+        <main className={`grid gap-5 px-4 md:px-6 ${vista === 'resumen' ? 'xl:grid-cols-[minmax(0,1fr)_340px]' : ''}`}>
           <div className="min-w-0 space-y-4">
-            {vista === 'panel' && <Encabezado email={email} />}
+            {vista === 'resumen' && <Encabezado email={email} />}
 
             {estado === 'error' && <ErrorPanel onReintentar={recargar} />}
 
@@ -189,7 +209,7 @@ export default function Panel({ onSalir, email }) {
               </div>
             )}
 
-            {listo && vista === 'panel' && (
+            {listo && vista === 'resumen' && (
               <>
                 <Atencion
                   stock={datos.stock}
@@ -197,19 +217,23 @@ export default function Panel({ onSalir, email }) {
                   tasaciones={datos.tasaciones}
                   onVerConsultas={verConsultas}
                   onVerStock={verStock}
-                  onVerTasaciones={() => irA('tasaciones')}
+                  onVerTasaciones={() => abrir('consultas', 'tasaciones')}
                 />
                 <Plata datos={datos} />
                 <Metricas stock={datos.stock} historial={datos.historial} semanal={datos.series.mensual} />
                 <Visitas />
-                <div className="grid gap-4 lg:grid-cols-3">
-                  <ConsultasPorSemana series={datos.series} />
-                  <StockPorMarca stock={datos.stock} marca={marca} onMarca={setMarca} />
-                </div>
-                <div id="ventas" className="grid scroll-mt-24 gap-4 lg:grid-cols-3">
-                  <EmbudoMes datos={datos} />
-                  <QuePidenYQueHay busquedas={datos.busquedas} stock={datos.stock} />
-                </div>
+              </>
+            )}
+
+            {listo && vista === 'ventas' && (
+              <div className="grid gap-4 pt-1 lg:grid-cols-3">
+                <EmbudoMes datos={datos} />
+                <QuePidenYQueHay busquedas={datos.busquedas} stock={datos.stock} />
+              </div>
+            )}
+
+            {listo && vista === 'stock' && (
+              <div className="space-y-4 pt-1">
                 <TablaStock
                   stock={datos.stock}
                   busqueda={busqueda}
@@ -224,30 +248,34 @@ export default function Panel({ onSalir, email }) {
                   onEstados={cambiarEstados}
                   onLimpiarBusqueda={() => setBusqueda('')}
                 />
+                <StockPorMarca stock={datos.stock} marca={marca} onMarca={setMarca} />
+              </div>
+            )}
+
+            {listo && vista === 'consultas' && (
+              <div className="space-y-4 pt-1">
+                <div className="grid gap-4 lg:grid-cols-3">
+                  {/* En el celular la lista va primero; en pantalla ancha, a la derecha del gráfico. */}
+                  <div className="lg:order-last">
+                    <UltimasConsultas
+                      consultas={datos.consultas}
+                      soloSinResponder={soloSinResponder}
+                      onSoloSinResponder={setSoloSinResponder}
+                      onEstado={cambiarEstadoConsulta}
+                    />
+                  </div>
+                  <ConsultasPorSemana series={datos.series} />
+                </div>
                 <div className="grid gap-4 lg:grid-cols-2">
                   <Tasaciones tasaciones={datos.tasaciones} onMarcar={marcarTasacion} />
                   <CuotasSimuladas simulaciones={datos.simulaciones} stock={datos.stock} />
                 </div>
-              </>
+              </div>
             )}
           </div>
 
-          {estado !== 'error' && vista === 'panel' && (
-            <aside className="space-y-4">
-              {listo ? (
-                <>
-                  <Agenda agenda={datos.agenda} />
-                  <UltimasConsultas
-                    consultas={datos.consultas}
-                    soloSinResponder={soloSinResponder}
-                    onSoloSinResponder={setSoloSinResponder}
-                    onEstado={cambiarEstadoConsulta}
-                  />
-                </>
-              ) : (
-                <ConsultasEsqueleto />
-              )}
-            </aside>
+          {estado !== 'error' && vista === 'resumen' && (
+            <aside className="space-y-4">{listo ? <Agenda agenda={datos.agenda} /> : <ConsultasEsqueleto />}</aside>
           )}
         </main>
       </div>
