@@ -33,6 +33,36 @@ if (import.meta.env.VITE_PANEL_DEMO_STOCK === '1') {
       foto_path: rutaDe(a.patente),
       foto: `/demo-fotos/${a.foto.split('/').pop()}`,
       reconocido_por: a.reconocido_por,
+      fotos: [],
+    })
+  }
+  /* Tres autos con varias fotos (exterior, interior y detalle), recortadas
+     de los flyers que Paolini ya publicó, para probar el collage. Sin
+     precio ni año: no se inventan. */
+  for (const [clave, marca, modelo, color] of [
+    ['208gt', 'PEUGEOT', '208 GT', 'GRIS'],
+    ['tcross', 'VOLKSWAGEN', 'T-CROSS EXTREME', 'GRIS'],
+    ['atto2', 'BYD', 'ATTO 2', 'VERDE'],
+  ]) {
+    autos.push({
+      id: `demo-${++contador}`,
+      patente: `DEMO ${contador}`,
+      marca,
+      modelo,
+      tipo: 'Auto',
+      combustible: clave === 'atto2' ? 'Eléctrico' : 'Nafta',
+      color,
+      anio: null,
+      km: 0,
+      precio: null,
+      estado: 'disponible',
+      foto_path: `${clave}.jpg`,
+      foto: `/demo-fotos/redes/${clave}-exterior.jpg`,
+      fotos: [
+        { url: `/demo-fotos/redes/${clave}-interior.jpg`, tipo: 'interior' },
+        { url: `/demo-fotos/redes/${clave}-detalle.jpg`, tipo: 'detalle' },
+      ],
+      reconocido_por: 'demo',
     })
   }
 }
@@ -106,4 +136,30 @@ export function agregarEntregaDemo({ cliente, plural, vehiculo, archivo }) {
 export function eliminarEntregaDemo(id) {
   const i = entregas.findIndex((e) => e.id === id)
   if (i >= 0) entregas.splice(i, 1)
+}
+
+/* Las fotos extra de la demo: también en memoria. */
+function fotosDe(id) {
+  const auto = autos.find((a) => a.id === id)
+  if (!auto) throw new Error('No existe ese auto')
+  auto.fotos ??= []
+  return auto
+}
+
+export function agregarFotoDemo(id, url, tipo) {
+  const auto = fotosDe(id)
+  auto.fotos = [...auto.fotos, { url, tipo }]
+  return auto.fotos
+}
+
+export function tipoFotoDemo(id, url, tipo) {
+  const auto = fotosDe(id)
+  auto.fotos = auto.fotos.map((f) => (f.url === url ? { ...f, tipo } : f))
+  return auto.fotos
+}
+
+export function quitarFotoDemo(id, url) {
+  const auto = fotosDe(id)
+  auto.fotos = auto.fotos.filter((f) => f.url !== url)
+  return auto.fotos
 }

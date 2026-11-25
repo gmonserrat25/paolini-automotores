@@ -102,7 +102,7 @@ function ErrorPanel({ onReintentar }) {
 
 export default function Panel({ onSalir, email }) {
   useFichaInterna()
-  const { estado, datos, aviso, recargar, agregarUnidades, editarUnidad, eliminarUnidades, cambiarEstado, cambiarEstados, cambiarEstadoConsulta, marcarTasacion } =
+  const { estado, datos, aviso, recargar, agregarUnidades, editarUnidad, cambiarFotos, eliminarUnidades, cambiarEstado, cambiarEstados, cambiarEstadoConsulta, marcarTasacion } =
     usePanel()
   const vista = useVista()
   const [busqueda, setBusqueda] = useState('')
@@ -241,6 +241,7 @@ export default function Panel({ onSalir, email }) {
           empezarEditando={ficha.editar}
           onCerrar={() => setFicha(null)}
           onGuardar={editarUnidad}
+          onFotos={cambiarFotos}
           onEliminar={eliminarUnidades}
         />
       )}

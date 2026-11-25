@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import FotosRedes from './FotosRedes'
 import BrandLogo from '../components/BrandLogos'
 import { pesos } from './calculos'
 import ConfirmarEliminar from './ConfirmarEliminar'
@@ -68,7 +69,7 @@ function Lista({ id, label, valor, opciones, etiquetas = {}, onChange }) {
   )
 }
 
-export default function FichaAuto({ unidad, empezarEditando = false, onCerrar, onGuardar, onEliminar }) {
+export default function FichaAuto({ unidad, empezarEditando = false, onCerrar, onGuardar, onEliminar, onFotos }) {
   const ref = useRef(null)
   const [editando, setEditando] = useState(empezarEditando)
   const [confirmando, setConfirmando] = useState(false)
@@ -165,6 +166,7 @@ export default function FichaAuto({ unidad, empezarEditando = false, onCerrar, o
               <Dato etiqueta="Estado">{ESTADO_LABEL[unidad.estado]}</Dato>
               <Dato etiqueta="Cómo se reconoció">{RECONOCIDO[unidad.reconocidoPor]}</Dato>
             </dl>
+            {onFotos && <FotosRedes unidad={unidad} onFotos={onFotos} />}
             <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
               <button
                 type="button"

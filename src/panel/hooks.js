@@ -172,6 +172,12 @@ export function usePanel() {
     }
   }, [])
 
+  /* Las fotos extra de una unidad cambiaron (se agregó, sacó o corrigió
+     una): ya están guardadas, sólo se actualiza la lista. */
+  const cambiarFotos = useCallback((id, fotos) => {
+    setDatos((d) => ({ ...d, stock: d.stock.map((u) => (u.id === id ? { ...u, fotos } : u)) }))
+  }, [])
+
   /* Borra una o varias unidades de la base y de la lista. Devuelve si salió
      bien. */
   const eliminarUnidades = useCallback(async (unidades) => {
@@ -191,5 +197,5 @@ export function usePanel() {
     }
   }, [])
 
-  return { estado, datos, aviso, recargar, agregarUnidades, editarUnidad, eliminarUnidades, cambiarEstado, cambiarEstados, cambiarEstadoConsulta, marcarTasacion }
+  return { estado, datos, aviso, recargar, agregarUnidades, editarUnidad, cambiarFotos, eliminarUnidades, cambiarEstado, cambiarEstados, cambiarEstadoConsulta, marcarTasacion }
 }

@@ -20,7 +20,7 @@ function leerRecientes() {
 }
 function anotarReciente(pieza) {
   try {
-    const lista = [...leerRecientes(), { diseno: pieza.diseno, fondo: pieza.fondo }].slice(-12)
+    const lista = [...leerRecientes(), { diseno: pieza.diseno }].slice(-12)
     localStorage.setItem(CLAVE_RECIENTES, JSON.stringify(lista))
   } catch {
     /* Sin almacenamiento: el asistente sólo pierde la memoria de lo usado. */
@@ -40,6 +40,7 @@ const autoDe = (u) => ({
   precio: u.ficha?.precio ?? u.precioVenta,
   estado: u.estado,
   foto: u.image,
+  fotos: u.fotos ?? [],
 })
 
 /* En el celular se puede mandar la imagen directo a Instagram o WhatsApp. */
@@ -51,7 +52,9 @@ const PUEDE_COMPARTIR = (() => {
   }
 })()
 
-const sinFoto = (a) => Object.fromEntries(Object.entries(a).filter(([k]) => k !== 'foto'))
+/* Al asistente le llegan los datos del auto y, de las fotos, sólo de qué es
+   cada una (sin las direcciones). */
+const paraIA = ({ foto: _f, fotos, ...a }) => ({ ...a, fotos: fotos.map((f) => f.tipo) })
 
 const nombreArchivo = (auto, pieza, n) =>
   `paolini-${titulo(`${auto.marca} ${auto.modelo}`).toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${pieza.formato}-${n}.png`
@@ -212,7 +215,7 @@ export default function Asistente({ stock }) {
         /* Al asistente le vuelve lo que propuso, con el número de cada pieza,
            para que entienda "la segunda pero en rojo". */
         historial: mensajes.map((m) => ({ rol: m.rol, texto: m.rol === 'asistente' ? JSON.stringify(m.datos) : m.texto })),
-        autos: autos.map(sinFoto),
+        autos: autos.map(paraIA),
         recientes: leerRecientes(),
       })
       const numerados = { ...datos, piezas: datos.piezas.map((p, i) => ({ numero: numeroInicial(mensajes) + i, ...p })) }
@@ -315,7 +318,7 @@ export default function Asistente({ stock }) {
               enviar(pedido)
             }
           }}
-          placeholder={mensajes.length ? 'Pedile un cambio: «la 2 en rojo», «sacale el precio», «hacela historia»' : 'Haceme un post del…'}
+          placeholder={mensajes.length ? 'Pedile un cambio: «la 2 sin precio», «el tablero arriba», «hacela historia»' : 'Haceme un post del…'}
           className="max-h-40 min-h-[44px] flex-1 resize-none bg-transparent px-3 py-2.5 text-sm text-white placeholder:text-white/45 focus:outline-none"
         />
         <button

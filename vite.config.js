@@ -63,12 +63,29 @@ function reconocerLocal(env) {
           res.end(JSON.stringify({ error: e.message }))
         }
       })
+      /* Igual para la clasificación de las fotos extra (api/_clasificar.js). */
+      server.middlewares.use('/api/clasificar', async (req, res) => {
+        res.setHeader('Content-Type', 'application/json')
+        let texto = ''
+        for await (const trozo of req) texto += trozo
+        try {
+          const { clasificarFoto } = await server.ssrLoadModule('/api/_clasificar.js')
+          res.end(JSON.stringify({ tipo: await clasificarFoto(JSON.parse(texto).foto, process.env.ANTHROPIC_API_KEY) }))
+        } catch (e) {
+          res.statusCode = e.status ?? 502
+          res.end(JSON.stringify({ error: e.message }))
+        }
+      })
       /* Las fotos de demo-datos/fotos, para la demo con stock
          (VITE_PANEL_DEMO_STOCK=1 npm run demo). */
       server.middlewares.use('/demo-fotos', (req, res, siguiente) => {
         const nombre = decodeURIComponent(req.url.slice(1).split('?')[0])
-        if (!/^[a-z0-9]+\.jpg$/.test(nombre)) return siguiente()
-        const ruta = path.join(process.cwd(), 'demo-datos/fotos', nombre)
+        /* demo-datos/fotos/<patente>.jpg y demo-datos/fotos-redes/<auto>-<tipo>.jpg */
+        const redes = nombre.match(/^redes\/([a-z0-9-]+\.jpg)$/)
+        if (!redes && !/^[a-z0-9]+\.jpg$/.test(nombre)) return siguiente()
+        const ruta = redes
+          ? path.join(process.cwd(), 'demo-datos/fotos-redes', redes[1])
+          : path.join(process.cwd(), 'demo-datos/fotos', nombre)
         if (!fs.existsSync(ruta)) return siguiente()
         res.setHeader('Content-Type', 'image/jpeg')
         fs.createReadStream(ruta).pipe(res)
