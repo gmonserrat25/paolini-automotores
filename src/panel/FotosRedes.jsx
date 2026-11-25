@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { agregarFoto, cambiarTipoFoto, quitarFoto } from './datos'
 import { IconoBasura } from './icons'
 
@@ -10,11 +10,13 @@ import { IconoBasura } from './icons'
 const TIPOS = { exterior: 'Exterior', interior: 'Interior', detalle: 'Detalle', trasera: 'Trasera' }
 const MAX = 8
 
-export default function FotosRedes({ unidad, onFotos }) {
+export default function FotosRedes({ unidad, onFotos, archivos }) {
   const fotos = unidad.fotos ?? []
   const [subiendo, setSubiendo] = useState(0)
   const [error, setError] = useState(null)
   const entrada = useRef(null)
+  const seccion = useRef(null)
+  const empezo = useRef(false)
 
   async function subir(archivos) {
     setError(null)
@@ -33,6 +35,15 @@ export default function FotosRedes({ unidad, onFotos }) {
     }
     if (entrada.current) entrada.current.value = ''
   }
+
+  /* Si se abrió con el "+" de la fila, sube lo elegido y muestra la sección. */
+  useEffect(() => {
+    if (!archivos?.length || empezo.current) return
+    empezo.current = true
+    seccion.current?.scrollIntoView({ block: 'center' })
+    subir(archivos)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- una sola vez, al abrir
+  }, [])
 
   async function cambiar(url, tipo) {
     setError(null)
@@ -53,7 +64,7 @@ export default function FotosRedes({ unidad, onFotos }) {
   }
 
   return (
-    <section className="mt-6 border-t border-white/[0.08] pt-5" aria-labelledby="fotos-redes">
+    <section ref={seccion} className="mt-6 border-t border-white/[0.08] pt-5" aria-labelledby="fotos-redes">
       <div className="flex items-baseline justify-between gap-3">
         <h3 id="fotos-redes" className="text-sm font-medium">
           Más fotos

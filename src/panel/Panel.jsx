@@ -145,6 +145,8 @@ export default function Panel({ onSalir, email }) {
   const [ficha, setFicha] = useState(null)
   const verFicha = (id) => setFicha({ id, editar: false })
   const editarFicha = (id) => setFicha({ id, editar: true })
+  /* El "+" de cada fila: abre la ficha y sube las fotos que se eligieron. */
+  const agregarFotos = (id, archivos) => setFicha({ id, editar: false, archivos, vez: Date.now() })
 
   const listo = estado === 'listo'
 
@@ -191,6 +193,7 @@ export default function Panel({ onSalir, email }) {
                   onAgregar={agregarUnidades}
                   onVer={verFicha}
                   onEditar={editarFicha}
+                  onAgregarFotos={agregarFotos}
                   onEliminar={eliminarUnidades}
                   onEstados={cambiarEstados}
                 />
@@ -245,6 +248,7 @@ export default function Panel({ onSalir, email }) {
                   onEliminar={eliminarUnidades}
                   onVer={verFicha}
                   onEditar={editarFicha}
+                  onAgregarFotos={agregarFotos}
                   onEstados={cambiarEstados}
                   onLimpiarBusqueda={() => setBusqueda('')}
                 />
@@ -282,9 +286,10 @@ export default function Panel({ onSalir, email }) {
 
       {listo && ficha && datos.stock.find((u) => u.id === ficha.id)?.ficha && (
         <FichaAuto
-          key={`${ficha.id}-${ficha.editar}`}
+          key={`${ficha.id}-${ficha.editar}-${ficha.vez ?? 0}`}
           unidad={datos.stock.find((u) => u.id === ficha.id)}
           empezarEditando={ficha.editar}
+          archivos={ficha.archivos}
           onCerrar={() => setFicha(null)}
           onGuardar={editarUnidad}
           onFotos={cambiarFotos}

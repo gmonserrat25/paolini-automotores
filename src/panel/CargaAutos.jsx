@@ -145,7 +145,7 @@ function FilaCarga({ item, asignado, metodo, libres, onElegir, onQuitar }) {
   )
 }
 
-export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onEliminar, onEstados }) {
+export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onAgregarFotos, onEliminar, onEstados }) {
   const entrada = useRef(null)
   const [arrastrando, setArrastrando] = useState(false)
   const [filas, setFilas] = useState([])
@@ -411,7 +411,7 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
       </div>
       {u.ficha && (
         <div className="col-span-2 md:col-span-1 md:justify-self-end">
-          <AccionesFila unidad={u} onEditar={onEditar} onEliminar={(x) => setPorEliminar([x])} />
+          <AccionesFila unidad={u} onEditar={onEditar} onFotos={onAgregarFotos} onEliminar={(x) => setPorEliminar([x])} />
         </div>
       )}
     </li>

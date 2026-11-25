@@ -50,7 +50,7 @@ function Chip({ activo, onClick, children }) {
   )
 }
 
-const COLUMNAS = 'md:grid-cols-[64px_1.3fr_minmax(max-content,1fr)_0.9fr_1.1fr_240px]'
+const COLUMNAS = 'md:grid-cols-[64px_1.3fr_minmax(max-content,1fr)_0.9fr_1.1fr_280px]'
 
 /* Cuánto lleva la unidad en el salón. Pasados los 60 días el número se pinta
    en rojo y lo dice con texto, no sólo con el color. */
@@ -81,6 +81,7 @@ export default function TablaStock({
   onEliminar,
   onVer,
   onEditar,
+  onAgregarFotos,
   onEstados,
   onLimpiarBusqueda,
 }) {
@@ -169,7 +170,7 @@ export default function TablaStock({
       </div>
       <div className="col-span-2 flex items-center gap-2 md:col-span-1">
         <EstadoMenu unidad={v} onCambiar={onCambiar} onEliminar={(u) => setPorEliminar([u])} />
-        {v.ficha && <AccionesFila unidad={v} onEditar={onEditar} onEliminar={(u) => setPorEliminar([u])} />}
+        {v.ficha && <AccionesFila unidad={v} onEditar={onEditar} onFotos={onAgregarFotos} onEliminar={(u) => setPorEliminar([u])} />}
       </div>
     </li>
   )
