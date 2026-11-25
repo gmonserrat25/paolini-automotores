@@ -114,3 +114,35 @@ export async function eliminarEntrega(id) {
   if (DEMO) return (await import('./demo')).eliminarEntregaDemo(id)
   await pedir(`/api/entregas?id=${id}`, { method: 'DELETE' })
 }
+
+/* El asistente de posts (api/asistente.js): manda el pedido, la charla y el
+   stock, y vuelve { respuesta, texto, piezas }. En la demo responde el
+   endpoint local de vite.config.js. */
+export const pedirAlAsistente = (cuerpo) => pedir('/api/asistente', { method: 'POST', body: JSON.stringify(cuerpo) })
+
+/* Las fotos extra de un auto (api/fotos.js). Cada una devuelve la lista de
+   fotos ya actualizada. En la demo viven en memoria y la clasificación la
+   hace el endpoint local de vite.config.js. */
+export async function agregarFoto(id, archivo) {
+  const foto = await achicar(archivo, 1600, 'url')
+  if (DEMO) {
+    let tipo = 'detalle'
+    try {
+      tipo = (await pedir('/api/clasificar', { method: 'POST', body: JSON.stringify({ foto }) })).tipo
+    } catch {
+      /* sin la IA queda como detalle y se corrige a mano */
+    }
+    return (await import('./demo')).agregarFotoDemo(id, URL.createObjectURL(archivo), tipo)
+  }
+  return (await pedir(`/api/fotos?id=${encodeURIComponent(id)}`, { method: 'POST', body: JSON.stringify({ foto }) })).fotos
+}
+
+export async function cambiarTipoFoto(id, url, tipo) {
+  if (DEMO) return (await import('./demo')).tipoFotoDemo(id, url, tipo)
+  return (await pedir(`/api/fotos?id=${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ url, tipo }) })).fotos
+}
+
+export async function quitarFoto(id, url) {
+  if (DEMO) return (await import('./demo')).quitarFotoDemo(id, url)
+  return (await pedir(`/api/fotos?id=${encodeURIComponent(id)}&url=${encodeURIComponent(url)}`, { method: 'DELETE' })).fotos
+}

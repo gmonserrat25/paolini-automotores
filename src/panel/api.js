@@ -97,6 +97,7 @@ function armarUnidad(a) {
     origenVenta: 'mostrador',
     precioVenta: a.precio,
     reconocidoPor: a.reconocido_por,
+    fotos: a.fotos ?? [],
     /* Los datos tal como están en la base, para la ficha y su edición. */
     ficha: {
       patente: a.patente,

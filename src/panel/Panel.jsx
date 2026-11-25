@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import './panel.css'
 import Agenda from './Agenda'
+import Asistente from './Asistente'
 import Atencion from './Atencion'
 import CargaAutos from './CargaAutos'
 import Entregas from './Entregas'
@@ -40,9 +41,9 @@ function saludo(hora) {
   return hora < 20 ? 'Buenas tardes' : 'Buenas noches'
 }
 
-/* "Carga" y "Entregas" son pantallas aparte: se eligen con #carga o #entregas
-   en la dirección. */
-const PANTALLAS = ['carga', 'entregas']
+/* "Carga", "Entregas" y "Posts" son pantallas aparte: se eligen con #carga,
+   #entregas o #posts en la dirección. */
+const PANTALLAS = ['carga', 'entregas', 'posts']
 const vistaDe = (hash) => (PANTALLAS.includes(hash) ? hash : 'panel')
 
 function useVista() {
@@ -101,7 +102,7 @@ function ErrorPanel({ onReintentar }) {
 
 export default function Panel({ onSalir, email }) {
   useFichaInterna()
-  const { estado, datos, aviso, recargar, agregarUnidades, editarUnidad, eliminarUnidades, cambiarEstado, cambiarEstados, cambiarEstadoConsulta, marcarTasacion } =
+  const { estado, datos, aviso, recargar, agregarUnidades, editarUnidad, cambiarFotos, eliminarUnidades, cambiarEstado, cambiarEstados, cambiarEstadoConsulta, marcarTasacion } =
     usePanel()
   const vista = useVista()
   const [busqueda, setBusqueda] = useState('')
@@ -156,6 +157,12 @@ export default function Panel({ onSalir, email }) {
                   onEliminar={eliminarUnidades}
                   onEstados={cambiarEstados}
                 />
+              </div>
+            )}
+
+            {listo && vista === 'posts' && (
+              <div className="pt-1">
+                <Asistente stock={datos.stock} />
               </div>
             )}
 
@@ -234,6 +241,7 @@ export default function Panel({ onSalir, email }) {
           empezarEditando={ficha.editar}
           onCerrar={() => setFicha(null)}
           onGuardar={editarUnidad}
+          onFotos={cambiarFotos}
           onEliminar={eliminarUnidades}
         />
       )}

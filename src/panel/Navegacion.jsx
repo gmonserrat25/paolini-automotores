@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { IconoAuto, IconoCarga, IconoEntrega, IconoBuscar, IconoConsultas, IconoResumen, IconoSitio, IconoVentas } from './icons'
+import { IconoAuto, IconoCarga, IconoEntrega, IconoPosts, IconoBuscar, IconoConsultas, IconoResumen, IconoSitio, IconoVentas } from './icons'
 
 const SECCIONES = [
   { id: 'resumen', etiqueta: 'Resumen', Icono: IconoResumen },
@@ -8,10 +8,11 @@ const SECCIONES = [
   { id: 'consultas', etiqueta: 'Consultas', Icono: IconoConsultas },
   { id: 'carga', etiqueta: 'Carga', Icono: IconoCarga },
   { id: 'entregas', etiqueta: 'Entregas', Icono: IconoEntrega },
+  { id: 'posts', etiqueta: 'Posts', Icono: IconoPosts },
 ]
 
 /* Las que son pantalla aparte (el resto son anclas del resumen). */
-const PANTALLAS = ['carga', 'entregas']
+const PANTALLAS = ['carga', 'entregas', 'posts']
 const pantallaDe = () => {
   const hash = window.location.hash.slice(1)
   return PANTALLAS.includes(hash) ? hash : null

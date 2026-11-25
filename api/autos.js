@@ -19,6 +19,9 @@ const FOTO_MAX = 2_500_000 // caracteres del data URL (~1,8 MB de imagen)
 /* bigint llega como texto: se pasa a número para el navegador. */
 const fila = (a) => ({ ...a, precio: a.precio == null ? null : Number(a.precio) })
 
+/* Las urls de las fotos extra (para collages) de una fila. */
+const extras = (a) => (Array.isArray(a.fotos) ? a.fotos.map((f) => f?.url).filter(Boolean) : [])
+
 const texto = (v, max) => (typeof v === 'string' && v.trim() && v.trim().length <= max ? v.trim() : null)
 const entero = (v, min, max) => (Number.isInteger(v) && v >= min && v <= max ? v : null)
 
@@ -99,8 +102,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: `Pasá entre 1 y ${MAX_LOTE} ids válidos` })
     }
     const borrados = await sql`
-      delete from autos where id = any(string_to_array(${ids.join(',')}, ',')::uuid[]) returning foto_url`
-    const fotos = borrados.map((a) => a.foto_url).filter(Boolean)
+      delete from autos where id = any(string_to_array(${ids.join(',')}, ',')::uuid[]) returning foto_url, fotos`
+    const fotos = borrados.flatMap((a) => [a.foto_url, ...extras(a)]).filter(Boolean)
     if (fotos.length) await del(fotos).catch(() => {})
     return res.status(200).json({ borrados: borrados.length })
   }
@@ -153,11 +156,12 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'DELETE') {
-    const [auto] = await sql`delete from autos where id = ${id} returning foto_url`
+    const [auto] = await sql`delete from autos where id = ${id} returning foto_url, fotos`
     if (!auto) return res.status(404).json({ error: 'No existe ese auto' })
     /* La fila se borra primero: si fallara sólo el borrado de la foto, el auto
        igual queda eliminado y la foto sobrante no se ve en ningún lado. */
-    if (auto.foto_url) await del(auto.foto_url).catch(() => {})
+    const todas = [auto.foto_url, ...extras(auto)].filter(Boolean)
+    if (todas.length) await del(todas).catch(() => {})
     return res.status(204).end()
   }
 

@@ -42,6 +42,9 @@ export function esquema() {
     )`
     /* La patente es única sin importar espacios ni mayúsculas ("AF 459 VG" y
        "af459vg" son el mismo auto). */
+    /* Las fotos extra de cada auto (interior, detalles) para los collages
+       del asistente de posts: [{ url, tipo }]. */
+    await sql`alter table autos add column if not exists fotos jsonb not null default '[]'::jsonb`
     await sql`create unique index if not exists autos_patente_norm
       on autos ((regexp_replace(upper(patente), '[^A-Z0-9]', '', 'g')))`
     await sql`create table if not exists usuarios (
