@@ -2,9 +2,9 @@ import { useRef, useState } from 'react'
 import { agregarFoto, cambiarTipoFoto, quitarFoto } from './datos'
 import { IconoBasura } from './icons'
 
-/* "Fotos para redes", dentro de la ficha de cada auto: las fotos extra
-   (interior, detalles, trasera) con las que el asistente arma los collages
-   como los flyers de Paolini. Al subir una, la IA dice de qué es; si se
+/* "Más fotos", dentro de la ficha de cada auto: las fotos extra (interior,
+   detalles, trasera). Se ven en la tarjeta del auto en la página, después de
+   la principal, y el asistente las usa para los collages como los flyers. Al subir una, la IA dice de qué es; si se
    equivoca, se corrige con el menú. */
 
 const TIPOS = { exterior: 'Exterior', interior: 'Interior', detalle: 'Detalle', trasera: 'Trasera' }
@@ -56,14 +56,14 @@ export default function FotosRedes({ unidad, onFotos }) {
     <section className="mt-6 border-t border-white/[0.08] pt-5" aria-labelledby="fotos-redes">
       <div className="flex items-baseline justify-between gap-3">
         <h3 id="fotos-redes" className="text-sm font-medium">
-          Fotos para redes
+          Más fotos
         </h3>
         <span className="text-xs text-white/50">
           {fotos.length} de {MAX}
         </span>
       </div>
       <p className="mt-1 text-xs text-white/60">
-        Interior, detalles o la cola del auto. Con dos o más, los posts salen en collage como los de Instagram.
+        Interior, detalles o la cola del auto. Se ven en la tarjeta del auto en la página, después de la principal.
       </p>
 
       <ul className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
