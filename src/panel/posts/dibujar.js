@@ -158,7 +158,6 @@ const RUTA_WPP = new Path2D(
 const NEGRO = '#010101'
 const ROJO_WEB = '#E0323F'
 const BLANCO = '#FFFFFF'
-const GRIS = '#C9C9C9'
 const CIERRE = '¡No dudes en contactarte con nosotros!'
 
 /* Las uniones entre fotos suben hacia la derecha, como en sus flyers, un
@@ -167,10 +166,10 @@ const DESNIVEL = 120
 
 const zonas = (H) => {
   const hist = H > 1500
-  /* En las historias la barra queda arriba de y = 1600 (debajo va la
-     interfaz de Instagram) y nada importante arriba de 250. */
+  /* En las historias la barra termina en y = 1560 (debajo va la interfaz
+     de Instagram) y nada importante arriba de 250. */
   const barraAlto = hist ? 140 : 118
-  const barraY = hist ? 1600 - barraAlto : H - barraAlto
+  const barraY = hist ? 1560 - barraAlto : H - barraAlto
   return { hist, k: hist ? 1.2 : 1, barraY, barraAlto, arriba: hist ? 250 : 0 }
 }
 
@@ -179,11 +178,11 @@ const zonas = (H) => {
 function barra(ctx, W, H, { barraY, barraAlto, k }) {
   ctx.fillStyle = NEGRO
   ctx.fillRect(0, barraY, W, H - barraY)
-  const tam = 52 * k
+  const tam = 46 * k
   fuente(ctx, 800, tam, 'Saira', true)
   const numero = NEGOCIO.whatsapp
   const icono = tam * 1.05
-  const bloqueW = ctx.measureText(numero).width + icono + 26 + 90
+  const bloqueW = ctx.measureText(numero).width + icono + 26 + 70
   const x0 = W - bloqueW
   const inclinacion = barraAlto * 0.32
   ctx.fillStyle = ROJO_WEB
@@ -206,17 +205,17 @@ function barra(ctx, W, H, { barraY, barraAlto, k }) {
   ctx.fillText(numero, x0 + inclinacion + 14 + icono + 16, base)
   /* El texto de cierre achica si no entra al lado del bloque. */
   const libre = x0 - 40 - 36
-  let t = 34 * k
+  let t = 32 * k
   fuente(ctx, 700, t, 'Saira', true)
-  while (ctx.measureText(CIERRE).width > libre && t > 20) fuente(ctx, 700, (t -= 1), 'Saira', true)
+  while (ctx.measureText(CIERRE).width > libre && t > 26) fuente(ctx, 700, (t -= 1), 'Saira', true)
   ctx.fillText(CIERRE, 36, barraY + barraAlto / 2 + t * 0.36)
   /* En las historias, debajo de la barra (donde Instagram pone su
      interfaz) va la dirección del sitio, chica: ahí está todo el stock. */
   if (H > 1500) {
-    fuente(ctx, 700, 38, 'Saira', true)
-    ctx.fillStyle = 'rgba(255,255,255,0.55)'
+    fuente(ctx, 700, 34, 'Saira', true)
+    ctx.fillStyle = 'rgba(255,255,255,0.7)'
     ctx.textAlign = 'center'
-    ctx.fillText('paoliniautomotores.com', W / 2, barraY + barraAlto + 90)
+    ctx.fillText('paoliniautomotores.com', W / 2, barraY + barraAlto + 70)
     ctx.textAlign = 'left'
   }
 }
@@ -331,26 +330,45 @@ function collage(ctx, W, imgs, cortes, tope, fin) {
   }
 }
 
-/* El pie de la foto: logo a la izquierda y, si va, el precio a la derecha,
-   apoyados sobre la barra con un degradé a negro. */
+/* El precio, en el idioma de la plantilla: un bloque blanco inclinado con
+   la cifra en Saira itálica negra, apoyado con su borde de abajo en `base`
+   y alineado a la derecha. Devuelve dónde empieza (arriba). */
+function chipPrecio(ctx, W, precio, base, k) {
+  const tam = 70 * k
+  fuente(ctx, 800, tam, 'Saira', true)
+  const h = 96 * k
+  const inc = h * 0.21
+  const w = ctx.measureText(precio).width + tam * 0.8 + inc
+  const x = W - 40 - w
+  ctx.save()
+  ctx.shadowColor = 'rgba(0,0,0,0.5)'
+  ctx.shadowBlur = 24
+  ctx.fillStyle = BLANCO
+  ctx.beginPath()
+  ctx.moveTo(x + inc, base - h)
+  ctx.lineTo(W - 40, base - h)
+  ctx.lineTo(W - 40 - inc, base)
+  ctx.lineTo(x, base)
+  ctx.closePath()
+  ctx.fill()
+  ctx.restore()
+  ctx.fillStyle = '#111111'
+  ctx.fillText(precio, x + inc / 2 + tam * 0.4, base - h / 2 + tam * 0.36)
+  return base - h
+}
+
+/* El pie de la foto: el logo solo a la izquierda y, si va, el precio a la
+   derecha, apoyados sobre la barra con un degradé a negro. */
 function piePlantilla(ctx, W, { lg, barraY, k }, precio) {
   velo(ctx, 0, barraY - 260 * k, W, 262 * k, NEGRO, [[0, 0], [0.55, 0.75], [1, 1]])
-  const logoAlto = (500 * lg.height) / lg.width
-  ctx.drawImage(lg, 36, barraY - 34 * k - logoAlto, 500, logoAlto)
-  if (precio) {
-    fuente(ctx, 700, 62 * k)
-    ctx.save()
-    ctx.shadowColor = 'rgba(0,0,0,0.8)'
-    ctx.shadowBlur = 20
-    ctx.fillStyle = BLANCO
-    ctx.textAlign = 'right'
-    ctx.fillText(precio, W - 40, barraY - 32 * k)
-    ctx.restore()
-  }
+  const ancho = 360
+  const logoAlto = (ancho * lg.height) / lg.width
+  ctx.drawImage(lg, 36, barraY - 40 * k - logoAlto, ancho, logoAlto)
+  if (precio) chipPrecio(ctx, W, precio, barraY - 24 * k, k)
 }
 
 const precioPieza = (auto, pieza) => (pieza.mostrarPrecio && precioDe(auto)) || null
-const nombreDe = (auto) => titulo(auto.modelo)
+const nombreDe = (auto) => (auto.modelo ?? '').trim().toUpperCase()
 
 /* Collage de 3 (o 2) fotos: arriba el interior, en el medio un detalle y
    abajo el auto entero con el nombre. */
@@ -376,29 +394,47 @@ function plantillaCollage(ctx, W, H, d) {
   barra(ctx, W, H, z)
 }
 
-/* Foco: una sola foto a toda la pieza, el nombre arriba sobre un velo y el
-   logo y el precio abajo. */
+/* Foco: una sola foto con el borde de abajo en diagonal y, debajo, una
+   placa negra con la etiqueta, el nombre, la ficha y el precio. */
 function plantillaFoco(ctx, W, H, d) {
   const { auto, imgs, pieza } = d
   const z = zonas(H)
-  const { k, barraY, arriba } = z
-  foto(ctx, imgs[0], 0, 0, W, barraY, { focoY: 0.6 })
-  vineta(ctx, 0, 0, W, barraY, 0.55)
-  velo(ctx, 0, 0, W, arriba + 380 * k, NEGRO, [[0, 0.85], [1, 0]])
-  let y = arriba + 70 * k
-  if (pieza.etiqueta) y += etiquetaRoja(ctx, pieza.etiqueta, 0, y, { tam: 30 * k }) + 24 * k
-  fuente(ctx, 600, 34 * k)
-  ctx.fillStyle = GRIS
-  ctx.fillText(titulo(auto.marca), 40, y + 30 * k)
-  nombre(ctx, nombreDe(auto), 40, y + 30 * k + 110 * k, { tam: 112 * k, ancho: W - 120 })
-  fuente(ctx, 500, 36 * k)
-  ctx.fillStyle = GRIS
-  ctx.fillText(datosDe(auto), 40, y + 30 * k + 180 * k)
-  if (pieza.titular) {
-    fuente(ctx, 600, 40 * k)
-    ctx.fillStyle = BLANCO
-    ctx.fillText(pieza.titular, 40, y + 30 * k + 240 * k)
-  }
+  const { k, barraY } = z
+  const etiqueta = pieza.etiqueta || pieza.titular
+  /* La placa se arma de abajo hacia arriba. */
+  const pieAlto = 140 * k
+  const fichaBase = barraY - pieAlto - 24 * k
+  const nombreBase = fichaBase - 58 * k
+  const etiquetaY = nombreBase - 100 * k - 62 * k
+  const fotoFin = (etiqueta ? etiquetaY : nombreBase - 110 * k) - 34 * k
+  ctx.save()
+  ctx.beginPath()
+  ctx.moveTo(0, 0)
+  ctx.lineTo(W, 0)
+  ctx.lineTo(W, fotoFin - DESNIVEL)
+  ctx.lineTo(0, fotoFin)
+  ctx.closePath()
+  ctx.clip()
+  foto(ctx, imgs[0], 0, 0, W, fotoFin, { focoY: 0.6 })
+  vineta(ctx, 0, 0, W, fotoFin, 0.5)
+  ctx.restore()
+  /* La sombra sobre el corte, como entre las fotos del collage. */
+  ctx.save()
+  ctx.strokeStyle = NEGRO
+  ctx.lineWidth = 8
+  ctx.shadowColor = 'rgba(0,0,0,0.9)'
+  ctx.shadowBlur = 28
+  ctx.beginPath()
+  ctx.moveTo(-10, fotoFin + 1)
+  ctx.lineTo(W + 10, fotoFin - DESNIVEL - 1)
+  ctx.stroke()
+  ctx.restore()
+
+  if (etiqueta) etiquetaRoja(ctx, etiqueta, 0, etiquetaY, { tam: 30 * k })
+  nombre(ctx, nombreDe(auto), 40, nombreBase, { tam: 104 * k, ancho: W - 120 })
+  fuente(ctx, 600, 36 * k, 'Saira', true)
+  ctx.fillStyle = 'rgba(255,255,255,0.9)'
+  ctx.fillText([titulo(auto.marca), datosDe(auto)].filter(Boolean).join('  ·  '), 40, fichaBase)
   piePlantilla(ctx, W, { ...d, ...z }, precioPieza(auto, pieza))
   barra(ctx, W, H, z)
 }
@@ -452,7 +488,9 @@ function plantillaOferta(ctx, W, H, d) {
   ctx.lineTo(0, bandaY + bandaAlto)
   ctx.closePath()
   ctx.fill()
-  const frase = (pieza.titular || precioPieza(auto, pieza) || 'Consultá el precio').toUpperCase()
+  const precio = precioPieza(auto, pieza)
+  if (pieza.titular && precio) chipPrecio(ctx, W, precio, bandaY - 18 * k, k)
+  const frase = (pieza.titular || precio || 'Consultá el precio').toUpperCase()
   let tf = 72 * k
   fuente(ctx, 800, tf, 'Saira', true)
   while (ctx.measureText(frase).width > W - 160 && tf > 36) fuente(ctx, 800, (tf -= 2), 'Saira', true)
@@ -473,27 +511,31 @@ function plantillaVendido(ctx, W, H, d) {
     vineta(ctx, 0, 0, W, barraY, 0.55)
   }
   const palabraV = (pieza.etiqueta || 'Vendido').toUpperCase()
-  const cy = barraY * 0.56
+  const alto = 200 * k
+  const y0 = Math.max(z.arriba + 40 * k, barraY * 0.3 - alto / 2)
+  const inc = alto * 0.21
   ctx.save()
-  ctx.translate(W / 2, cy)
-  ctx.rotate((-6 * Math.PI) / 180)
   ctx.shadowColor = 'rgba(0,0,0,0.6)'
   ctx.shadowBlur = 40
   ctx.fillStyle = ROJO_WEB
-  ctx.fillRect(-W, -100 * k, W * 2, 200 * k)
-  ctx.shadowBlur = 0
+  ctx.beginPath()
+  ctx.moveTo(0, y0)
+  ctx.lineTo(W - 70 + inc, y0)
+  ctx.lineTo(W - 70, y0 + alto)
+  ctx.lineTo(0, y0 + alto)
+  ctx.closePath()
+  ctx.fill()
+  ctx.restore()
   let t = 170 * k
   fuente(ctx, 800, t, 'Saira', true)
-  while (ctx.measureText(palabraV).width > W - 120 && t > 80) fuente(ctx, 800, (t -= 4), 'Saira', true)
+  while (ctx.measureText(palabraV).width > W - 200 && t > 80) fuente(ctx, 800, (t -= 4), 'Saira', true)
   ctx.fillStyle = BLANCO
-  ctx.textAlign = 'center'
-  ctx.fillText(palabraV, 0, t * 0.36)
-  ctx.restore()
+  ctx.fillText(palabraV, 40, y0 + alto / 2 + t * 0.36)
   const gracias = pieza.bajada || pieza.titular
   velo(ctx, 0, barraY - 260 * k, W, 262 * k, NEGRO, [[0, 0], [0.55, 0.75], [1, 1]])
   nombre(ctx, nombreDe(auto), 40, barraY - (gracias ? 96 : 40) * k, { tam: 84 * k, ancho: W - 120 })
   if (gracias) {
-    fuente(ctx, 600, 36 * k)
+    fuente(ctx, 700, 40 * k, 'Saira', true)
     ctx.fillStyle = BLANCO
     ctx.fillText(gracias, 40, barraY - 30 * k)
   }
