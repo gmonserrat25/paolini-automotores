@@ -15,6 +15,7 @@ import TablaStock, { TablaEsqueleto } from './TablaStock'
 import UltimasConsultas, { ConsultasEsqueleto } from './UltimasConsultas'
 import { EmbudoMes, QuePidenYQueHay } from './Ventas'
 import FichaAuto from './FichaAuto'
+import Visitas from './Visitas'
 import { usePanel } from './hooks'
 
 const fechaLarga = new Intl.DateTimeFormat('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -184,6 +185,7 @@ export default function Panel({ onSalir, email }) {
                 />
                 <Plata datos={datos} />
                 <Metricas stock={datos.stock} historial={datos.historial} semanal={datos.series.mensual} />
+                <Visitas />
                 <div className="grid gap-4 lg:grid-cols-3">
                   <ConsultasPorSemana series={datos.series} />
                   <StockPorMarca stock={datos.stock} marca={marca} onMarca={setMarca} />

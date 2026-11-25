@@ -92,6 +92,16 @@ export async function editarAuto(id, cambios) {
 }
 
 /* Las entregas: la foto con quien se llevó el auto (tabla `entregas`). */
+/* El contador de visitas del sitio: { hoy, serie: [{ dia, personas, vistas }], total, desde }. */
+export async function listarVisitas() {
+  if (DEMO) return (await import('./demo')).visitasDemo()
+  try {
+    return await pedir('/api/visitas')
+  } catch (e) {
+    throw new Error(`No se pudieron leer las visitas: ${e.message}`)
+  }
+}
+
 export async function listarEntregas() {
   if (DEMO) return (await import('./demo')).listarEntregasDemo()
   try {
