@@ -174,15 +174,16 @@ const zonas = (H) => {
 }
 
 /* La barra de cierre: el texto de ellos a la izquierda y el WhatsApp en un
-   bloque rojo con el lado izquierdo inclinado. */
-function barra(ctx, W, H, { barraY, barraAlto, k }) {
+   bloque rojo con el lado izquierdo inclinado. En "vendido" no va el
+   teléfono: va un agradecimiento y, en el bloque, la dirección del sitio. */
+function barra(ctx, W, H, { barraY, barraAlto, k }, { cierre = CIERRE, web = false } = {}) {
   ctx.fillStyle = NEGRO
   ctx.fillRect(0, barraY, W, H - barraY)
-  const tam = 46 * k
+  const tam = (web ? 34 : 46) * k
   fuente(ctx, 800, tam, 'Saira', true)
-  const numero = NEGOCIO.whatsapp
-  const icono = tam * 1.05
-  const bloqueW = ctx.measureText(numero).width + icono + 26 + 70
+  const numero = web ? 'paoliniautomotores.com' : NEGOCIO.whatsapp
+  const icono = web ? 0 : tam * 1.05
+  const bloqueW = ctx.measureText(numero).width + icono + (web ? 0 : 26) + 70
   const x0 = W - bloqueW
   const inclinacion = barraAlto * 0.32
   ctx.fillStyle = ROJO_WEB
@@ -194,24 +195,26 @@ function barra(ctx, W, H, { barraY, barraAlto, k }) {
   ctx.closePath()
   ctx.fill()
   const base = barraY + barraAlto / 2 + tam * 0.36
-  ctx.save()
+  if (!web) {
+    ctx.save()
+    ctx.fillStyle = BLANCO
+    const e = icono / 24
+    ctx.translate(x0 + inclinacion + 14, barraY + (barraAlto - icono) / 2)
+    ctx.scale(e, e)
+    ctx.fill(RUTA_WPP)
+    ctx.restore()
+  }
   ctx.fillStyle = BLANCO
-  const e = icono / 24
-  ctx.translate(x0 + inclinacion + 14, barraY + (barraAlto - icono) / 2)
-  ctx.scale(e, e)
-  ctx.fill(RUTA_WPP)
-  ctx.restore()
-  ctx.fillStyle = BLANCO
-  ctx.fillText(numero, x0 + inclinacion + 14 + icono + 16, base)
+  ctx.fillText(numero, x0 + inclinacion + 14 + (web ? 0 : icono + 16), base)
   /* El texto de cierre achica si no entra al lado del bloque. */
   const libre = x0 - 40 - 36
   let t = 32 * k
   fuente(ctx, 700, t, 'Saira', true)
-  while (ctx.measureText(CIERRE).width > libre && t > 26) fuente(ctx, 700, (t -= 1), 'Saira', true)
-  ctx.fillText(CIERRE, 36, barraY + barraAlto / 2 + t * 0.36)
+  while (ctx.measureText(cierre).width > libre && t > 26) fuente(ctx, 700, (t -= 1), 'Saira', true)
+  ctx.fillText(cierre, 36, barraY + barraAlto / 2 + t * 0.36)
   /* En las historias, debajo de la barra (donde Instagram pone su
      interfaz) va la dirección del sitio, chica: ahí está todo el stock. */
-  if (H > 1500) {
+  if (H > 1500 && !web) {
     fuente(ctx, 700, 34, 'Saira', true)
     ctx.fillStyle = 'rgba(255,255,255,0.7)'
     ctx.textAlign = 'center'
@@ -357,14 +360,28 @@ function chipPrecio(ctx, W, precio, base, k) {
   return base - h
 }
 
+/* Si el logo (430 px) y el bloque del precio no entran lado a lado. */
+function pieApilado(ctx, W, precio, k) {
+  if (!precio) return false
+  fuente(ctx, 800, 70 * k, 'Saira', true)
+  const chip = ctx.measureText(precio).width + 70 * k * 0.8 + 96 * k * 0.21
+  return 40 + 430 + 40 + chip + 40 > W
+}
+
 /* El pie de la foto: el logo solo a la izquierda y, si va, el precio a la
    derecha, apoyados sobre la barra con un degradé a negro. */
 function piePlantilla(ctx, W, { lg, barraY, k }, precio) {
   velo(ctx, 0, barraY - 260 * k, W, 262 * k, NEGRO, [[0, 0], [0.55, 0.75], [1, 1]])
-  const ancho = 360
+  const ancho = 430
   const logoAlto = (ancho * lg.height) / lg.width
-  ctx.drawImage(lg, 36, barraY - 40 * k - logoAlto, ancho, logoAlto)
-  if (precio) chipPrecio(ctx, W, precio, barraY - 24 * k, k)
+  /* Si el logo y el precio no entran lado a lado (pasa en las historias, que
+     van más grandes), el logo sube a su propio renglón. */
+  let logoBase = barraY - 56 * k
+  if (precio) {
+    if (pieApilado(ctx, W, precio, k)) logoBase = barraY - 30 * k - 96 * k - 28 * k
+    chipPrecio(ctx, W, precio, barraY - 30 * k, k)
+  }
+  ctx.drawImage(lg, 40, logoBase - logoAlto, ancho, logoAlto)
 }
 
 const precioPieza = (auto, pieza) => (pieza.mostrarPrecio && precioDe(auto)) || null
@@ -388,6 +405,7 @@ function plantillaCollage(ctx, W, H, d) {
 
   /* Nombre y etiqueta arriba del panel del auto entero. */
   const yNombre = cortes.at(-1) + 40 * k + 96 * k
+  velo(ctx, 0, yNombre - 190 * k, W, 280 * k, NEGRO, [[0, 0], [0.5, 0.55], [1, 0]])
   if (pieza.etiqueta) etiquetaRoja(ctx, pieza.etiqueta, 0, cortes.at(-1) + 20 * k, { tam: 28 * k })
   nombre(ctx, nombreDe(auto), 40, yNombre + (pieza.etiqueta ? 40 * k : 0), { tam: 100 * k, ancho: W - 120 })
   piePlantilla(ctx, W, { ...d, ...z }, precioPieza(auto, pieza))
@@ -402,7 +420,7 @@ function plantillaFoco(ctx, W, H, d) {
   const { k, barraY } = z
   const etiqueta = pieza.etiqueta || pieza.titular
   /* La placa se arma de abajo hacia arriba. */
-  const pieAlto = 140 * k
+  const pieAlto = (pieApilado(ctx, W, precioPieza(auto, pieza), k) ? 210 : 140) * k
   const fichaBase = barraY - pieAlto - 24 * k
   const nombreBase = fichaBase - 58 * k
   const etiquetaY = nombreBase - 100 * k - 62 * k
@@ -449,7 +467,7 @@ function plantillaOferta(ctx, W, H, d) {
   ctx.fillStyle = NEGRO
   ctx.fillRect(0, 0, W, H)
   const fotoY = arriba + 330 * k
-  const bandaAlto = 120 * k
+  const bandaAlto = 140 * k
   const fotoFin = barraY - bandaAlto - 40 * k
   foto(ctx, imgs[0], 0, fotoY, W, fotoFin - fotoY, { focoY: 0.6 })
   vineta(ctx, 0, fotoY, W, fotoFin - fotoY, 0.6)
@@ -464,8 +482,14 @@ function plantillaOferta(ctx, W, H, d) {
   fuente(ctx, 800, t, 'Saira', true)
   while (ctx.measureText(n).width > W - 80 && t > 60) fuente(ctx, 800, (t -= 2), 'Saira', true)
   ctx.textAlign = 'center'
-  ctx.fillStyle = 'rgba(255,255,255,0.12)'
-  ctx.fillText(n, W / 2 - 14, arriba + 250 * k - t * 0.3)
+  ctx.save()
+  ctx.fillStyle = 'rgba(255,255,255,0.22)'
+  ctx.translate(W / 2 - 14, arriba + 250 * k - t * 0.62)
+  /* El eco crece hasta 112 % pero nunca se sale de la pieza. */
+  const escala = Math.min(1.12, (W - 24) / ctx.measureText(n).width)
+  ctx.scale(escala, escala)
+  ctx.fillText(n, 0, 0)
+  ctx.restore()
   ctx.save()
   ctx.shadowColor = 'rgba(0,0,0,0.8)'
   ctx.shadowBlur = 24
@@ -489,30 +513,60 @@ function plantillaOferta(ctx, W, H, d) {
   ctx.closePath()
   ctx.fill()
   const precio = precioPieza(auto, pieza)
-  if (pieza.titular && precio) chipPrecio(ctx, W, precio, bandaY - 18 * k, k)
   const frase = (pieza.titular || precio || 'Consultá el precio').toUpperCase()
-  let tf = 72 * k
+  /* Si hay frase y precio, van los dos en la misma banda: la frase a la
+     izquierda y el precio en rojo a la derecha. */
+  const derecha = pieza.titular && precio ? precio : null
+  let anchoDerecha = 0
+  if (derecha) {
+    fuente(ctx, 800, 62 * k, 'Saira', true)
+    anchoDerecha = ctx.measureText(derecha).width + 40
+  }
+  let tf = 64 * k
   fuente(ctx, 800, tf, 'Saira', true)
-  while (ctx.measureText(frase).width > W - 160 && tf > 36) fuente(ctx, 800, (tf -= 2), 'Saira', true)
+  while (ctx.measureText(frase).width > W - 160 - anchoDerecha && tf > 34) fuente(ctx, 800, (tf -= 2), 'Saira', true)
   ctx.fillStyle = '#141414'
   ctx.fillText(frase, 40, bandaY + bandaAlto / 2 + tf * 0.36)
+  if (derecha) {
+    fuente(ctx, 800, 62 * k, 'Saira', true)
+    ctx.fillStyle = ROJO_WEB
+    ctx.textAlign = 'right'
+    ctx.fillText(derecha, W - 40 - bandaAlto * 0.3 - 24, bandaY + bandaAlto / 2 + 62 * k * 0.36)
+    ctx.textAlign = 'left'
+  }
   barra(ctx, W, H, z)
 }
 
-/* Vendido / entregado: las fotos como siempre y una franja roja inclinada
-   que cruza la pieza con la palabra. Nunca lleva precio. */
+/* Vendido / entregado: las fotos como siempre, el logo arriba y, abajo,
+   una franja roja inclinada con la palabra, el auto y el agradecimiento. La
+   barra no lleva teléfono (el auto ya no está) sino el sitio. */
 function plantillaVendido(ctx, W, H, d) {
-  const { auto, imgs, pieza } = d
+  const { auto, imgs, lg, pieza } = d
   const z = zonas(H)
-  const { k, barraY } = z
+  const { k, barraY, arriba } = z
   if (imgs.length >= 2) collage(ctx, W, imgs.slice(1, 2).concat(imgs[0]), [barraY * 0.38], 0, barraY)
   else {
-    foto(ctx, imgs[0], 0, 0, W, barraY, { focoY: 0.6 })
+    foto(ctx, imgs[0], 0, 0, W, barraY, { focoY: 0.55 })
     vineta(ctx, 0, 0, W, barraY, 0.55)
   }
+  velo(ctx, 0, 0, W, arriba + 220 * k, NEGRO, [[0, 0.75], [1, 0]])
+  const logoAncho = 360
+  ctx.drawImage(lg, (W - logoAncho) / 2, arriba + 56 * k, logoAncho, (logoAncho * lg.height) / lg.width)
+
+  /* De abajo hacia arriba: agradecimiento, nombre y franja. */
+  const gracias = pieza.bajada || pieza.titular
+  velo(ctx, 0, barraY - 460 * k, W, 462 * k, NEGRO, [[0, 0], [0.45, 0.7], [1, 1]])
+  const graciasBase = barraY - 34 * k
+  const nombreBase = gracias ? graciasBase - 62 * k : barraY - 40 * k
+  nombre(ctx, nombreDe(auto), 40, nombreBase, { tam: 80 * k, ancho: W - 120 })
+  if (gracias) {
+    fuente(ctx, 700, 40 * k, 'Saira', true)
+    ctx.fillStyle = BLANCO
+    ctx.fillText(gracias, 40, graciasBase)
+  }
   const palabraV = (pieza.etiqueta || 'Vendido').toUpperCase()
-  const alto = 200 * k
-  const y0 = Math.max(z.arriba + 40 * k, barraY * 0.3 - alto / 2)
+  const alto = 150 * k
+  const y0 = nombreBase - 80 * k - 40 * k - alto
   const inc = alto * 0.21
   ctx.save()
   ctx.shadowColor = 'rgba(0,0,0,0.6)'
@@ -520,26 +574,18 @@ function plantillaVendido(ctx, W, H, d) {
   ctx.fillStyle = ROJO_WEB
   ctx.beginPath()
   ctx.moveTo(0, y0)
-  ctx.lineTo(W - 70 + inc, y0)
-  ctx.lineTo(W - 70, y0 + alto)
+  ctx.lineTo(W - 160 + inc, y0)
+  ctx.lineTo(W - 160, y0 + alto)
   ctx.lineTo(0, y0 + alto)
   ctx.closePath()
   ctx.fill()
   ctx.restore()
-  let t = 170 * k
+  let t = 130 * k
   fuente(ctx, 800, t, 'Saira', true)
-  while (ctx.measureText(palabraV).width > W - 200 && t > 80) fuente(ctx, 800, (t -= 4), 'Saira', true)
+  while (ctx.measureText(palabraV).width > W - 280 && t > 70) fuente(ctx, 800, (t -= 4), 'Saira', true)
   ctx.fillStyle = BLANCO
   ctx.fillText(palabraV, 40, y0 + alto / 2 + t * 0.36)
-  const gracias = pieza.bajada || pieza.titular
-  velo(ctx, 0, barraY - 260 * k, W, 262 * k, NEGRO, [[0, 0], [0.55, 0.75], [1, 1]])
-  nombre(ctx, nombreDe(auto), 40, barraY - (gracias ? 96 : 40) * k, { tam: 84 * k, ancho: W - 120 })
-  if (gracias) {
-    fuente(ctx, 700, 40 * k, 'Saira', true)
-    ctx.fillStyle = BLANCO
-    ctx.fillText(gracias, 40, barraY - 30 * k)
-  }
-  barra(ctx, W, H, z)
+  barra(ctx, W, H, z, { cierre: '¡Gracias por confiar en nosotros!', web: true })
 }
 
 /* Qué diseño se puede hacer con cuántas fotos. */
