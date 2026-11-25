@@ -71,7 +71,7 @@ function irA(id) {
 }
 
 /* Cómo se llama a cada cuenta en el saludo; el resto de las cuentas, "Paolini". */
-const NOMBRES = { 'paolinifabrizio10@gmail.com': 'Fabrizio', 'soporte@neurolabs.ar': 'Soporte' }
+const NOMBRES = { 'paolinifabrizio10@gmail.com': 'Fabrizio', 'lourdespaolini24@gmail.com': 'Lourdes', 'soporte@neurolabs.ar': 'Soporte' }
 
 /* La cuenta de soporte la comparten Guada y Rodo: en la compu de cada uno el
    saludo lleva su nombre, guardado en ese navegador (localStorage
