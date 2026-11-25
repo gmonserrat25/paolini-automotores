@@ -476,20 +476,12 @@ function plantillaOferta(ctx, W, H, d) {
 
   const logoAlto = (440 * lg.height) / lg.width
   ctx.drawImage(lg, (W - 440) / 2, arriba + 56 * k, 440, logoAlto)
-  /* El nombre: una copia grande y apagada detrás, y la sólida adelante. */
+  /* El nombre grande y centrado. */
   const n = `${titulo(auto.marca)} ${nombreDe(auto)}`.toUpperCase()
   let t = 130 * k
   fuente(ctx, 800, t, 'Saira', true)
   while (ctx.measureText(n).width > W - 80 && t > 60) fuente(ctx, 800, (t -= 2), 'Saira', true)
   ctx.textAlign = 'center'
-  ctx.save()
-  ctx.fillStyle = 'rgba(255,255,255,0.22)'
-  ctx.translate(W / 2 - 14, arriba + 250 * k - t * 0.62)
-  /* El eco crece hasta 112 % pero nunca se sale de la pieza. */
-  const escala = Math.min(1.12, (W - 24) / ctx.measureText(n).width)
-  ctx.scale(escala, escala)
-  ctx.fillText(n, 0, 0)
-  ctx.restore()
   ctx.save()
   ctx.shadowColor = 'rgba(0,0,0,0.8)'
   ctx.shadowBlur = 24
@@ -506,9 +498,14 @@ function plantillaOferta(ctx, W, H, d) {
   g.addColorStop(1, '#B9B9B9')
   ctx.fillStyle = g
   ctx.beginPath()
+  const soloPrecio = !pieza.titular
+  if (soloPrecio) fuente(ctx, 800, 84 * k, 'Saira', true)
+  const bandaFin = soloPrecio
+    ? Math.min(W - 40, 40 + ctx.measureText(precioPieza(auto, pieza) || 'Consultá el precio').width + 90)
+    : W - 40
   ctx.moveTo(0, bandaY)
-  ctx.lineTo(W - 40, bandaY)
-  ctx.lineTo(W - 40 - bandaAlto * 0.3, bandaY + bandaAlto)
+  ctx.lineTo(bandaFin, bandaY)
+  ctx.lineTo(bandaFin - bandaAlto * 0.3, bandaY + bandaAlto)
   ctx.lineTo(0, bandaY + bandaAlto)
   ctx.closePath()
   ctx.fill()
@@ -522,7 +519,7 @@ function plantillaOferta(ctx, W, H, d) {
     fuente(ctx, 800, 62 * k, 'Saira', true)
     anchoDerecha = ctx.measureText(derecha).width + 40
   }
-  let tf = 64 * k
+  let tf = (derecha ? 64 : 84) * k
   fuente(ctx, 800, tf, 'Saira', true)
   while (ctx.measureText(frase).width > W - 160 - anchoDerecha && tf > 34) fuente(ctx, 800, (tf -= 2), 'Saira', true)
   ctx.fillStyle = '#141414'
@@ -585,7 +582,7 @@ function plantillaVendido(ctx, W, H, d) {
   while (ctx.measureText(palabraV).width > W - 280 && t > 70) fuente(ctx, 800, (t -= 4), 'Saira', true)
   ctx.fillStyle = BLANCO
   ctx.fillText(palabraV, 40, y0 + alto / 2 + t * 0.36)
-  barra(ctx, W, H, z, { cierre: '¡Gracias por confiar en nosotros!', web: true })
+  barra(ctx, W, H, z, { cierre: 'Buscá el tuyo en', web: true })
 }
 
 /* Qué diseño se puede hacer con cuántas fotos. */
