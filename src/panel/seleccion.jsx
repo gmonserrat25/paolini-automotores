@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { IconoBasura, IconoEditar } from './icons'
+import { IconoBasura, IconoEditar, IconoMas } from './icons'
 import { ESTADOS, ESTADO_LABEL } from './mock'
 
 /* Piezas compartidas por las listas de autos (Stock y Carga): casilla para
@@ -37,11 +37,30 @@ export function Casilla({ marcada, onChange, etiqueta, className = '' }) {
 const chico =
   'inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/[0.1] text-white/70 transition-colors hover:border-white/30 hover:bg-white/[0.05] hover:text-white'
 
-/* Editar y eliminar de una fila. */
-export function AccionesFila({ unidad, onEditar, onEliminar }) {
+/* Agregar fotos, editar y eliminar de una fila. El "+" abre directo el
+   selector de fotos del celular o la compu; lo que se elige se sube en la
+   ficha del auto, que se abre mostrando las fotos. */
+export function AccionesFila({ unidad, onEditar, onEliminar, onFotos }) {
   const nombre = `${unidad.brand} ${unidad.model}`
   return (
     <div className="flex items-center gap-2">
+      {onFotos && (
+        <label title="Agregar fotos" className={`${chico} cursor-pointer focus-within:border-white/40`}>
+          <IconoMas className="h-[18px] w-[18px]" />
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            aria-label={`Agregar fotos a ${nombre}`}
+            className="sr-only"
+            onChange={(e) => {
+              const archivos = [...(e.target.files ?? [])]
+              e.target.value = ''
+              if (archivos.length) onFotos(unidad.id, archivos)
+            }}
+          />
+        </label>
+      )}
       <button type="button" onClick={() => onEditar(unidad.id)} aria-label={`Editar ${nombre}`} title="Editar" className={chico}>
         <IconoEditar className="h-[18px] w-[18px]" />
       </button>

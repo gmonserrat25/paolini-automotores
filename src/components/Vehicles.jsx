@@ -1,9 +1,95 @@
 import { WHATSAPP_URL } from '../data/vehicles'
 import { useCatalogo } from '../lib/catalogo'
-import { FuelIcon, GearboxIcon, WhatsAppIcon } from './Icons'
+import { useRef, useState } from 'react'
+import { ChevronLeftIcon, ChevronRightIcon, FuelIcon, GearboxIcon, WhatsAppIcon } from './Icons'
 import { Corner, Cta, SectionTitle } from './Ui'
 
 const SPEC_ICONS = [FuelIcon, GearboxIcon]
+
+const FLECHA =
+  'absolute top-1/2 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity duration-200 ring-1 ring-white/15 hover:bg-black/80 focus-visible:opacity-100 group-hover:opacity-100 disabled:pointer-events-none disabled:!opacity-0 md:flex'
+
+/* Las fotos del auto: la principal y las que suben desde la ficha del panel.
+   Con el dedo se pasan deslizando (scroll-snap, sin librerías); en la compu
+   aparecen flechas al pasar el mouse. Con una sola foto queda la foto sola. */
+function FotosTarjeta({ vehicle }) {
+  const fotos = vehicle.images.length ? vehicle.images : [vehicle.image]
+  const tira = useRef(null)
+  const [actual, setActual] = useState(0)
+  const nombre = `${vehicle.brand} ${vehicle.model}`
+  const atenuada = vehicle.reservado ? 'opacity-70' : ''
+
+  if (fotos.length === 1) {
+    return (
+      <img
+        src={fotos[0]}
+        alt={`${nombre} en Automotores Paolini`}
+        className={`h-full w-full object-cover ${atenuada}`}
+        loading="lazy"
+      />
+    )
+  }
+
+  const ir = (i) => {
+    const el = tira.current
+    if (el) el.scrollTo({ left: i * el.clientWidth, behavior: 'smooth' })
+  }
+  const alDeslizar = () => {
+    const el = tira.current
+    if (el) setActual(Math.round(el.scrollLeft / el.clientWidth))
+  }
+
+  return (
+    <div className="group h-full" role="group" aria-roledescription="galería" aria-label={`Fotos del ${nombre}`}>
+      <div
+        ref={tira}
+        onScroll={alDeslizar}
+        className="flex h-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {fotos.map((src, i) => (
+          <img
+            key={`${src}-${i}`}
+            src={src}
+            alt={i === 0 ? `${nombre} en Automotores Paolini` : `${nombre}, foto ${i + 1} de ${fotos.length}`}
+            className={`h-full w-full shrink-0 snap-center object-cover ${atenuada}`}
+            loading="lazy"
+            draggable={false}
+          />
+        ))}
+      </div>
+
+      <button type="button" onClick={() => ir(actual - 1)} disabled={actual === 0} aria-label="Foto anterior" className={`${FLECHA} left-3`}>
+        <ChevronLeftIcon className="h-4 w-4" />
+      </button>
+      <button
+        type="button"
+        onClick={() => ir(actual + 1)}
+        disabled={actual === fotos.length - 1}
+        aria-label="Foto siguiente"
+        className={`${FLECHA} right-3`}
+      >
+        <ChevronRightIcon className="h-4 w-4" />
+      </button>
+
+      {/* Sombra al pie para que los puntos se lean también sobre fotos claras. */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/45 to-transparent" />
+      {fotos.length > 6 ? (
+        <span className="pointer-events-none absolute bottom-2.5 right-3 text-[11px] font-medium text-white" aria-hidden="true">
+          {actual + 1} / {fotos.length}
+        </span>
+      ) : (
+        <div className="pointer-events-none absolute inset-x-0 bottom-2.5 flex justify-center gap-1.5" aria-hidden="true">
+          {fotos.map((src, i) => (
+            <span
+              key={`${src}-${i}`}
+              className={`h-1.5 rounded-full shadow-[0_0_2px_rgba(0,0,0,0.5)] transition-all duration-200 ${i === actual ? 'w-4 bg-white' : 'w-1.5 bg-white/70'}`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 function VehicleCard({ vehicle }) {
   const consulta = `${WHATSAPP_URL}?text=${encodeURIComponent(
@@ -25,12 +111,7 @@ function VehicleCard({ vehicle }) {
       </header>
 
       <div className="relative mt-4 h-[168px] w-full overflow-hidden">
-        <img
-          src={vehicle.image}
-          alt={`${vehicle.brand} ${vehicle.model} en Automotores Paolini`}
-          className={`h-full w-full object-cover ${vehicle.reservado ? 'opacity-70' : ''}`}
-          loading="lazy"
-        />
+        <FotosTarjeta vehicle={vehicle} />
         {vehicle.reservado ? (
           <span className="absolute left-3 top-3 rounded-full bg-[#D52B38] px-3 py-1 font-sans text-[12px] font-semibold uppercase tracking-[0.06em] text-white">
             Reservado

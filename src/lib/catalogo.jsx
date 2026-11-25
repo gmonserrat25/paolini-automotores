@@ -47,6 +47,8 @@ function aVehiculo(a) {
     tag: a.precio ? pesos.format(a.precio) : 'A consultar',
     specs: [a.combustible],
     image: a.foto ?? asset('/ig/logo-paolini.svg'),
+    /* La principal y después las extras que se suben desde la ficha del panel. */
+    images: a.foto ? [a.foto, ...(a.fotos ?? [])] : [],
   }
 }
 

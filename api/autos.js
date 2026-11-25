@@ -19,7 +19,7 @@ const FOTO_MAX = 2_500_000 // caracteres del data URL (~1,8 MB de imagen)
 /* bigint llega como texto: se pasa a número para el navegador. */
 const fila = (a) => ({ ...a, precio: a.precio == null ? null : Number(a.precio) })
 
-/* Las urls de las fotos extra (para collages) de una fila. */
+/* Las urls de las fotos extra de una fila (tarjetas del sitio y collages). */
 const extras = (a) => (Array.isArray(a.fotos) ? a.fotos.map((f) => f?.url).filter(Boolean) : [])
 
 const texto = (v, max) => (typeof v === 'string' && v.trim() && v.trim().length <= max ? v.trim() : null)
@@ -40,9 +40,11 @@ export default async function handler(req, res) {
        stale-while-revalidate: no se sirve nunca una lista vieja. */
     res.setHeader('Cache-Control', 'public, s-maxage=5')
     const autos = await sql`
-      select id, marca, modelo, tipo, combustible, anio, km, precio, estado, foto_url as foto
+      select id, marca, modelo, tipo, combustible, anio, km, precio, estado, foto_url as foto, fotos
       from autos where estado <> 'vendido' order by creado asc`
-    return res.status(200).json(autos.map(fila))
+    /* `fotos`: las urls de las fotos extra, en el orden en que se subieron; el
+       sitio las muestra en la tarjeta después de la principal. */
+    return res.status(200).json(autos.map((a) => ({ ...fila(a), fotos: extras(a) })))
   }
 
   if (!exigirSesion(req, res)) return

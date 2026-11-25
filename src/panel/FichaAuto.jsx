@@ -69,7 +69,7 @@ function Lista({ id, label, valor, opciones, etiquetas = {}, onChange }) {
   )
 }
 
-export default function FichaAuto({ unidad, empezarEditando = false, onCerrar, onGuardar, onEliminar, onFotos }) {
+export default function FichaAuto({ unidad, empezarEditando = false, archivos, onCerrar, onGuardar, onEliminar, onFotos }) {
   const ref = useRef(null)
   const [editando, setEditando] = useState(empezarEditando)
   const [confirmando, setConfirmando] = useState(false)
@@ -166,7 +166,7 @@ export default function FichaAuto({ unidad, empezarEditando = false, onCerrar, o
               <Dato etiqueta="Estado">{ESTADO_LABEL[unidad.estado]}</Dato>
               <Dato etiqueta="Cómo se reconoció">{RECONOCIDO[unidad.reconocidoPor]}</Dato>
             </dl>
-            {onFotos && <FotosRedes unidad={unidad} onFotos={onFotos} />}
+            {onFotos && <FotosRedes unidad={unidad} onFotos={onFotos} archivos={archivos} />}
             <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
               <button
                 type="button"
@@ -229,6 +229,8 @@ export default function FichaAuto({ unidad, empezarEditando = false, onCerrar, o
                 onChange={cambiar('estado')}
               />
             </div>
+            {/* Las fotos se guardan al subirlas, sin esperar a "Guardar cambios". */}
+            {onFotos && <FotosRedes unidad={unidad} onFotos={onFotos} />}
             <p className="mt-3 text-xs text-white/60">
               Lo que cambies se ve en el sitio en unos segundos. Un auto en «vendido» deja de mostrarse.
             </p>

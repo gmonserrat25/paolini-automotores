@@ -96,6 +96,12 @@ export const IconoEditar = (p) => (
   </Icono>
 )
 
+export const IconoMas = (p) => (
+  <Icono {...p}>
+    <path d="M10 4.5v11M4.5 10h11" />
+  </Icono>
+)
+
 export const IconoBasura = (p) => (
   <Icono {...p}>
     <path d="M3.5 5.5h13M8 5.5V3.75h4V5.5M5.25 5.5l.75 10.25h8l.75-10.25M8.5 8.5v4.5M11.5 8.5v4.5" />
