@@ -19,7 +19,7 @@ const palabra = (p, i, siglas) => {
 export function prolijo(texto = '', { siglas = true } = {}) {
   const t = String(texto).trim().replace(/\s+/g, ' ')
   const mezclado = t !== t.toUpperCase() && t !== t.toLowerCase()
-  if (mezclado) return t
+  if (mezclado) return t.replace(/\b(\d+)km\b/gi, '$1km') // "0Km" → "0km"
   /* Todo en minúsculas: las siglas no se pueden adivinar, va todo en tipo título. */
   const base = t === t.toLowerCase() ? t.replace(/\S+/g, (p) => p.charAt(0).toUpperCase() + p.slice(1)) : t
   let n = 0
