@@ -531,7 +531,32 @@ export async function fechaDeFoto(archivo) {
   } catch {
     /* sin EXIF legible */
   }
-  return archivo.lastModified || 0
+  return fechaDelNombre(archivo.name) ?? (archivo.lastModified || 0)
+}
+
+/* WhatsApp borra la fecha de la cámara, pero el nombre del archivo guarda el
+   orden en que se mandaron (que es el orden en que se sacaron, si el que las
+   saca las manda auto por auto):
+     - Android:            IMG-20261126-WA0012.jpg      (día + número correlativo)
+     - WhatsApp Web / PC:  WhatsApp Image 2026-11-26 at 10.15.32 (2).jpeg
+                           Imagen de WhatsApp 2026-11-26 a las 10.15.32_ab12cd34.jpg
+   Se devuelve una fecha en milisegundos que respeta ese orden. */
+export function fechaDelNombre(nombre = '') {
+  const android = nombre.match(/IMG-(\d{4})(\d{2})(\d{2})-WA(\d+)/i)
+  if (android) {
+    const [, a, m, d, n] = android
+    return new Date(+a, m - 1, +d, 12).getTime() + Number(n) * 1000
+  }
+  const web = nombre.match(/(\d{4})-(\d{2})-(\d{2}) (?:at|a las) (\d{1,2})[.:](\d{2})[.:](\d{2})(?:\s*([ap])\.?\s*m\.?)?(?:\s*\((\d+)\))?/i)
+  if (web) {
+    const [, a, m, d, h, mi, se, ampm, n] = web
+    let hora = Number(h)
+    if (ampm?.toLowerCase() === 'p' && hora < 12) hora += 12
+    if (ampm?.toLowerCase() === 'a' && hora === 12) hora = 0
+    /* Varias del mismo segundo: "(1)", "(2)"… van después de la sin número. */
+    return new Date(+a, m - 1, +d, hora, +mi, +se).getTime() + (n ? Number(n) : 0)
+  }
+  return null
 }
 
 function leerFechaExif(v) {

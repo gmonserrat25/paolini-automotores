@@ -579,7 +579,8 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
             <p className="mt-2 text-sm text-white/60">
               Las fotos de adentro (tablero, asientos, detalles) subilas junto con las demás: cada una se suma sola al
               auto de la foto de afuera que sacaste justo antes. Sacalas auto por auto: primero la de afuera, con la
-              patente a la vista, y después las de adentro.
+              patente a la vista, y después las de adentro. Si llegan por WhatsApp también sirve, siempre que las
+              manden en ese mismo orden.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
