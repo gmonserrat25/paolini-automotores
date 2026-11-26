@@ -14,7 +14,7 @@ export const BRANDS = [
 export const CONTACT = {
   phone: '3548 468411',
   whatsapp: '5493548468411',
-  address: 'Av. España 601, La Falda, Córdoba',
+  address: 'Av. España 1249, La Falda, Córdoba',
   email: 'paoliniautomotores@yahoo.com.ar',
   instagram: 'https://www.instagram.com/paoliniautomotores/',
   hours: [
