@@ -20,6 +20,11 @@ const FOTO_MAX = 2_500_000 // caracteres del data URL (~1,8 MB de imagen)
 /* bigint llega como texto: se pasa a número para el navegador. */
 const fila = (a) => ({ ...a, precio: a.precio == null ? null : Number(a.precio) })
 
+/* Las fotos extra de un auto para su página pública: sólo url y de qué es
+   (interior, detalle, trasera). Nada más del auto viaja con ellas. */
+const fotosPublicas = (a) =>
+  Array.isArray(a.fotos) ? a.fotos.filter((f) => typeof f?.url === 'string').map((f) => ({ url: f.url, tipo: f.tipo ?? null })) : []
+
 /* Las urls de las fotos extra (para collages) de una fila. */
 const extras = (a) => (Array.isArray(a.fotos) ? a.fotos.map((f) => f?.url).filter(Boolean) : [])
 
@@ -45,9 +50,11 @@ export default async function handler(req, res) {
          inexistente dan 404: la página muestra que ya no está. */
       if (!UUID.test(String(req.query.id))) return res.status(404).json({ error: 'No existe ese auto' })
       const [auto] = await sql`
-        select id, marca, modelo, tipo, combustible, color, descripcion, anio, km, precio, estado, foto_url as foto
+        select id, marca, modelo, tipo, combustible, color, descripcion, anio, km, precio, estado, foto_url as foto, fotos
         from autos where id = ${req.query.id} and estado <> 'vendido'`
-      return auto ? res.status(200).json(fila(auto)) : res.status(404).json({ error: 'No existe ese auto' })
+      return auto
+        ? res.status(200).json({ ...fila(auto), fotos: fotosPublicas(auto) })
+        : res.status(404).json({ error: 'No existe ese auto' })
     }
     const autos = await sql`
       select id, marca, modelo, tipo, combustible, color, anio, km, precio, estado, foto_url as foto

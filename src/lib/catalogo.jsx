@@ -49,6 +49,8 @@ function aVehiculo(a) {
     descripcion: a.descripcion,
     combustible: a.combustible,
     precio: a.precio,
+    /* Las fotos extra (sólo vienen al pedir un auto solo, para su página). */
+    fotos: Array.isArray(a.fotos) ? a.fotos.filter((f) => f?.url) : [],
     detail: [a.tipo, ficha].filter(Boolean).join(' · '),
     tag: a.precio ? pesos.format(a.precio) : 'A consultar',
     specs: [a.combustible],
