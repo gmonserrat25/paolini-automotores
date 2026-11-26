@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { frase } from '../lib/entregas'
+import { frase, gracias, seFue } from '../lib/entregas'
 import { agregarEntrega, eliminarEntrega, listarEntregas } from './datos'
 import { IconoBasura } from './icons'
 
@@ -80,13 +80,13 @@ function Formulario({ onCreada }) {
 
       <div className="space-y-4">
         <label className="block text-sm" htmlFor="entrega-cliente">
-          Nombre
+          Nombre del cliente
           <input
             id="entrega-cliente"
             value={form.cliente}
             onChange={cambiar('cliente')}
             maxLength={60}
-            placeholder="Franco"
+            placeholder="Graciela"
             className={campo}
           />
         </label>
@@ -101,20 +101,27 @@ function Formulario({ onCreada }) {
           Son varios (familia, pareja)
         </label>
         <label className="block text-sm" htmlFor="entrega-vehiculo">
-          Vehículo
+          Vehículo entregado
           <input
             id="entrega-vehiculo"
             value={form.vehiculo}
             onChange={cambiar('vehiculo')}
             maxLength={80}
-            placeholder="Toyota Yaris"
+            placeholder="Polo Robust 0km"
             className={campo}
           />
         </label>
 
         <div className="rounded-xl bg-white/[0.04] px-4 py-3 text-sm text-white/70">
           <p className="text-xs text-white/50">Así sale en el sitio</p>
-          <p className="mt-1">{cliente && vehiculo ? frase({ cliente, plural: form.plural, vehiculo }) : '—'}</p>
+          {cliente && vehiculo ? (
+            <>
+              <p className="mt-1.5 font-jost text-xl font-semibold leading-tight text-white">{gracias({ cliente })}</p>
+              <p className="mt-0.5">{seFue({ plural: form.plural, vehiculo })}</p>
+            </>
+          ) : (
+            <p className="mt-1">Completá el nombre y el vehículo y acá ves cómo queda.</p>
+          )}
         </div>
 
         {error && (

@@ -94,7 +94,7 @@ export default function Financiacion() {
 
             <div className="px-4 pb-1">
               <p className="font-sans text-[9px] text-[#8A8A8A]">
-                Av. España 601, La Falda
+                Av. España 1249, La Falda
               </p>
               <div className="mt-1.5 h-[3px] w-full overflow-hidden rounded-full bg-[#E6E6E6]">
                 <span className="block h-full w-[72%] rounded-full bg-[#D52B38]" />
