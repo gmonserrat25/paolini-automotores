@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { frase } from '../lib/entregas'
+import { frase, gracias, seFue } from '../lib/entregas'
 import { ChevronLeftIcon, ChevronRightIcon } from './Icons'
 
 /* Las entregas: cada vez que se vende un auto, la foto con quien se lo llevó.
@@ -15,25 +15,28 @@ function Tarjeta({ entrega, grande, onAbrir }) {
       <button
         type="button"
         onClick={onAbrir}
-        aria-label={`Ver grande la foto de ${entrega.cliente}`}
+        aria-label={`Ver grande: ${frase(entrega)}`}
         className={`relative block w-full cursor-zoom-in overflow-hidden rounded-[6px] bg-[#111] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
           grande ? 'aspect-[4/5] lg:aspect-auto lg:flex-1' : 'aspect-[4/5]'
         }`}
       >
         <img
           src={entrega.foto}
-          alt={`${entrega.cliente} con su ${entrega.vehiculo}, recién entregado`}
+          alt={frase(entrega)}
           loading="lazy"
           className="absolute inset-0 h-full w-full object-cover"
         />
       </button>
-      <figcaption className="mt-3">
+      <figcaption className="mt-4">
         <p
-          className={`font-sans leading-[1.45] text-white/85 ${
-            grande ? 'text-[18px] lg:text-[22px]' : 'text-[16px] lg:text-[17px]'
+          className={`font-display font-semibold leading-[1.1] tracking-[-0.01em] text-white ${
+            grande ? 'text-[26px] lg:text-[40px]' : 'text-[21px] lg:text-[26px]'
           }`}
         >
-          {frase(entrega)}
+          {gracias(entrega)}
+        </p>
+        <p className={`mt-1.5 font-sans leading-[1.4] text-white/70 ${grande ? 'text-[16px] lg:text-[19px]' : 'text-[15px] lg:text-[16px]'}`}>
+          {seFue(entrega)}
         </p>
       </figcaption>
     </figure>
@@ -107,8 +110,8 @@ function Visor({ entregas, inicial, onCerrar }) {
           <img
             key={e.id}
             src={e.foto}
-            alt={`${e.cliente} con su ${e.vehiculo}, recién entregado`}
-            className="max-h-[calc(100svh-190px)] w-auto max-w-full rounded-[6px] object-contain"
+            alt={frase(e)}
+            className="max-h-[calc(100svh-230px)] w-auto max-w-full rounded-[6px] object-contain"
           />
           {varias && (
             <>
@@ -122,7 +125,8 @@ function Visor({ entregas, inicial, onCerrar }) {
           )}
         </div>
         <figcaption className="mt-5 text-center">
-          <p className="font-sans text-[18px] leading-[1.45] text-white sm:text-[22px]">{frase(e)}</p>
+          <p className="font-display text-[26px] font-semibold leading-[1.1] tracking-[-0.01em] text-white sm:text-[36px]">{gracias(e)}</p>
+          <p className="mt-1.5 font-sans text-[16px] leading-[1.4] text-white/70 sm:text-[19px]">{seFue(e)}</p>
           {varias && (
             <p className="mt-2 font-sans text-[13px] tabular-nums text-white/50">
               {i + 1} de {total}

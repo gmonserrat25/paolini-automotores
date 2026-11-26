@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { listarEntregas, pedirAlAsistente } from './datos'
+import { prolijo } from '../lib/entregas'
 import { FORMATOS, aPng, dibujarPieza, titulo } from './posts/dibujar'
 
 /* La pantalla "Posts": se le pide al asistente una pieza para Instagram
@@ -50,8 +51,8 @@ const entregaDe = (e) => ({
   id: `entrega:${e.id}`,
   entrega: true,
   marca: '',
-  modelo: e.vehiculo,
-  cliente: e.cliente,
+  modelo: prolijo(e.vehiculo),
+  cliente: prolijo(e.cliente, { siglas: false }),
   plural: e.plural,
   fecha: e.creado,
   foto: e.foto,
