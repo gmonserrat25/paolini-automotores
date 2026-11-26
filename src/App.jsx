@@ -6,7 +6,6 @@ import Vehicles from './components/Vehicles'
 import Banner from './components/Banner'
 import Companion from './components/Companion'
 import Entregas from './components/Entregas'
-import Financiacion from './components/Financiacion'
 import Buscador from './components/Buscador'
 import Footer from './components/Footer'
 import { CatalogoProvider } from './lib/catalogo'
@@ -14,7 +13,8 @@ import { CatalogoProvider } from './lib/catalogo'
 /* El orden de las secciones es el mismo de la maqueta que copiamos: hero,
    tira de marcas, destacados, las entregas (sólo si hay; van pegadas a los
    autos para que quien mira el stock vea enseguida a quienes ya compraron),
-   bloque a sangre, carrusel en abanico, la sección de financiación (en el original, la de la app) y el buscador.
+   bloque a sangre (que es también la sección de financiación), carrusel en
+   abanico y el buscador.
 
    La marca elegida vive acá y no adentro de la tira porque el listado de
    vehículos es el que tiene que reaccionar: al tocar una marca, la tira la
@@ -33,7 +33,6 @@ export default function App() {
         <Entregas />
         <Banner />
         <Companion />
-        <Financiacion />
         <Buscador />
       </main>
       <Footer />

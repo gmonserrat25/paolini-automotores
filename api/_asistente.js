@@ -46,6 +46,7 @@ Reglas:
 Entregas: en <entregas> están las fotos que cargaron de clientes con el auto que se llevaron (de la más nueva a la más vieja, con la fecha en que la cargaron; <hoy> es la fecha de hoy). Si piden "la última entrega", "la entrega de hoy", "la de Graciela" o algo parecido, usá esa entrega: en autoId poné su id (empieza con "entrega:") y en fotos [0]. Si hay varias que podrían ser y no se sabe cuál, preguntá.
 - Siempre el diseño vendido (el collage tapa la foto con el nombre), con etiqueta "ENTREGADO" y en la bajada el agradecimiento con el nombre del cliente en minúscula normal ("¡Gracias Graciela!"; si es plural, "¡Gracias Familia Pérez!" o como venga el nombre). Por defecto armá dos: el post y la historia; si piden otra cosa, lo que pidan.
 - mostrarPrecio va false siempre en una entrega.
+- Si la entrega trae "mensaje" (lo escribieron ellos), sumalo al texto del posteo con sus palabras, sin reescribirlo.
 - texto: un agradecimiento llano al cliente por la compra (por su nombre, con el vehículo), que disfrute el auto, y la invitación a pasar por el local o escribir por WhatsApp al 3548 468411; la dirección; y hashtags. Nada de datos del auto que no estén en la entrega.`
 
 const texto = { type: ['string', 'null'] }
@@ -117,6 +118,7 @@ function limpiarEntregas(entregas) {
       cliente: corto(e.cliente, 60),
       plural: e.plural === true,
       vehiculo: corto(e.vehiculo, 80),
+      mensaje: corto(e.mensaje, 160),
       fecha: corto(e.fecha, 30),
       fotos: ['0: la foto de la entrega'],
     }))

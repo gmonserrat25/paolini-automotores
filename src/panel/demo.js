@@ -120,17 +120,24 @@ const entregas = []
 
 export const listarEntregasDemo = () => entregas.map((e) => ({ ...e }))
 
-export function agregarEntregaDemo({ cliente, plural, vehiculo, archivo }) {
+export function agregarEntregaDemo({ cliente, plural, vehiculo, mensaje, archivo }) {
   const entrega = {
     id: `demo-entrega-${++contador}`,
     cliente,
     plural,
     vehiculo,
+    mensaje: mensaje?.trim() || null,
     foto: URL.createObjectURL(archivo),
     creado: new Date().toISOString(),
   }
   entregas.unshift(entrega)
   return { ...entrega }
+}
+
+export function cambiarMensajeEntregaDemo(id, mensaje) {
+  const e = entregas.find((x) => x.id === id)
+  if (e) e.mensaje = mensaje?.trim() || null
+  return { ...e }
 }
 
 export function eliminarEntregaDemo(id) {
