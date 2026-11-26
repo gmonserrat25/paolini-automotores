@@ -40,6 +40,8 @@ export function esquema() {
       reconocido_por text,
       creado         timestamptz not null default now()
     )`
+    /* Texto libre que se ve en la página del auto (lo escriben los dueños en el panel). */
+    await sql`alter table autos add column if not exists descripcion text`
     /* La patente es única sin importar espacios ni mayúsculas ("AF 459 VG" y
        "af459vg" son el mismo auto). */
     /* Las fotos extra de cada auto (interior, detalles) para los collages

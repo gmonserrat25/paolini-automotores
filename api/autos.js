@@ -1,6 +1,7 @@
 /* Los autos de la concesionaria.
 
    GET            público: lo que muestra el sitio (sin patente, sin vendidos).
+   GET ?id=       público: un solo auto, para su página /autos/<id>.
    GET ?vista=panel   con sesión: todos, con todos los datos.
    POST           con sesión: crea un auto con su foto (la sube a Vercel Blob).
    PATCH ?id=     con sesión: edita los datos del auto (y su estado).
@@ -18,6 +19,11 @@ const FOTO_MAX = 2_500_000 // caracteres del data URL (~1,8 MB de imagen)
 
 /* bigint llega como texto: se pasa a número para el navegador. */
 const fila = (a) => ({ ...a, precio: a.precio == null ? null : Number(a.precio) })
+
+/* Las fotos extra de un auto para su página pública: sólo url y de qué es
+   (interior, detalle, trasera). Nada más del auto viaja con ellas. */
+const fotosPublicas = (a) =>
+  Array.isArray(a.fotos) ? a.fotos.filter((f) => typeof f?.url === 'string').map((f) => ({ url: f.url, tipo: f.tipo ?? null })) : []
 
 /* Las urls de las fotos extra (para collages) de una fila. */
 const extras = (a) => (Array.isArray(a.fotos) ? a.fotos.map((f) => f?.url).filter(Boolean) : [])
@@ -39,8 +45,19 @@ export default async function handler(req, res) {
        o borran se ve enseguida, sin pegarle a la base en cada visita. Sin
        stale-while-revalidate: no se sirve nunca una lista vieja. */
     res.setHeader('Cache-Control', 'public, s-maxage=5')
+    if (req.query.id !== undefined) {
+      /* Un solo auto, para su página (/autos/<id>). Un vendido o un id
+         inexistente dan 404: la página muestra que ya no está. */
+      if (!UUID.test(String(req.query.id))) return res.status(404).json({ error: 'No existe ese auto' })
+      const [auto] = await sql`
+        select id, marca, modelo, tipo, combustible, color, descripcion, anio, km, precio, estado, foto_url as foto, fotos
+        from autos where id = ${req.query.id} and estado <> 'vendido'`
+      return auto
+        ? res.status(200).json({ ...fila(auto), fotos: fotosPublicas(auto) })
+        : res.status(404).json({ error: 'No existe ese auto' })
+    }
     const autos = await sql`
-      select id, marca, modelo, tipo, combustible, anio, km, precio, estado, foto_url as foto
+      select id, marca, modelo, tipo, combustible, color, anio, km, precio, estado, foto_url as foto
       from autos where estado <> 'vendido' order by creado asc`
     return res.status(200).json(autos.map(fila))
   }
@@ -129,6 +146,10 @@ export default async function handler(req, res) {
       if (b.color != null && !texto(b.color, 40)) return res.status(400).json({ error: 'color inválido' })
       nuevo.color = b.color == null ? null : texto(b.color, 40)
     }
+    if ('descripcion' in b) {
+      if (b.descripcion != null && !texto(b.descripcion, 1500)) return res.status(400).json({ error: 'La descripción no puede pasar de 1500 letras' })
+      nuevo.descripcion = b.descripcion == null ? null : texto(b.descripcion, 1500)
+    }
     const numeros = { anio: [1950, 2100], km: [0, 5_000_000], precio: [0, 1_000_000_000_000] }
     for (const [k, [min, max]] of Object.entries(numeros)) {
       if (!(k in b)) continue
@@ -149,7 +170,7 @@ export default async function handler(req, res) {
 
     const [auto] = await sql`
       update autos set patente = ${nuevo.patente}, marca = ${nuevo.marca}, modelo = ${nuevo.modelo},
-        tipo = ${nuevo.tipo}, combustible = ${nuevo.combustible}, color = ${nuevo.color}, anio = ${nuevo.anio},
+        tipo = ${nuevo.tipo}, combustible = ${nuevo.combustible}, color = ${nuevo.color}, descripcion = ${nuevo.descripcion}, anio = ${nuevo.anio},
         km = ${nuevo.km}, precio = ${nuevo.precio}, estado = ${nuevo.estado}
       where id = ${id} returning *`
     return res.status(200).json({ ...fila(auto), foto: auto.foto_url })
