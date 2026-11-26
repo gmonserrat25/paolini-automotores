@@ -1,19 +1,26 @@
 import { asset } from '../lib/asset'
-import { WHATSAPP_URL } from '../data/vehicles'
-import { ShieldIcon, WhatsAppIcon } from './Icons'
+import { CONTACT, WHATSAPP_URL } from '../data/vehicles'
+import { InstagramIcon, ShieldIcon, WhatsAppIcon } from './Icons'
 import { Corner, Cta } from './Ui'
 
-/* El bloque a sangre con la foto de fondo, la ficha de tres datos y el botón,
-   equivalente al "Turning dreams into drives" de la referencia. */
+/* El bloque a sangre con la foto de fondo, la ficha de datos y los botones,
+   equivalente al "Turning dreams into drives" de la referencia. Es la única
+   sección de financiación del sitio (antes había otra más abajo, con un
+   celular dibujado, que repetía lo mismo): con quién financian y el usado
+   como parte de pago. Los nombres de las plataformas los dio el cliente
+   (26/11/2026): De Una de Bancor, y +Autos y BNA Conecta del Banco Nación.
+   Sin tasas ni cuotas: cambian seguido y no las confirmaron. */
 const DATOS = [
-  ['Financiación', 'Hasta 60 cuotas'],
+  ['Bancor', 'De Una'],
+  ['Banco Nación', '+Autos y BNA Conecta'],
+  ['Crédito', 'Prendario'],
   ['Tu usado', 'Como parte de pago'],
   ['Entrega', 'Inmediata'],
 ]
 
 export default function Banner() {
   return (
-    <section id="nosotros" className="bg-[#050505]">
+    <section id="financiacion" className="bg-[#050505]">
       <div className="relative isolate w-full overflow-hidden">
         <img
           src={asset('/ig/car-showroom.jpg')}
@@ -43,10 +50,19 @@ export default function Banner() {
             ))}
           </div>
 
-          <div className="mt-9">
+          <div className="mt-9 flex flex-wrap gap-3">
             <Cta href={WHATSAPP_URL} target="_blank" rel="noreferrer" icon={<WhatsAppIcon className="h-[22px] w-[22px]" />}>
-              WhatsApp
+              Consultá por WhatsApp
             </Cta>
+            <a
+              href={CONTACT.instagram}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex shrink-0 items-center gap-2.5 rounded-[6px] border border-white/25 px-4 py-2.5 font-sans text-[15px] font-medium text-white transition-colors hover:border-white/60 hover:bg-white/[0.06]"
+            >
+              <InstagramIcon className="h-[20px] w-[20px]" />
+              Mirá el stock en Instagram
+            </a>
           </div>
         </div>
 
