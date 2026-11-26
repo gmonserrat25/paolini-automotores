@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { pedirAlAsistente } from './datos'
+import { listarEntregas, pedirAlAsistente } from './datos'
 import { FORMATOS, aPng, dibujarPieza, titulo } from './posts/dibujar'
 
 /* La pantalla "Posts": se le pide al asistente una pieza para Instagram
@@ -43,6 +43,21 @@ const autoDe = (u) => ({
   fotos: u.fotos ?? [],
 })
 
+/* Las entregas (la foto con quien se llevó el auto) entran como si fueran
+   un auto más, con id "entrega:…", para que el asistente las use igual:
+   "haceme un post con la última entrega", "la de Graciela". */
+const entregaDe = (e) => ({
+  id: `entrega:${e.id}`,
+  entrega: true,
+  marca: '',
+  modelo: e.vehiculo,
+  cliente: e.cliente,
+  plural: e.plural,
+  fecha: e.creado,
+  foto: e.foto,
+  fotos: [],
+})
+
 /* En el celular se puede mandar la imagen directo a Instagram o WhatsApp. */
 const PUEDE_COMPARTIR = (() => {
   try {
@@ -55,9 +70,10 @@ const PUEDE_COMPARTIR = (() => {
 /* Al asistente le llegan los datos del auto y, de las fotos, sólo de qué es
    cada una (sin las direcciones). */
 const paraIA = ({ foto: _f, fotos, ...a }) => ({ ...a, fotos: fotos.map((f) => f.tipo) })
+const entregaParaIA = (e) => ({ id: e.id, cliente: e.cliente, plural: e.plural, vehiculo: e.modelo, fecha: e.fecha })
 
 const nombreArchivo = (auto, pieza, n) =>
-  `paolini-${titulo(`${auto.marca} ${auto.modelo}`).toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${pieza.formato}-${n}.png`
+  `paolini-${titulo(auto.entrega ? `entrega ${auto.cliente}` : `${auto.marca} ${auto.modelo}`).toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${pieza.formato}-${n}.png`
 
 function Pieza({ pieza, auto, numero }) {
   const lienzo = useRef(null)
@@ -175,27 +191,41 @@ function Respuesta({ mensaje, autos, desde }) {
 /* Ejemplos con autos reales del stock, para que se entienda qué pedir. */
 const CAMIONETAS = /hilux|amarok|ranger|s10|frontier|saveiro|strada|toro|montana|oroch|alaskan|maverick/i
 
-function ejemplos(autos) {
+function ejemplos(autos, entregas) {
   const disponibles = autos.filter((a) => a.estado === 'disponible')
   const nombre = (a) => titulo(a.modelo).split(' ')[0]
   /* Las camionetas van en femenino: "la Hilux", "la Amarok". */
   const de = (a) => (a.tipo === 'Pickup' || CAMIONETAS.test(a.modelo) ? 'de la' : 'del')
   const [a, b, c] = disponibles
   return [
+    entregas.length > 0 && 'Haceme un post con la última entrega',
     a && `Haceme un post ${de(a)} ${titulo(a.marca)} ${nombre(a)} para insta`,
     b && `Una historia ${de(b)} ${nombre(b)}, sin precio`,
     c && `Post ${de(c)} ${nombre(c)} con la etiqueta «Recién ingresado»`,
-  ].filter(Boolean)
+  ].filter(Boolean).slice(0, 3)
 }
 
 export default function Asistente({ stock }) {
-  const autos = useMemo(() => stock.map(autoDe).filter((a) => a.foto), [stock])
+  const delStock = useMemo(() => stock.map(autoDe).filter((a) => a.foto), [stock])
+  const [entregas, setEntregas] = useState([])
+  const autos = useMemo(() => [...delStock, ...entregas], [delStock, entregas])
   const [mensajes, setMensajes] = useState([])
   const [pedido, setPedido] = useState('')
   const [pensando, setPensando] = useState(false)
   const [error, setError] = useState(null)
   const final = useRef(null)
   const campo = useRef(null)
+
+  /* Si no se pueden leer las entregas, el asistente sigue andando con el stock. */
+  useEffect(() => {
+    let vivo = true
+    listarEntregas()
+      .then((lista) => vivo && setEntregas((lista ?? []).filter((e) => e.foto).map(entregaDe)))
+      .catch(() => {})
+    return () => {
+      vivo = false
+    }
+  }, [])
 
   useEffect(() => {
     if (mensajes.length) final.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -215,7 +245,8 @@ export default function Asistente({ stock }) {
         /* Al asistente le vuelve lo que propuso, con el número de cada pieza,
            para que entienda "la segunda pero en rojo". */
         historial: mensajes.map((m) => ({ rol: m.rol, texto: m.rol === 'asistente' ? JSON.stringify(m.datos) : m.texto })),
-        autos: autos.map(paraIA),
+        autos: delStock.map(paraIA),
+        entregas: entregas.map(entregaParaIA),
         recientes: leerRecientes(),
       })
       const numerados = { ...datos, piezas: datos.piezas.map((p, i) => ({ numero: numeroInicial(mensajes) + i, ...p })) }
@@ -246,14 +277,14 @@ export default function Asistente({ stock }) {
       <div>
         <h1 className="font-jost text-[28px] font-medium leading-tight md:text-[34px]">Posts para Instagram</h1>
         <p className="mt-1 max-w-2xl text-sm text-white/60">
-          Pedí el post como se lo pedirías a alguien del local. Sale con la foto real del auto y un diseño distinto cada vez; después
+          Pedí el post como se lo pedirías a alguien del local. Sale con la foto real del auto (o la de una entrega) y un diseño distinto cada vez; después
           podés pedirle cambios.
         </p>
       </div>
 
       {mensajes.length === 0 && (
         <div className="flex flex-wrap gap-2">
-          {ejemplos(autos).map((e) => (
+          {ejemplos(delStock, entregas).map((e) => (
             <button
               key={e}
               type="button"

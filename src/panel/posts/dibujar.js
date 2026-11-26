@@ -367,14 +367,16 @@ function plantillaOferta(ctx, W, H, { auto, imgs, lg, pieza }, opciones = {}) {
   /* Si el navegador no sabe desenfocar (Safari viejo), se oscurece más. */
   ctx.fillStyle = 'filter' in ctx ? 'rgba(1,1,1,0.35)' : 'rgba(1,1,1,0.7)'
   ctx.fillRect(0, 0, W, fotoY)
-  foto(ctx, imgs[0], 0, fotoY, W, bandaY - fotoY, { focoY: 0.6 })
+  /* La foto de una entrega suele ser vertical, con la persona y el auto en
+     la mitad de abajo: el recorte baja para que no queden afuera. */
+  foto(ctx, imgs[0], 0, fotoY, W, bandaY - fotoY, { focoY: auto.entrega ? 0.72 : 0.6 })
   vineta(ctx, 0, fotoY, W, bandaY - fotoY, 0.35)
   ctx.fillStyle = NEGRO
   ctx.fillRect(0, bandaY + bandaAlto, W, H - bandaY - bandaAlto)
 
   const ancho = 436
   ctx.drawImage(lg, (W - ancho) / 2, arriba + 30, ancho, (ancho * lg.height) / lg.width)
-  const n = `${titulo(auto.marca)} ${nombreDe(auto)}`.toUpperCase().replace(/^(\S+) \1 /, '$1 ')
+  const n = `${titulo(auto.marca ?? '')} ${nombreDe(auto)}`.trim().toUpperCase().replace(/^(\S+) \1 /, '$1 ')
   let t = 96
   m(ctx, 800, t)
   while (ctx.measureText(n).width > W - 140 && t > 50) m(ctx, 800, (t -= 2))

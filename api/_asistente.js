@@ -11,6 +11,7 @@ import Anthropic from '@anthropic-ai/sdk'
 
 const MODELO = 'claude-sonnet-5-5'
 const MAX_AUTOS = 300
+const MAX_ENTREGAS = 30
 const MAX_HISTORIAL = 20
 const MAX_TEXTO = 2000
 
@@ -40,7 +41,12 @@ Reglas:
 8. mostrarPrecio va false: sus flyers no llevan precio. Ponelo true sólo si te piden el precio (y el auto lo tiene).
 9. texto: el texto del posteo para copiar en Instagram, con el mismo tono llano del local (nada de frases de folleto). De 3 a 6 renglones cortos: el auto, sus datos reales, el precio si va, y que escriban por WhatsApp al 3548 468411 o por mensaje directo; la dirección; y al final 4 a 7 hashtags (por ejemplo #LaFalda #Córdoba #Autos #Paolini y la marca y el modelo). Sin emojis. Si sólo cambiaste el diseño y el texto sirve igual, repetilo.
 10. respuesta: una o dos oraciones contando qué armaste o qué necesitás saber. Si el auto tiene una sola foto, sumá que con fotos extra en su ficha (interior, detalles) sale el collage como sus flyers. Nada de "¡Claro!" ni "¡Excelente elección!".
-11. Si te piden algo que no es una pieza de Instagram, respondé corto que sólo armás posts e historias de los autos del stock, sin piezas.`
+11. Si te piden algo que no es una pieza de Instagram, respondé corto que sólo armás posts e historias de los autos del stock o de las entregas, sin piezas.
+
+Entregas: en <entregas> están las fotos que cargaron de clientes con el auto que se llevaron (de la más nueva a la más vieja, con la fecha en que la cargaron; <hoy> es la fecha de hoy). Si piden "la última entrega", "la entrega de hoy", "la de Graciela" o algo parecido, usá esa entrega: en autoId poné su id (empieza con "entrega:") y en fotos [0]. Si hay varias que podrían ser y no se sabe cuál, preguntá.
+- Siempre el diseño vendido (el collage tapa la foto con el nombre), con etiqueta "ENTREGADO" y en la bajada el agradecimiento con el nombre del cliente en minúscula normal ("¡Gracias Graciela!"; si es plural, "¡Gracias Familia Pérez!" o como venga el nombre). Por defecto armá dos: el post y la historia; si piden otra cosa, lo que pidan.
+- mostrarPrecio va false siempre en una entrega.
+- texto: un agradecimiento llano al cliente por la compra (por su nombre, con el vehículo), que disfrute el auto, y la invitación a pasar por el local o escribir por WhatsApp al 3548 468411; la dirección; y hashtags. Nada de datos del auto que no estén en la entrega.`
 
 const texto = { type: ['string', 'null'] }
 const ESQUEMA = {
@@ -79,7 +85,7 @@ const TIPOS_FOTO = ['exterior', 'interior', 'detalle', 'trasera']
 /* Sólo lo que el asistente necesita de cada auto (sin urls ni patentes): de
    las fotos, el número y el tipo. */
 function limpiarAutos(autos) {
-  if (!Array.isArray(autos) || !autos.length) throw falla('No hay autos en el stock', 400)
+  if (!Array.isArray(autos)) return []
   return autos.slice(0, MAX_AUTOS).map((a) => ({
     id: corto(a.id, 80),
     marca: corto(a.marca, 60),
@@ -100,14 +106,35 @@ function limpiarAutos(autos) {
   }))
 }
 
+/* Las entregas: sólo nombre, vehículo y fecha (sin la foto). */
+function limpiarEntregas(entregas) {
+  if (!Array.isArray(entregas)) return []
+  return entregas
+    .slice(0, MAX_ENTREGAS)
+    .filter((e) => typeof e?.id === 'string' && e.id.startsWith('entrega:'))
+    .map((e) => ({
+      id: corto(e.id, 80),
+      cliente: corto(e.cliente, 60),
+      plural: e.plural === true,
+      vehiculo: corto(e.vehiculo, 80),
+      fecha: corto(e.fecha, 30),
+      fotos: ['0: la foto de la entrega'],
+    }))
+}
+
+/* La fecha de hoy en La Falda, para que entienda "la entrega de hoy". */
+const hoy = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Cordoba' })
+
 /* `entrada` = { mensaje, historial: [{ rol: 'usuario'|'asistente', texto }],
-   autos: [...], recientes: [{ diseno, fondo }] }. Devuelve
+   autos: [...], entregas: [...], recientes: [{ diseno, fondo }] }. Devuelve
    { respuesta, texto, piezas } o lanza un Error con `.status`. */
 export async function pedirPiezas(entrada, key) {
   if (!key) throw falla('Falta ANTHROPIC_API_KEY', 503)
   const mensaje = corto(entrada?.mensaje, MAX_TEXTO)?.trim()
   if (!mensaje) throw falla('Falta el pedido', 400)
   const autos = limpiarAutos(entrada.autos)
+  const entregas = limpiarEntregas(entrada.entregas)
+  if (!autos.length && !entregas.length) throw falla('No hay autos en el stock', 400)
   const recientes = (Array.isArray(entrada.recientes) ? entrada.recientes : [])
     .slice(-12)
     .map((r) => corto(r?.diseno, 20))
@@ -123,7 +150,7 @@ export async function pedirPiezas(entrada, key) {
     if (mensajes.at(-1)?.role === m.role) mensajes.at(-1).content += `\n\n${m.content}`
     else mensajes.push({ ...m })
   }
-  const contexto = `<stock>\n${JSON.stringify(autos)}\n</stock>\n<recientes>${recientes.join(', ') || 'ninguno'}</recientes>\n\n${mensaje}`
+  const contexto = `<stock>\n${JSON.stringify(autos)}\n</stock>\n<entregas>\n${JSON.stringify(entregas)}\n</entregas>\n<hoy>${hoy()}</hoy>\n<recientes>${recientes.join(', ') || 'ninguno'}</recientes>\n\n${mensaje}`
   if (mensajes.at(-1)?.role === 'user') mensajes.at(-1).content += `\n\n${contexto}`
   else mensajes.push({ role: 'user', content: contexto })
 
@@ -151,9 +178,10 @@ export async function pedirPiezas(entrada, key) {
     throw falla('La respuesta del modelo no era JSON', 502)
   }
   /* Sólo piezas de autos que existen, y fotos que ese auto tiene. */
-  const porId = new Map(autos.map((a) => [a.id, a]))
+  const porId = new Map([...autos, ...entregas].map((a) => [a.id, a]))
   datos.piezas = (datos.piezas ?? [])
     .filter((p) => porId.has(p.autoId))
+    .map((p) => (p.autoId.startsWith('entrega:') ? { ...p, diseno: 'vendido', mostrarPrecio: false } : p))
     .map((p) => ({ ...p, fotos: (p.fotos ?? []).filter((n) => Number.isInteger(n) && n >= 0 && n < porId.get(p.autoId).fotos.length) }))
     .slice(0, 6)
   return datos
