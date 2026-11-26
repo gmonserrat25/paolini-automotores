@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { mostrarPatente } from './carga'
 import FotosRedes from './FotosRedes'
 import BrandLogo from '../components/BrandLogos'
 import { pesos } from './calculos'
@@ -156,7 +157,7 @@ export default function FichaAuto({ unidad, empezarEditando = false, onCerrar, o
         {!editando ? (
           <>
             <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
-              <Dato etiqueta="Patente">{f.patente}</Dato>
+              <Dato etiqueta="Patente">{mostrarPatente(f.patente)}</Dato>
               <Dato etiqueta="Año">{f.anio}</Dato>
               <Dato etiqueta="Kilómetros">{f.km != null && `${f.km.toLocaleString('es-AR')} km`}</Dato>
               <Dato etiqueta="Tipo">{f.tipo}</Dato>

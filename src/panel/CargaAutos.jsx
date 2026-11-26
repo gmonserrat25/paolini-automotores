@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import BrandLogo from '../components/BrandLogos'
 import { pesos } from './calculos'
-import { cruzarTodos, explicarSinCruce, esLista, filaDeStock, leerLista, normPatente, reconocerFoto } from './carga'
+import { cruzarTodos, esCodigo0km, explicarSinCruce, esLista, filaDeStock, leerLista, mostrarPatente, normPatente, reconocerFoto } from './carga'
 import { registrarCarga } from './datos'
 import ConfirmarEliminar from './ConfirmarEliminar'
 import { IconoCarga } from './icons'
@@ -94,7 +94,7 @@ function FilaCarga({ item, asignado, metodo, libres, onElegir, onQuitar }) {
 
       {asignado ? (
         <div className="col-span-2 grid grid-cols-2 gap-3 md:col-span-1 md:grid-cols-4">
-          <Dato etiqueta="Patente">{asignado.patente}</Dato>
+          <Dato etiqueta="Patente">{mostrarPatente(asignado.patente)}</Dato>
           <Dato etiqueta="Año · km">
             {asignado.anio} · {asignado.km?.toLocaleString('es-AR')}
           </Dato>
@@ -126,10 +126,10 @@ function FilaCarga({ item, asignado, metodo, libres, onElegir, onQuitar }) {
           className="max-w-[180px] rounded-full border border-white/[0.1] bg-[#0B0B0C] px-3 py-1.5 text-xs text-white/80 focus:border-white/30 focus:outline-none"
         >
           <option value="">{asignado ? 'Quitar asignación' : 'Elegir del Excel…'}</option>
-          {asignado && <option value={asignado.patente}>{asignado.patente}</option>}
+          {asignado && <option value={asignado.patente}>{mostrarPatente(asignado.patente)}</option>}
           {libres.map((f) => (
             <option key={f.patente} value={f.patente}>
-              {f.patente} · {f.modelo}
+              {esCodigo0km(f.patente) ? `0 km · ${f.modelo} ${f.color ?? ''}`.trim() : `${f.patente} · ${f.modelo}`}
             </option>
           ))}
         </select>
@@ -306,7 +306,7 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
           if (!leidas.length) {
             setError(
               afuera.length
-                ? `Leí la lista pero ningún auto tiene patente (${afuera.length} sin patente). La patente hace falta para cruzarlo con la foto.`
+                ? `Leí la lista pero ningún auto tiene patente (${afuera.length} sin patente). Si son 0 km, poné «0KM» en la columna de la patente.`
                 : 'No encontré autos en esa lista. Fijate que tenga marca, modelo y patente (o dominio).',
             )
             return
@@ -404,7 +404,7 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
         )}
       </div>
       <div className="col-span-2 grid grid-cols-2 gap-3 md:col-span-1 md:grid-cols-4">
-        <Dato etiqueta="Patente">{u.patente}</Dato>
+        <Dato etiqueta="Patente">{mostrarPatente(u.patente)}</Dato>
         <Dato etiqueta="Año · km">{u.tag.replace(' km', '')}</Dato>
         <Dato etiqueta="Color">{u.color}</Dato>
         <Dato etiqueta="Precio">{pesos(u.precioVenta)}</Dato>
@@ -475,10 +475,14 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
           {leyendoLista
             ? `Leyendo ${leyendoLista}…`
             : excelNombre
-              ? `Lista: ${excelNombre} · ${filas.length} autos leídos`
+              ? `Lista: ${excelNombre} · ${filas.length} autos leídos${
+                  filas.some((f) => esCodigo0km(f.patente))
+                    ? ` (${filas.filter((f) => esCodigo0km(f.patente)).length} son 0 km sin patente)`
+                    : ''
+                }`
               : 'Todavía no cargaste la lista.'}
           {!leyendoLista && sinPatente.length > 0 &&
-            ` · ${sinPatente.length} sin patente quedaron afuera (${sinPatente.join(', ')})`}
+            ` · ${sinPatente.length} sin patente quedaron afuera (${sinPatente.join(', ')}). Si son 0 km, poné «0KM» en la patente`}
           {' · '}También podés arrastrar los archivos acá. Podés cargar varias tandas: los autos que ya están en el
           stock no se vuelven a agregar.
         </p>

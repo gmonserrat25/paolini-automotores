@@ -28,6 +28,36 @@ const pareceUnaPatente = (p) => {
   return n.length >= 6 && n.length <= 8 && /[A-Z]/.test(n) && /\d/.test(n)
 }
 
+/* Los 0 km vienen sin patente. Si en la columna de la patente dice "0KM" (o
+   "0 km", "s/p", "sin patente"), o está vacía y el auto no tiene kilómetros,
+   se carga igual como 0 km. Como la base pide una patente única, se le pone
+   un código propio "0KM-XXXX" que sale de marca + modelo + color (y de cuál
+   es, si hay varios iguales): así, si suben el mismo Excel de nuevo, el
+   código da igual y no se duplica. En el panel se muestra "0 km". */
+const DICE_SIN_PATENTE = /^(0\s*km|okm|0km|s\/?p|sin\s*patente|sin\s*dominio|-+)$/i
+export const esCodigo0km = (p) => /^0KM-[A-Z0-9]{4}$/i.test(p ?? '')
+export const mostrarPatente = (p) => (esCodigo0km(p) ? '0 km (sin patente)' : p)
+
+function codigo0km(semilla) {
+  let h = 2166136261
+  for (const c of semilla) h = Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0
+  return `0KM-${h.toString(36).toUpperCase().padStart(4, '0').slice(-4)}`
+}
+
+/* Les pone el código a los 0 km de una lista, en orden. */
+function codigosA0km(filas) {
+  const vistos = new Map()
+  for (const f of filas) {
+    if (!f.cero) continue
+    const base = [f.marca, f.modelo, f.color].map(norm).join('|')
+    const n = (vistos.get(base) ?? 0) + 1
+    vistos.set(base, n)
+    f.patente = codigo0km(`${base}|${n}`)
+    delete f.cero
+  }
+  return filas
+}
+
 /* Títulos de columna que se reconocen (sin tildes ni espacios). "Año" queda "ano". */
 const TITULOS = {
   marca: ['marca'],
@@ -60,12 +90,22 @@ function columnasDeTitulos(fila) {
   return 'patente' in cols && Object.keys(cols).length >= 3 ? cols : null
 }
 
-/* Un auto con la forma que usa el panel, o null si no tiene patente. */
+/* Un auto con la forma que usa el panel, o null si no tiene patente (y no es
+   un 0 km). Los 0 km salen con `cero: true` y sin patente todavía: el código
+   se lo pone codigosA0km(), que necesita ver la lista entera. */
 export function normalizarFila(crudo) {
   const f = {}
   for (const k of ['marca', 'modelo', 'color', 'patente']) f[k] = limpiar(crudo[k])
   for (const k of ['precio', 'anio', 'km']) f[k] = numero(crudo[k])
-  return pareceUnaPatente(f.patente) ? { ...f, ...clasificar(f.modelo) } : null
+  if (pareceUnaPatente(f.patente)) return { ...f, ...clasificar(f.modelo) }
+  const sinKm = !f.km
+  /* Un año viejo sin patente es un usado al que le falta el dato, no un 0 km. */
+  const anioOk = !f.anio || f.anio >= new Date().getFullYear() - 1
+  const dice0km = DICE_SIN_PATENTE.test(f.patente) || (!f.patente && sinKm)
+  if (dice0km && sinKm && anioOk && f.marca && f.modelo && !columnasDeTitulos(Object.values(crudo))) {
+    return { ...f, patente: '', km: 0, cero: true, ...clasificar(f.modelo) }
+  }
+  return null
 }
 
 /* Filas de autos a partir de una tabla (lista de filas, cada una lista de
@@ -95,7 +135,7 @@ export function filasDeTabla(tabla) {
       sinPatente.push(limpiar(`${limpiar(crudo.marca)} ${limpiar(crudo.modelo)}`))
     }
   }
-  return { filas, sinPatente }
+  return { filas: codigosA0km(filas), sinPatente }
 }
 
 /* Las hojas de un .xlsx como tablas, en orden. Las celdas pueden venir como
@@ -216,7 +256,7 @@ async function leerConIA(cuerpo) {
     if (f) filas.push(f)
     else if (limpiar(a.modelo)) sinPatente.push(limpiar(`${limpiar(a.marca)} ${limpiar(a.modelo)}`))
   }
-  return { filas, sinPatente, conIA: true }
+  return { filas: codigosA0km(filas), sinPatente, conIA: true }
 }
 
 export const LISTA_PDF_MAX = 3_000_000 // bytes; el servidor no acepta más
@@ -341,9 +381,16 @@ function puntuar(visto, libres) {
   return puntaje
 }
 
+/* Dos 0 km de la misma marca, modelo y color son intercambiables: da lo mismo
+   cuál se lleva la foto. */
+const mellizos = (a, b) =>
+  esCodigo0km(a.patente) && esCodigo0km(b.patente) && ['marca', 'modelo', 'color'].every((k) => norm(a[k]) === norm(b[k]))
+
 function porModeloYColor(visto, libres) {
   const puntaje = puntuar(visto, libres)
-  return puntaje[0]?.s >= 3 && (puntaje.length === 1 || puntaje[0].s > puntaje[1].s) ? puntaje[0].f : null
+  if (!(puntaje[0]?.s >= 3)) return null
+  const empatados = puntaje.filter((p) => p.s === puntaje[0].s)
+  return empatados.every((p) => mellizos(p.f, puntaje[0].f)) ? puntaje[0].f : null
 }
 
 /* Por qué una foto no encontró auto, para el registro de la carga: el motivo en
@@ -418,8 +465,16 @@ export function cruzarTodos(entradas, filas, usadas = new Set()) {
       .filter((x) => x.f)
     const veces = new Map()
     for (const { f } of elegidas) veces.set(f.patente, (veces.get(f.patente) ?? 0) + 1)
+    const repartidas = new Set()
     for (const { e, f } of elegidas) {
-      if (veces.get(f.patente) !== 1) continue
+      /* Si dos fotos eligen el mismo auto, ninguna se lo lleva; salvo que sea
+         un 0 km con mellizos libres: se lo lleva la primera y la otra vuelve
+         a buscar en la próxima vuelta, donde el mellizo sigue libre. */
+      if (veces.get(f.patente) !== 1) {
+        const hayMellizo = libres().some((o) => o !== f && mellizos(o, f))
+        if (!esCodigo0km(f.patente) || !hayMellizo || repartidas.has(f.patente)) continue
+        repartidas.add(f.patente)
+      }
       /* Una letra mal leída se carga igual. Si la foto trajo una patente que no
          se parece a la del auto elegido, el resultado es una sugerencia para
          revisar, no algo para cargar solo. */

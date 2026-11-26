@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { mostrarPatente } from './carga'
 import BrandLogo from '../components/BrandLogos'
 import { MARGEN, esVieja, pesos, pesosCorto } from './calculos'
 import ConfirmarEliminar from './ConfirmarEliminar'
@@ -149,7 +150,7 @@ export default function TablaStock({
           <p className="truncate text-sm font-medium">{v.model}</p>
         )}
         <p className="text-xs text-white/60">
-          {v.patente ? `${v.patente} · ${v.color}` : v.type}
+          {v.patente ? `${mostrarPatente(v.patente)} · ${v.color}` : v.type}
           <span className="md:hidden"> · {v.tag}</span>
         </p>
       </div>

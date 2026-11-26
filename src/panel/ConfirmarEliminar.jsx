@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { mostrarPatente } from './carga'
 
 /* Confirmación antes de borrar uno o varios autos. Es un <dialog> nativo:
    atrapa el foco, se cierra con Esc y no deja tocar nada de atrás. El foco
@@ -33,13 +34,13 @@ export default function ConfirmarEliminar({ unidades, eliminando, onCancelar, on
         <ul className="mt-3 space-y-1 text-sm text-white/80">
           {unidades.slice(0, 6).map((u) => (
             <li key={u.id} className="truncate">
-              {u.brand} {u.model} · {u.patente}
+              {u.brand} {u.model} · {mostrarPatente(u.patente)}
             </li>
           ))}
           {unidades.length > 6 && <li className="text-white/60">y {unidades.length - 6} más</li>}
         </ul>
       ) : (
-        <p className="mt-2 text-sm text-white/60">Patente {unidad.patente}.</p>
+        <p className="mt-2 text-sm text-white/60">Patente {mostrarPatente(unidad.patente)}.</p>
       )}
       <p className="mt-3 text-sm text-white/60">
         Se {varias ? 'borran' : 'borra'} de la base junto con {varias ? 'sus fotos' : 'su foto'} y no se puede
