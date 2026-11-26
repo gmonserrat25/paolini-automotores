@@ -12,7 +12,8 @@ import { Corner, Cta } from './Ui'
    Sin tasas ni cuotas: cambian seguido y no las confirmaron. */
 /* Los logos son los oficiales de cada banco (bancor.com.ar y bna.com.ar),
    cada uno sobre su color, para que la sección no quede en puro texto. Al
-   del Nación se le recortó el "135 años" del aniversario. */
+   del Nación se le recortó el "135 años" del aniversario. Las dos líneas
+   son créditos personales (lo pidió Guada; +Autos lo confirma bna.com.ar). */
 const BANCOS = [
   { nombre: 'Bancor', logo: '/bancos/bancor.svg', fondo: 'bg-white', alto: 'h-[30px] sm:h-[34px]', plataforma: 'DE UNA!' },
   { nombre: 'Banco Nación', logo: '/bancos/banco-nacion.svg', fondo: 'bg-[#00A0D0]', alto: 'h-[38px] sm:h-[42px]', plataforma: '+Autos y BNA Conecta' },
@@ -46,10 +47,13 @@ export default function Banner() {
           <ul className="mt-3 flex flex-wrap gap-4">
             {BANCOS.map((b) => (
               <li key={b.nombre}>
-                <div className={`flex h-[64px] items-center rounded-[8px] px-5 sm:h-[72px] sm:px-6 ${b.fondo}`}>
+                <div className={`flex h-[64px] items-center justify-center rounded-[8px] px-5 sm:h-[72px] sm:px-6 ${b.fondo}`}>
                   <img src={asset(b.logo)} alt={b.nombre} className={`${b.alto} w-auto`} loading="lazy" />
                 </div>
-                <p className="mt-2 font-sans text-[15px] font-semibold text-white">{b.plataforma}</p>
+                <p className="mt-2 font-sans text-[15px] text-white">
+                  <span className="font-semibold">{b.plataforma}</span>
+                  <span className="text-white/60"> · Crédito personal</span>
+                </p>
               </li>
             ))}
           </ul>
