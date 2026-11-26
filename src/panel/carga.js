@@ -518,3 +518,122 @@ export async function reconocerFoto(archivo) {
   if (!r.ok) throw new Error(`reconocer ${r.status}`)
   return r.json()
 }
+
+/* ── Fotos de adentro ──────────────────────────────────────────────────── */
+
+/* Cuándo se sacó la foto: la fecha EXIF de la cámara (DateTimeOriginal) si es
+   un JPG que la trae; si no, la fecha del archivo. Sirve para ordenar las
+   fotos como se sacaron y saber de qué auto es cada foto de adentro. */
+export async function fechaDeFoto(archivo) {
+  try {
+    const exif = leerFechaExif(new DataView(await archivo.slice(0, 256 * 1024).arrayBuffer()))
+    if (exif) return exif
+  } catch {
+    /* sin EXIF legible */
+  }
+  return fechaDelNombre(archivo.name) ?? (archivo.lastModified || 0)
+}
+
+/* WhatsApp borra la fecha de la cámara, pero el nombre del archivo guarda el
+   orden en que se mandaron (que es el orden en que se sacaron, si el que las
+   saca las manda auto por auto):
+     - Android:            IMG-20261126-WA0012.jpg      (día + número correlativo)
+     - WhatsApp Web / PC:  WhatsApp Image 2026-11-26 at 10.15.32 (2).jpeg
+                           Imagen de WhatsApp 2026-11-26 a las 10.15.32_ab12cd34.jpg
+   Se devuelve una fecha en milisegundos que respeta ese orden. */
+export function fechaDelNombre(nombre = '') {
+  const android = nombre.match(/IMG-(\d{4})(\d{2})(\d{2})-WA(\d+)/i)
+  if (android) {
+    const [, a, m, d, n] = android
+    return new Date(+a, m - 1, +d, 12).getTime() + Number(n) * 1000
+  }
+  const web = nombre.match(/(\d{4})-(\d{2})-(\d{2}) (?:at|a las) (\d{1,2})[.:](\d{2})[.:](\d{2})(?:\s*([ap])\.?\s*m\.?)?(?:\s*\((\d+)\))?/i)
+  if (web) {
+    const [, a, m, d, h, mi, se, ampm, n] = web
+    let hora = Number(h)
+    if (ampm?.toLowerCase() === 'p' && hora < 12) hora += 12
+    if (ampm?.toLowerCase() === 'a' && hora === 12) hora = 0
+    /* Varias del mismo segundo: "(1)", "(2)"… van después de la sin número. */
+    return new Date(+a, m - 1, +d, hora, +mi, +se).getTime() + (n ? Number(n) : 0)
+  }
+  return null
+}
+
+function leerFechaExif(v) {
+  if (v.getUint16(0) !== 0xffd8) return null
+  let o = 2
+  while (o + 4 < v.byteLength) {
+    const marca = v.getUint16(o)
+    const largo = v.getUint16(o + 2)
+    if (marca === 0xffe1 && v.getUint32(o + 4) === 0x45786966) return fechaDeTiff(v, o + 10)
+    if ((marca & 0xff00) !== 0xff00) return null
+    o += 2 + largo
+  }
+  return null
+}
+
+function fechaDeTiff(v, t) {
+  const le = v.getUint16(t) === 0x4949
+  const u16 = (p) => v.getUint16(t + p, le)
+  const u32 = (p) => v.getUint32(t + p, le)
+  const buscar = (ifd, etiqueta) => {
+    const n = u16(ifd)
+    for (let i = 0; i < n; i++) {
+      const e = ifd + 2 + i * 12
+      if (u16(e) === etiqueta) return e
+    }
+    return null
+  }
+  const texto = (e) => {
+    const off = u32(e + 8)
+    let s = ''
+    for (let i = 0; i < 19; i++) s += String.fromCharCode(v.getUint8(t + off + i))
+    return s
+  }
+  const ifd0 = u32(4)
+  const punteroExif = buscar(ifd0, 0x8769)
+  let e = punteroExif != null ? buscar(u32(punteroExif + 8), 0x9003) : null
+  e ??= buscar(ifd0, 0x0132)
+  if (e == null) return null
+  const m = texto(e).match(/^(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):(\d{2})/)
+  return m ? new Date(+m[1], m[2] - 1, +m[3], +m[4], +m[5], +m[6]).getTime() : null
+}
+
+export const ES_DE_ADENTRO = ['interior', 'detalle', 'trasera']
+const VENTANA = 30 * 60 * 1000 // las de adentro van con el auto fotografiado hasta media hora antes
+
+/* Las fotos de adentro (interior, detalles, cola) van con el auto de la foto
+   de afuera que se sacó justo antes: así sacan las fotos, auto por auto. Una
+   foto de afuera sin auto (una segunda de frente del mismo auto, sin chapa a
+   la vista) también se suma como extra si la marca no contradice.
+   `fotos` es [{ id, fecha, nombre, visto }] y `anclas` es { id: fila } con
+   las fotos de afuera que ya tienen auto. Devuelve { id: fila } para las
+   fotos de adentro que encontraron auto. */
+export function agruparFotosDeAdentro(fotos, anclas) {
+  const orden = [...fotos].sort((a, b) => a.fecha - b.fecha || a.nombre.localeCompare(b.nombre, 'es', { numeric: true }))
+  const out = {}
+  let ultima = null
+  for (const f of orden) {
+    if (anclas[f.id]) {
+      ultima = { fila: anclas[f.id], fecha: f.fecha }
+      continue
+    }
+    if (!ultima || !f.visto || f.fecha - ultima.fecha > VENTANA) continue
+    const deAdentro = ES_DE_ADENTRO.includes(f.visto.tipo)
+    /* Otra de afuera sin chapa sólo si es claramente el mismo auto (mismo
+       modelo y color): si no, puede ser el próximo auto (un 0 km). */
+    const base = palabras(f.visto.modelo)[0]
+    const otraDeAfuera =
+      f.visto.tipo === 'exterior' &&
+      !normPatente(f.visto.patente) &&
+      base &&
+      palabras(ultima.fila.modelo).includes(base) &&
+      (!f.visto.color || !ultima.fila.color || grupoDeColor(f.visto.color) === grupoDeColor(ultima.fila.color))
+    if (!deAdentro && !otraDeAfuera) continue
+    /* Si en la foto se lee otra marca (el volante de un Fiat después de una
+       Hilux), no se adivina: queda para elegir a mano. */
+    if (f.visto.marca && norm(f.visto.marca).slice(0, 4) !== norm(ultima.fila.marca).slice(0, 4)) continue
+    out[f.id] = ultima.fila
+  }
+  return out
+}

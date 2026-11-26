@@ -10,10 +10,15 @@ export const LIMITE = 4_000_000 // caracteres del data URL (~3 MB de imagen)
 const PROMPT =
   'Foto de un auto a la venta en Argentina. Devolvé JSON con: patente (la que se lea ' +
   "en la chapa, formato 'AB 123 CD' o 'ABC 123'; null si no se ve o no estás seguro), " +
-  'marca, modelo (y versión si se distingue) y color (en español, una palabra). ' +
-  'No inventes la patente. Respondé sólo con el JSON: {"patente", "marca", "modelo", "color"}.'
+  'marca, modelo (y versión si se distingue), color (en español, una palabra) y tipo de foto: ' +
+  '"exterior" si se ve el auto entero o casi entero de afuera; "trasera" si se ve sobre todo la cola; ' +
+  '"interior" si es el tablero, el volante, los asientos o el baúl por dentro; "detalle" si es un primer ' +
+  'plano de una parte de afuera (faro, llanta, logo). En las de adentro, marca y modelo sólo si se leen ' +
+  '(por ejemplo en el volante); si no, null. ' +
+  'No inventes la patente. Respondé sólo con el JSON: {"patente", "marca", "modelo", "color", "tipo"}.'
 
-const SIN_DATOS = { patente: null, marca: null, modelo: null, color: null }
+const SIN_DATOS = { patente: null, marca: null, modelo: null, color: null, tipo: null }
+const TIPOS = ['exterior', 'trasera', 'interior', 'detalle']
 
 const falla = (mensaje, status) => Object.assign(new Error(mensaje), { status })
 
@@ -54,8 +59,14 @@ export async function reconocerAuto(imagen, key) {
   const i = texto.indexOf('{')
   const j = texto.lastIndexOf('}')
   try {
-    const { patente, marca, modelo, color } = JSON.parse(texto.slice(i, j + 1))
-    return { patente: patente ?? null, marca: marca ?? null, modelo: modelo ?? null, color: color ?? null }
+    const { patente, marca, modelo, color, tipo } = JSON.parse(texto.slice(i, j + 1))
+    return {
+      patente: patente ?? null,
+      marca: marca ?? null,
+      modelo: modelo ?? null,
+      color: color ?? null,
+      tipo: TIPOS.includes(tipo) ? tipo : null,
+    }
   } catch {
     throw falla('La respuesta del modelo no era JSON', 502)
   }
