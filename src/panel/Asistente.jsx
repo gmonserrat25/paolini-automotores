@@ -54,6 +54,7 @@ const entregaDe = (e) => ({
   modelo: prolijo(e.vehiculo),
   cliente: prolijo(e.cliente, { siglas: false }),
   plural: e.plural,
+  mensaje: e.mensaje ?? null,
   fecha: e.creado,
   foto: e.foto,
   fotos: [],
@@ -71,7 +72,7 @@ const PUEDE_COMPARTIR = (() => {
 /* Al asistente le llegan los datos del auto y, de las fotos, sólo de qué es
    cada una (sin las direcciones). */
 const paraIA = ({ foto: _f, fotos, ...a }) => ({ ...a, fotos: fotos.map((f) => f.tipo) })
-const entregaParaIA = (e) => ({ id: e.id, cliente: e.cliente, plural: e.plural, vehiculo: e.modelo, fecha: e.fecha })
+const entregaParaIA = (e) => ({ id: e.id, cliente: e.cliente, plural: e.plural, vehiculo: e.modelo, mensaje: e.mensaje, fecha: e.fecha })
 
 const nombreArchivo = (auto, pieza, n) =>
   `paolini-${titulo(auto.entrega ? `entrega ${auto.cliente}` : `${auto.marca} ${auto.modelo}`).toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${pieza.formato}-${n}.png`

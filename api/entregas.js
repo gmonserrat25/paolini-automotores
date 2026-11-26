@@ -2,6 +2,7 @@
 
    GET            público: las últimas, de la más nueva a la más vieja.
    POST           con sesión: crea una entrega con su foto (la sube a Vercel Blob).
+   PATCH ?id=     con sesión: cambia el mensaje (opcional, texto libre).
    DELETE ?id=    con sesión: borra la entrega y su foto. */
 
 import { del, put } from '@vercel/blob'
@@ -9,6 +10,7 @@ import { esquema, exigirSesion, sql } from './_comun.js'
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const FOTO_MAX = 2_500_000 // caracteres del data URL (~1,8 MB de imagen)
+const MAX_MENSAJE = 160
 const PUBLICAS = 9 // las que muestra el sitio: una grande y ocho chicas
 
 const texto = (v, max) => (typeof v === 'string' && v.trim() && v.trim().length <= max ? v.trim() : null)
@@ -21,13 +23,13 @@ export default async function handler(req, res) {
       if (!exigirSesion(req, res)) return
       res.setHeader('Cache-Control', 'no-store')
       const todas = await sql`
-        select id, cliente, plural, vehiculo, foto_url as foto, creado from entregas order by creado desc`
+        select id, cliente, plural, vehiculo, mensaje, foto_url as foto, creado from entregas order by creado desc`
       return res.status(200).json(todas)
     }
     /* Igual que los autos: se refresca sola cada 5 segundos. */
     res.setHeader('Cache-Control', 'public, s-maxage=5')
     const entregas = await sql`
-      select id, cliente, plural, vehiculo, foto_url as foto
+      select id, cliente, plural, vehiculo, mensaje, foto_url as foto
       from entregas order by creado desc limit ${PUBLICAS}`
     return res.status(200).json(entregas)
   }
@@ -39,6 +41,7 @@ export default async function handler(req, res) {
     const b = req.body ?? {}
     const cliente = texto(b.cliente, 60)
     const vehiculo = texto(b.vehiculo, 80)
+    const mensaje = texto(b.mensaje, MAX_MENSAJE)
     if (!cliente || !vehiculo) return res.status(400).json({ error: 'Faltan el nombre o el vehículo' })
     if (typeof b.foto !== 'string' || !b.foto.startsWith('data:image/jpeg;base64,') || b.foto.length > FOTO_MAX) {
       return res.status(400).json({ error: 'La foto tiene que ser un JPG de menos de 1,8 MB' })
@@ -51,14 +54,30 @@ export default async function handler(req, res) {
     })
     try {
       const [entrega] = await sql`
-        insert into entregas (cliente, plural, vehiculo, foto_url)
-        values (${cliente}, ${b.plural === true}, ${vehiculo}, ${foto.url})
-        returning id, cliente, plural, vehiculo, foto_url as foto, creado`
+        insert into entregas (cliente, plural, vehiculo, mensaje, foto_url)
+        values (${cliente}, ${b.plural === true}, ${vehiculo}, ${mensaje}, ${foto.url})
+        returning id, cliente, plural, vehiculo, mensaje, foto_url as foto, creado`
       return res.status(201).json(entrega)
     } catch (e) {
       await del(foto.url).catch(() => {})
       throw e
     }
+  }
+
+  if (req.method === 'PATCH') {
+    const id = String(req.query.id ?? '')
+    if (!UUID.test(id)) return res.status(400).json({ error: 'Falta el id' })
+    const crudo = req.body?.mensaje
+    if (typeof crudo === 'string' && crudo.trim().length > MAX_MENSAJE) {
+      return res.status(400).json({ error: `El mensaje puede tener hasta ${MAX_MENSAJE} letras` })
+    }
+    /* Vacío = sin mensaje. */
+    const mensaje = texto(crudo, MAX_MENSAJE)
+    const [entrega] = await sql`
+      update entregas set mensaje = ${mensaje} where id = ${id}
+      returning id, cliente, plural, vehiculo, mensaje, foto_url as foto, creado`
+    if (!entrega) return res.status(404).json({ error: 'No existe esa entrega' })
+    return res.status(200).json(entrega)
   }
 
   if (req.method === 'DELETE') {

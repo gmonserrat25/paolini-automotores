@@ -76,6 +76,9 @@ export function esquema() {
       foto_url text not null,
       creado   timestamptz not null default now()
     )`
+    /* Un mensaje opcional que escriben ellos, como quieran ("Segunda vez que
+       confía en nosotros"). Sale abajo del agradecimiento. */
+    await sql`alter table entregas add column if not exists mensaje text`
     /* El contador de visitas del sitio público: un renglón por persona por
        día (`visitante` es una huella anónima, ver api/visitas.js) y cuántas
        páginas abrió ese día. */

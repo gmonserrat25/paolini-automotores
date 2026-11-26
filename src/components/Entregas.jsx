@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { frase, gracias, seFue } from '../lib/entregas'
+import { frase, gracias, mensajeDe, seFue } from '../lib/entregas'
 import { ChevronLeftIcon, ChevronRightIcon } from './Icons'
 
 /* Las entregas: cada vez que se vende un auto, la foto con quien se lo llevó.
@@ -38,6 +38,11 @@ function Tarjeta({ entrega, grande, onAbrir }) {
         <p className={`mt-1.5 font-sans leading-[1.4] text-white/70 ${grande ? 'text-[16px] lg:text-[19px]' : 'text-[15px] lg:text-[16px]'}`}>
           {seFue(entrega)}
         </p>
+        {mensajeDe(entrega) && (
+          <p className={`mt-1 font-sans leading-[1.4] text-white ${grande ? 'text-[16px] lg:text-[19px]' : 'text-[15px] lg:text-[16px]'}`}>
+            {mensajeDe(entrega)}
+          </p>
+        )}
       </figcaption>
     </figure>
   )
@@ -127,6 +132,7 @@ function Visor({ entregas, inicial, onCerrar }) {
         <figcaption className="mt-5 text-center">
           <p className="font-display text-[26px] font-semibold leading-[1.1] tracking-[-0.01em] text-white sm:text-[36px]">{gracias(e)}</p>
           <p className="mt-1.5 font-sans text-[16px] leading-[1.4] text-white/70 sm:text-[19px]">{seFue(e)}</p>
+          {mensajeDe(e) && <p className="mx-auto mt-1 max-w-[640px] font-sans text-[16px] leading-[1.4] text-white sm:text-[19px]">{mensajeDe(e)}</p>}
           {varias && (
             <p className="mt-2 font-sans text-[13px] tabular-nums text-white/50">
               {i + 1} de {total}

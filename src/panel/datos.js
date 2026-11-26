@@ -112,12 +112,18 @@ export async function listarEntregas() {
 }
 
 /* Sube la foto (achicada) y crea la entrega. */
-export async function agregarEntrega({ cliente, plural, vehiculo, archivo }) {
-  if (DEMO) return (await import('./demo')).agregarEntregaDemo({ cliente, plural, vehiculo, archivo })
+export async function agregarEntrega({ cliente, plural, vehiculo, mensaje, archivo }) {
+  if (DEMO) return (await import('./demo')).agregarEntregaDemo({ cliente, plural, vehiculo, mensaje, archivo })
   return pedir('/api/entregas', {
     method: 'POST',
-    body: JSON.stringify({ cliente, plural, vehiculo, foto: await achicar(archivo, 1600, 'url') }),
+    body: JSON.stringify({ cliente, plural, vehiculo, mensaje, foto: await achicar(archivo, 1600, 'url') }),
   })
+}
+
+/* Cambia (o borra, si va vacío) el mensaje de una entrega ya publicada. */
+export async function cambiarMensajeEntrega(id, mensaje) {
+  if (DEMO) return (await import('./demo')).cambiarMensajeEntregaDemo(id, mensaje)
+  return pedir(`/api/entregas?id=${id}`, { method: 'PATCH', body: JSON.stringify({ mensaje }) })
 }
 
 export async function eliminarEntrega(id) {

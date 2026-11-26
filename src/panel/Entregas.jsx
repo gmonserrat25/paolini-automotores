@@ -1,16 +1,20 @@
 import { useEffect, useRef, useState } from 'react'
-import { frase, gracias, seFue } from '../lib/entregas'
-import { agregarEntrega, eliminarEntrega, listarEntregas } from './datos'
+import { gracias, mensajeDe, seFue } from '../lib/entregas'
+import { agregarEntrega, cambiarMensajeEntrega, eliminarEntrega, listarEntregas } from './datos'
 import { IconoBasura } from './icons'
 
 /* La pantalla "Entregas": al vender un auto se sube la foto con quien se lo
-   llevó. En el sitio sale con el texto "Gracias {nombre} por tu compra, que
-   disfrutes tu {vehículo}", armado solo (ver src/lib/entregas.js). */
+   llevó. En el sitio sale "¡Gracias {nombre}!" en grande y "Se fue con su
+   {vehículo}." abajo, armado solo (ver src/lib/entregas.js), y si quieren,
+   un mensaje propio debajo, escrito como quieran. El mensaje se puede
+   cambiar o sacar después desde la lista. */
+
+const MAX_MENSAJE = 160
 
 const campo =
   'mt-1.5 w-full rounded-xl border border-white/[0.1] bg-[#0B0B0C] px-3.5 py-2.5 text-sm text-white placeholder:text-white/40 transition-colors hover:border-white/20 focus:border-white/40 focus:outline-none'
 
-const VACIO = { cliente: '', vehiculo: '', plural: false }
+const VACIO = { cliente: '', vehiculo: '', plural: false, mensaje: '' }
 
 function Formulario({ onCreada }) {
   const [form, setForm] = useState(VACIO)
@@ -43,7 +47,7 @@ function Formulario({ onCreada }) {
     setGuardando(true)
     setError(null)
     try {
-      onCreada(await agregarEntrega({ cliente, plural: form.plural, vehiculo, archivo }))
+      onCreada(await agregarEntrega({ cliente, plural: form.plural, vehiculo, mensaje: form.mensaje.trim(), archivo }))
       setForm(VACIO)
       elegir(null)
       if (entrada.current) entrada.current.value = ''
@@ -112,12 +116,26 @@ function Formulario({ onCreada }) {
           />
         </label>
 
+        <label className="block text-sm" htmlFor="entrega-mensaje">
+          Mensaje <span className="text-white/50">(opcional, escribí lo que quieras)</span>
+          <textarea
+            id="entrega-mensaje"
+            value={form.mensaje}
+            onChange={cambiar('mensaje')}
+            maxLength={MAX_MENSAJE}
+            rows={2}
+            placeholder="Segunda vez que confía en nosotros"
+            className={`${campo} resize-none`}
+          />
+        </label>
+
         <div className="rounded-xl bg-white/[0.04] px-4 py-3 text-sm text-white/70">
           <p className="text-xs text-white/50">Así sale en el sitio</p>
           {cliente && vehiculo ? (
             <>
               <p className="mt-1.5 font-jost text-xl font-semibold leading-tight text-white">{gracias({ cliente })}</p>
               <p className="mt-0.5">{seFue({ plural: form.plural, vehiculo })}</p>
+              {form.mensaje.trim() && <p className="mt-0.5 whitespace-pre-line text-white">{form.mensaje.trim()}</p>}
             </>
           ) : (
             <p className="mt-1">Completá el nombre y el vehículo y acá ves cómo queda.</p>
@@ -142,15 +160,75 @@ function Formulario({ onCreada }) {
   )
 }
 
-function Fila({ entrega, onBorrar }) {
+function EditarMensaje({ entrega, onGuardado, onCerrar }) {
+  const [texto, setTexto] = useState(entrega.mensaje ?? '')
+  const [guardando, setGuardando] = useState(false)
+  const [error, setError] = useState(null)
+  async function guardar(e) {
+    e.preventDefault()
+    setGuardando(true)
+    setError(null)
+    try {
+      onGuardado(await cambiarMensajeEntrega(entrega.id, texto.trim()))
+      onCerrar()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setGuardando(false)
+    }
+  }
+  return (
+    <form onSubmit={guardar} className="mt-2 space-y-2">
+      <label className="sr-only" htmlFor={`mensaje-${entrega.id}`}>
+        Mensaje de la entrega de {entrega.cliente}
+      </label>
+      <textarea
+        id={`mensaje-${entrega.id}`}
+        autoFocus
+        value={texto}
+        onChange={(e) => setTexto(e.target.value)}
+        maxLength={MAX_MENSAJE}
+        rows={2}
+        placeholder="Escribí lo que quieras (vacío = sin mensaje)"
+        className={`${campo} mt-0 resize-none`}
+      />
+      {error && <p role="alert" className="text-sm text-[#FF7A83]">{error}</p>}
+      <div className="flex gap-2 text-sm">
+        <button type="submit" disabled={guardando} className="rounded-full bg-[#E0323F] px-3.5 py-1.5 transition-colors hover:bg-[#EA4350] disabled:opacity-40">
+          {guardando ? 'Guardando…' : 'Guardar'}
+        </button>
+        <button type="button" onClick={onCerrar} disabled={guardando} className="rounded-full border border-white/[0.12] px-3.5 py-1.5 transition-colors hover:bg-white/[0.05]">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  )
+}
+
+function Fila({ entrega, onBorrar, onCambiada }) {
   const [confirmando, setConfirmando] = useState(false)
   const [borrando, setBorrando] = useState(false)
+  const [editando, setEditando] = useState(false)
   const boton = 'rounded-full px-3.5 py-1.5 transition-colors disabled:opacity-40'
+  const mensaje = mensajeDe(entrega)
 
   return (
-    <li className="flex items-center gap-4 p-3">
+    <li className="flex items-start gap-4 p-3">
       <img src={entrega.foto} alt="" className="h-16 w-14 shrink-0 rounded-lg object-cover" />
-      <p className="min-w-0 flex-1 text-sm text-white/80">{frase(entrega)}</p>
+      <div className="min-w-0 flex-1 text-sm">
+        <p className="text-white">{gracias(entrega)}</p>
+        <p className="text-white/60">{seFue(entrega)}</p>
+        {editando ? (
+          <EditarMensaje entrega={entrega} onGuardado={onCambiada} onCerrar={() => setEditando(false)} />
+        ) : (
+          <>
+            {mensaje && <p className="mt-0.5 whitespace-pre-line text-white/90">{mensaje}</p>}
+            <button type="button" onClick={() => setEditando(true)} className="mt-1 text-[13px] text-white/55 underline-offset-4 transition-colors hover:text-white hover:underline">
+              {mensaje ? 'Cambiar mensaje' : 'Agregar mensaje'}
+            </button>
+          </>
+        )}
+      </div>
       {confirmando ? (
         <span className="flex shrink-0 items-center gap-2 text-sm">
           <button
@@ -229,7 +307,7 @@ export default function Entregas() {
       {entregas?.length > 0 && (
         <ul className="p-card divide-y divide-white/[0.06]">
           {entregas.map((e) => (
-            <Fila key={e.id} entrega={e} onBorrar={borrar} />
+            <Fila key={e.id} entrega={e} onBorrar={borrar} onCambiada={(nueva) => setEntregas((l) => l.map((x) => (x.id === nueva.id ? nueva : x)))} />
           ))}
         </ul>
       )}

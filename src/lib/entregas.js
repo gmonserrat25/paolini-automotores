@@ -32,5 +32,8 @@ export const gracias = ({ cliente }) => `¡Gracias ${prolijo(cliente, { siglas: 
 /* Lo de abajo: "Se fue con su Polo Robust 0km." */
 export const seFue = ({ plural, vehiculo }) => `${plural ? 'Se fueron' : 'Se fue'} con su ${prolijo(vehiculo)}.`
 
-/* Las dos juntas, para donde va en una sola línea (texto alternativo, listas). */
-export const frase = (e) => `${gracias(e)} ${seFue(e)}`
+/* El mensaje opcional, tal cual lo escribieron (sin acomodar nada). */
+export const mensajeDe = ({ mensaje }) => (typeof mensaje === 'string' && mensaje.trim()) || null
+
+/* Todo junto, para donde va en una sola línea (texto alternativo, listas). */
+export const frase = (e) => [gracias(e), seFue(e), mensajeDe(e)].filter(Boolean).join(' ')
