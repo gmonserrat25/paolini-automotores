@@ -8,6 +8,13 @@ import { Corner } from './Ui'
    así que las chapitas llevan a WhatsApp y a Instagram, y la pantalla del
    teléfono muestra lo que se ve ahí: una unidad del salón con su ficha. */
 
+/* Con quién financian (lo confirmaron ellos): los dos bancos y el prendario. */
+const OPCIONES = [
+  { nombre: 'Bancor', detalle: 'Banco de la Provincia de Córdoba' },
+  { nombre: 'BNA', detalle: 'Banco de la Nación Argentina' },
+  { nombre: 'Crédito prendario', detalle: 'El mismo auto queda como garantía' },
+]
+
 function Badge({ href, icon, small, big }) {
   return (
     <a
@@ -45,10 +52,18 @@ export default function Financiacion() {
           </h2>
 
           <p className="mt-5 font-sans text-[15px] leading-[26px] text-white/65">
-            Te armamos la financiación con el banco o la marca, tomamos tu usado
-            como parte de pago y te decimos el número final antes de que firmes
-            nada.
+            Te armamos la financiación, tomamos tu usado como parte de pago y te
+            decimos el número final antes de que firmes nada. Trabajamos con:
           </p>
+
+          <ul className="mt-6 border-t border-white/10">
+            {OPCIONES.map((o) => (
+              <li key={o.nombre} className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-0.5 border-b border-white/10 py-3.5">
+                <span className="font-display text-[19px] font-semibold text-white sm:text-[21px]">{o.nombre}</span>
+                <span className="font-sans text-[14px] text-white/55">{o.detalle}</span>
+              </li>
+            ))}
+          </ul>
 
           <div className="mt-8 flex flex-wrap gap-3">
             <Badge

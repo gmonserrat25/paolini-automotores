@@ -16,4 +16,4 @@
 
 - [Inicio](https://paoliniautomotores.com/): Automotores Paolini
 - [Vehículos](https://paoliniautomotores.com/#vehiculos): Stock publicado con consulta por WhatsApp
-- [Financiación](https://paoliniautomotores.com/#financiacion): Financiación con banco o marca y usado como parte de pago
+- [Financiación](https://paoliniautomotores.com/#financiacion): Financiación con Bancor, Banco Nación (BNA) o crédito prendario, y usado como parte de pago
