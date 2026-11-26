@@ -10,9 +10,15 @@ import { Corner, Cta } from './Ui'
    como parte de pago. Los nombres de las plataformas los dio el cliente
    (26/11/2026): DE UNA! de Bancor (bancor.com.ar/empresas/portal-empresas/de-una), y +Autos y BNA Conecta del Banco Nación.
    Sin tasas ni cuotas: cambian seguido y no las confirmaron. */
+/* Los logos son los oficiales de cada banco (bancor.com.ar y bna.com.ar),
+   cada uno sobre su color, para que la sección no quede en puro texto. Al
+   del Nación se le recortó el "135 años" del aniversario. */
+const BANCOS = [
+  { nombre: 'Bancor', logo: '/bancos/bancor.svg', fondo: 'bg-white', alto: 'h-[30px] sm:h-[34px]', plataforma: 'DE UNA!' },
+  { nombre: 'Banco Nación', logo: '/bancos/banco-nacion.svg', fondo: 'bg-[#00A0D0]', alto: 'h-[38px] sm:h-[42px]', plataforma: '+Autos y BNA Conecta' },
+]
+
 const DATOS = [
-  ['Bancor', 'DE UNA!'],
-  ['Banco Nación', '+Autos y BNA Conecta'],
   ['Crédito', 'Prendario'],
   ['Tu usado', 'Como parte de pago'],
   ['Entrega', 'Inmediata'],
@@ -35,6 +41,18 @@ export default function Banner() {
           <h2 className="max-w-[860px] font-display text-[26px] font-semibold uppercase leading-[1.12] tracking-[-0.01em] text-white sm:text-[34px] lg:text-[40px]">
             Convertimos sueños en caminos
           </h2>
+
+          <p className="mt-7 font-sans text-[13px] text-white/55">Financiamos con</p>
+          <ul className="mt-3 flex flex-wrap gap-4">
+            {BANCOS.map((b) => (
+              <li key={b.nombre}>
+                <div className={`flex h-[64px] items-center rounded-[8px] px-5 sm:h-[72px] sm:px-6 ${b.fondo}`}>
+                  <img src={asset(b.logo)} alt={b.nombre} className={`${b.alto} w-auto`} loading="lazy" />
+                </div>
+                <p className="mt-2 font-sans text-[15px] font-semibold text-white">{b.plataforma}</p>
+              </li>
+            ))}
+          </ul>
 
           <div className="mt-8 flex flex-wrap items-center gap-x-10 gap-y-6">
             <span className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-white/5 text-[#D52B38]">
