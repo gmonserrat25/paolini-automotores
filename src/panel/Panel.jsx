@@ -193,6 +193,7 @@ export default function Panel({ onSalir, email }) {
                   onEditar={editarFicha}
                   onEliminar={eliminarUnidades}
                   onEstados={cambiarEstados}
+                  onFotos={cambiarFotos}
                 />
               </div>
             )}

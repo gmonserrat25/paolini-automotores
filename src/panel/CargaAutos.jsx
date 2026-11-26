@@ -1,8 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import BrandLogo from '../components/BrandLogos'
 import { pesos } from './calculos'
-import { cruzarTodos, esCodigo0km, explicarSinCruce, esLista, filaDeStock, leerLista, mostrarPatente, normPatente, reconocerFoto } from './carga'
-import { registrarCarga } from './datos'
+import {
+  ES_DE_ADENTRO,
+  agruparFotosDeAdentro,
+  cruzarTodos,
+  esCodigo0km,
+  explicarSinCruce,
+  esLista,
+  fechaDeFoto,
+  filaDeStock,
+  leerLista,
+  mostrarPatente,
+  normPatente,
+  reconocerFoto,
+} from './carga'
+import { agregarFoto, registrarCarga } from './datos'
 import ConfirmarEliminar from './ConfirmarEliminar'
 import { IconoCarga } from './icons'
 import { AccionesFila, BarraSeleccion, Casilla, useSeleccion } from './seleccion'
@@ -35,6 +48,57 @@ function enLaFoto(visto) {
 }
 
 const esFoto = (a) => a.type.startsWith('image/')
+const deAdentro = (i) => ES_DE_ADENTRO.includes(i.visto?.tipo)
+const TIPO_FOTO = { interior: 'Interior', detalle: 'Detalle', trasera: 'Trasera', exterior: 'Otra de afuera' }
+const nombreAuto = (f) => (esCodigo0km(f.patente) ? `0 km · ${f.modelo} ${f.color ?? ''}`.trim() : `${f.patente} · ${f.modelo}`)
+
+/* Una foto de adentro (o una segunda de afuera): no crea un auto, se suma a
+   las fotos del auto de la foto anterior. */
+function FilaExtra({ item, ancla, opciones, onElegir, onQuitar }) {
+  return (
+    <li className="grid grid-cols-[72px_1fr] items-center gap-x-4 gap-y-2 rounded-2xl px-3 py-3 hover:bg-white/[0.03] md:grid-cols-[72px_1fr_auto]">
+      <img src={item.url} alt="" className="h-14 w-[72px] rounded-lg object-cover" />
+      <div className="min-w-0">
+        <p className="text-xs text-white/60">{TIPO_FOTO[item.visto?.tipo] ?? 'Foto extra'}</p>
+        <p className="truncate text-sm">
+          {ancla ? (
+            <>
+              Va con <span className="font-medium">{ancla.marca} {ancla.modelo}</span>
+              <span className="text-white/60"> · {mostrarPatente(ancla.patente)}</span>
+            </>
+          ) : (
+            <span className="text-white/60">No sé de qué auto es: elegilo</span>
+          )}
+        </p>
+      </div>
+      <div className="col-span-2 flex flex-wrap items-center gap-2 md:col-span-1 md:justify-end">
+        <label className="sr-only" htmlFor={`extra-${item.id}`}>
+          De qué auto es esta foto
+        </label>
+        <select
+          id={`extra-${item.id}`}
+          value={ancla?.patente ?? ''}
+          onChange={(e) => onElegir(item.id, e.target.value)}
+          className="max-w-[200px] rounded-full border border-white/[0.1] bg-[#0B0B0C] px-3 py-1.5 text-xs text-white/80 focus:border-white/30 focus:outline-none"
+        >
+          <option value="">Elegir auto…</option>
+          {opciones.map((f) => (
+            <option key={f.patente} value={f.patente}>
+              {nombreAuto(f)}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          onClick={() => onQuitar(item.id)}
+          className="rounded-full px-2.5 py-1 text-xs text-white/60 transition-colors hover:text-white"
+        >
+          Quitar
+        </button>
+      </div>
+    </li>
+  )
+}
 
 const MOTIVOS = {
   formato: 'Ese formato no lo puedo abrir. Mandá la lista como Excel (.xlsx), PDF o CSV: desde Google Sheets o Numbers, «Compartir» → «Descargar» o «Exportar».',
@@ -145,7 +209,7 @@ function FilaCarga({ item, asignado, metodo, libres, onElegir, onQuitar }) {
   )
 }
 
-export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onEliminar, onEstados }) {
+export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onEliminar, onEstados, onFotos }) {
   const entrada = useRef(null)
   const [arrastrando, setArrastrando] = useState(false)
   const [filas, setFilas] = useState([])
@@ -158,6 +222,8 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
   const [guardando, setGuardando] = useState(false)
   const [cargadasSolas, setCargadasSolas] = useState(0)
   const [repetidas, setRepetidas] = useState(0)
+  const [extrasSubidas, setExtrasSubidas] = useState(0)
+  const [subiendoExtras, setSubiendoExtras] = useState(false)
   const sel = useSeleccion()
   const [porEliminar, setPorEliminar] = useState(null)
   const [eliminando, setEliminando] = useState(false)
@@ -182,9 +248,17 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
     return [...filas, ...deStock]
   }, [filas, stock])
 
-  /* Cada foto con su auto del Excel. Primero se respeta lo que se eligió a
-     mano; después se cruza el resto, sin repetir patentes. */
-  const cruces = useMemo(() => {
+  /* Cada foto de afuera con su auto del Excel, y cada foto de adentro con el
+     auto de la foto de afuera anterior. Primero se respeta lo que se eligió a
+     mano; después, por pasadas:
+       1. las fotos de afuera con la chapa a la vista (patente);
+       2. las de adentro (y las segundas de afuera del mismo auto) van con la
+          foto de afuera anterior;
+       3. las de afuera sin chapa que quedan (los 0 km) por modelo y color;
+       4. las de adentro de esos autos.
+     Así una segunda foto de frente de un Corolla no le roba la fila a otro
+     Corolla del Excel. */
+  const { cruces, extras } = useMemo(() => {
     const usadas = new Set(items.filter((i) => i.manual).map((i) => i.manual))
     const out = {}
     for (const i of items) {
@@ -192,11 +266,22 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
         out[i.id] = { fila: filas.find((f) => f.patente === i.manual) ?? null, metodo: 'manual' }
       }
     }
-    if (filas.length) {
-      const sinManual = items.filter((i) => !i.manual && i.visto).map((i) => ({ id: i.id, visto: i.visto }))
-      Object.assign(out, cruzarTodos(sinManual, pool, usadas))
+    if (!filas.length) return { cruces: out, extras: {} }
+    const libresDeAncla = items.filter((i) => !i.manual && !i.ancla && i.visto)
+    const deAfuera = libresDeAncla.filter((i) => !deAdentro(i))
+    const tomar = (lista) => {
+      const tomadas = new Set([...usadas, ...Object.values(out).flatMap((c) => (c.fila ? [c.fila.patente] : []))])
+      Object.assign(out, cruzarTodos(lista.map((i) => ({ id: i.id, visto: i.visto })), pool, tomadas))
     }
-    return out
+    const anclas = () => Object.fromEntries(Object.entries(out).flatMap(([id, c]) => (c.fila ? [[id, c.fila]] : [])))
+    const fotos = items.filter((i) => i.visto).map((i) => ({ id: i.id, fecha: i.fecha, nombre: i.archivo.name, visto: i.visto }))
+
+    tomar(deAfuera.filter((i) => normPatente(i.visto.patente)))
+    let ex = agruparFotosDeAdentro(fotos, anclas())
+    tomar(deAfuera.filter((i) => !out[i.id] && !ex[i.id]))
+    ex = agruparFotosDeAdentro(fotos, anclas())
+    for (const id of Object.keys(ex)) delete out[id]
+    return { cruces: out, extras: ex }
   }, [items, filas, pool])
 
   const asignadas = new Set(Object.values(cruces).flatMap((c) => (c.fila ? [c.fila.patente] : [])))
@@ -214,6 +299,44 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
   const yaCargadas = items.filter((i) => cruces[i.id]?.fila && cargadas.has(normPatente(cruces[i.id].fila.patente)))
 
   const leyendo = items.some((i) => i.estado === 'leyendo')
+
+  /* Cuando ya se leyeron todas, cada foto de adentro queda atada a su auto
+     (por patente): así no se pierde cuando la foto de afuera se carga y sale
+     de la lista. */
+  useEffect(() => {
+    if (leyendo) return
+    const nuevas = Object.entries(extras).filter(([id]) => !items.find((i) => i.id === id)?.ancla)
+    if (!nuevas.length) return
+    const porId = Object.fromEntries(nuevas.map(([id, f]) => [id, f.patente]))
+    setItems((a) => a.map((i) => (porId[i.id] ? { ...i, ancla: porId[i.id] } : i)))
+  }, [leyendo, extras, items])
+
+  /* Las fotos de adentro cuyo auto ya está en el stock se suben a sus fotos
+     (con el tipo que leyó la IA al reconocerla) y salen de la lista. */
+  useEffect(() => {
+    if (leyendo || subiendoExtras) return
+    const porPatente = new Map(stock.filter((u) => u.patente).map((u) => [normPatente(u.patente), u]))
+    const listas = items.filter((i) => i.ancla && porPatente.has(normPatente(i.ancla)) && !intentadas.current.has(i.id))
+    if (!listas.length) return
+    listas.forEach((i) => intentadas.current.add(i.id))
+    setSubiendoExtras(true)
+    ;(async () => {
+      const hechas = []
+      for (const i of listas) {
+        const u = porPatente.get(normPatente(i.ancla))
+        try {
+          const fotos = await agregarFoto(u.id, i.archivo, i.visto?.tipo === 'exterior' ? 'exterior' : i.visto?.tipo)
+          onFotos?.(u.id, fotos)
+          hechas.push(i.id)
+        } catch (e) {
+          setError(`${u.brand} ${u.model}: ${e.message}`)
+        }
+      }
+      setExtrasSubidas((n) => n + hechas.length)
+      setItems((a) => a.filter((i) => !hechas.includes(i.id)))
+      setSubiendoExtras(false)
+    })()
+  }, [leyendo, subiendoExtras, items, stock, onFotos])
 
   /* Las fotos de autos que ya están en el stock no tienen nada para revisar:
      se sacan de la lista y queda el aviso. */
@@ -233,6 +356,7 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
     const renglones = []
     for (const i of items) {
       if (registradas.current.has(i.id)) continue
+      if (i.ancla || extras[i.id] || deAdentro(i)) continue
       const c = cruces[i.id]
       if (c?.fila && cargadas.has(normPatente(c.fila.patente))) continue
       let r
@@ -252,7 +376,7 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
     }
     registrarCarga(renglones)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [leyendo, items, cruces, filas, cargadas])
+  }, [leyendo, items, cruces, extras, filas, cargadas])
 
   /* Cuando ya se leyeron todas las fotos y hay Excel, lo que cruzó con
      seguridad se carga sin pedir nada. */
@@ -289,6 +413,7 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
     setSinReconocimiento(false)
     setCargadasSolas(0)
     setRepetidas(0)
+    setExtrasSubidas(0)
   }
 
   async function recibir(archivos) {
@@ -326,13 +451,17 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
         })
         .finally(() => generacion.current === g && setLeyendoLista(null))
     }
-    const nuevas = lista.filter(esFoto).map((archivo, n) => ({
+    const soloFotos = lista.filter(esFoto)
+    const fechas = await Promise.all(soloFotos.map(fechaDeFoto))
+    const nuevas = soloFotos.map((archivo, n) => ({
       id: `${Date.now()}-${n}`,
       url: URL.createObjectURL(archivo),
       archivo,
+      fecha: fechas[n],
       estado: 'leyendo',
       visto: null,
       manual: null,
+      ancla: null,
     }))
     if (lista.some((a) => !esLista(a) && !esFoto(a))) setError('Sólo se aceptan fotos y la lista de stock (Excel, PDF o CSV).')
     if (!nuevas.length) return
@@ -353,6 +482,8 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
 
   const elegir = (id, patente) =>
     setItems((a) => a.map((i) => (i.id === id ? { ...i, manual: patente || null, visto: i.visto ?? {} } : i)))
+  const elegirAncla = (id, patente) => setItems((a) => a.map((i) => (i.id === id ? { ...i, ancla: patente || null } : i)))
+  const esExtra = (i) => i.ancla || extras[i.id] || (deAdentro(i) && !cruces[i.id])
   const quitar = (id) => setItems((a) => a.filter((i) => i.id !== id))
 
   async function confirmar() {
@@ -445,6 +576,11 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
               (una patente que no se parece a ninguna del Excel), la foto queda marcada para que la revises vos
               antes de cargarla.
             </p>
+            <p className="mt-2 text-sm text-white/60">
+              Las fotos de adentro (tablero, asientos, detalles) subilas junto con las demás: cada una se suma sola al
+              auto de la foto de afuera que sacaste justo antes. Sacalas auto por auto: primero la de afuera, con la
+              patente a la vista, y después las de adentro.
+            </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {(items.length > 0 || filas.length > 0) && (
@@ -496,6 +632,11 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
             {cargadasSolas} {cargadasSolas === 1 ? 'auto cargado' : 'autos cargados'} solos al stock.
           </p>
         )}
+        {extrasSubidas > 0 && (
+          <p role="status" className="mt-3 text-sm text-white/80">
+            {extrasSubidas} {extrasSubidas === 1 ? 'foto de adentro se sumó' : 'fotos de adentro se sumaron'} a su auto.
+          </p>
+        )}
         {repetidas > 0 && (
           <p role="status" className="mt-3 text-sm text-white/80">
             {repetidas} {repetidas === 1 ? 'foto es de un auto' : 'fotos son de autos'} que ya {repetidas === 1 ? 'estaba' : 'estaban'} en
@@ -528,7 +669,17 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
             </p>
           )}
           <ul className="mt-3">
-            {items.map((i) => (
+            {items.map((i) =>
+              esExtra(i) ? (
+                <FilaExtra
+                  key={i.id}
+                  item={i}
+                  ancla={pool.find((f) => f.patente === (i.ancla ?? extras[i.id]?.patente)) ?? extras[i.id] ?? null}
+                  opciones={pool}
+                  onElegir={elegirAncla}
+                  onQuitar={quitar}
+                />
+              ) : (
               <FilaCarga
                 key={i.id}
                 item={i}
@@ -538,7 +689,8 @@ export default function CargaAutos({ stock, onAgregar, onVer, onEditar, onElimin
                 onElegir={elegir}
                 onQuitar={quitar}
               />
-            ))}
+              ),
+            )}
           </ul>
         </section>
       )}

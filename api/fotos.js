@@ -2,8 +2,10 @@
    collages del asistente de posts. La foto principal sigue en
    autos.foto_url; éstas van en autos.fotos como [{ url, tipo }].
 
-   POST   ?id=          con sesión: { foto: dataURL JPG } → la clasifica con
-                        Claude, la sube a Vercel Blob y la agrega.
+   POST   ?id=          con sesión: { foto: dataURL JPG, tipo? } → la clasifica
+                        con Claude (salvo que ya venga el tipo, como en la
+                        carga, que lo leyó al reconocerla), la sube a Vercel
+                        Blob y la agrega.
    PATCH  ?id=          con sesión: { url, tipo } → corrige el tipo a mano.
    DELETE ?id=&url=     con sesión: saca la foto y la borra de Blob.
    Las tres devuelven la lista de fotos del auto ya actualizada. */
@@ -29,13 +31,18 @@ export default async function handler(req, res) {
   if (req.method === 'POST') {
     if (fotos.length >= MAX_FOTOS) return res.status(400).json({ error: `Ya tiene ${MAX_FOTOS} fotos extra` })
     const imagen = req.body?.foto
-    let tipo
-    try {
-      tipo = await clasificarFoto(imagen, process.env.ANTHROPIC_API_KEY)
-    } catch (e) {
-      /* Sin la IA igual se guarda: el tipo se corrige a mano. */
-      if (e.status === 400) return res.status(400).json({ error: e.message })
-      tipo = 'detalle'
+    let tipo = TIPOS.includes(req.body?.tipo) ? req.body.tipo : null
+    if (typeof imagen !== 'string' || !imagen.startsWith('data:image/jpeg;base64,') || imagen.length > 2_500_000) {
+      return res.status(400).json({ error: 'La foto tiene que ser un JPG de menos de 1,8 MB' })
+    }
+    if (!tipo) {
+      try {
+        tipo = await clasificarFoto(imagen, process.env.ANTHROPIC_API_KEY)
+      } catch (e) {
+        /* Sin la IA igual se guarda: el tipo se corrige a mano. */
+        if (e.status === 400) return res.status(400).json({ error: e.message })
+        tipo = 'detalle'
+      }
     }
     const archivo = `${auto.patente.replace(/[^A-Za-z0-9]/g, '').toLowerCase()}-${tipo}`
     const subida = await put(`autos/extra/${archivo}.jpg`, Buffer.from(imagen.split(',')[1], 'base64'), {

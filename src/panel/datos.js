@@ -139,18 +139,25 @@ export const pedirAlAsistente = (cuerpo) => pedir('/api/asistente', { method: 'P
 /* Las fotos extra de un auto (api/fotos.js). Cada una devuelve la lista de
    fotos ya actualizada. En la demo viven en memoria y la clasificación la
    hace el endpoint local de vite.config.js. */
-export async function agregarFoto(id, archivo) {
+export async function agregarFoto(id, archivo, tipoConocido = null) {
   const foto = await achicar(archivo, 1600, 'url')
   if (DEMO) {
-    let tipo = 'detalle'
-    try {
-      tipo = (await pedir('/api/clasificar', { method: 'POST', body: JSON.stringify({ foto }) })).tipo
-    } catch {
-      /* sin la IA queda como detalle y se corrige a mano */
+    let tipo = tipoConocido ?? 'detalle'
+    if (!tipoConocido) {
+      try {
+        tipo = (await pedir('/api/clasificar', { method: 'POST', body: JSON.stringify({ foto }) })).tipo
+      } catch {
+        /* sin la IA queda como detalle y se corrige a mano */
+      }
     }
     return (await import('./demo')).agregarFotoDemo(id, URL.createObjectURL(archivo), tipo)
   }
-  return (await pedir(`/api/fotos?id=${encodeURIComponent(id)}`, { method: 'POST', body: JSON.stringify({ foto }) })).fotos
+  return (
+    await pedir(`/api/fotos?id=${encodeURIComponent(id)}`, {
+      method: 'POST',
+      body: JSON.stringify({ foto, tipo: tipoConocido ?? undefined }),
+    })
+  ).fotos
 }
 
 export async function cambiarTipoFoto(id, url, tipo) {
