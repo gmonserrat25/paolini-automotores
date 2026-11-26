@@ -8,10 +8,10 @@ import { Corner, Cta } from './Ui'
    sección de financiación del sitio (antes había otra más abajo, con un
    celular dibujado, que repetía lo mismo): con quién financian y el usado
    como parte de pago. Los nombres de las plataformas los dio el cliente
-   (26/11/2026): De Una de Bancor, y +Autos y BNA Conecta del Banco Nación.
+   (26/11/2026): DE UNA! de Bancor (bancor.com.ar/empresas/portal-empresas/de-una), y +Autos y BNA Conecta del Banco Nación.
    Sin tasas ni cuotas: cambian seguido y no las confirmaron. */
 const DATOS = [
-  ['Bancor', 'De Una'],
+  ['Bancor', 'DE UNA!'],
   ['Banco Nación', '+Autos y BNA Conecta'],
   ['Crédito', 'Prendario'],
   ['Tu usado', 'Como parte de pago'],
