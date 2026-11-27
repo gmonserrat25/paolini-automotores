@@ -3,7 +3,7 @@ import TopNav from './components/TopNav'
 import Footer from './components/Footer'
 import { VehicleCard } from './components/Vehicles'
 import { Cta } from './components/Ui'
-import { WhatsAppIcon } from './components/Icons'
+import { ChevronRightIcon, WhatsAppIcon } from './components/Icons'
 import { CatalogoProvider, useCatalogo } from './lib/catalogo'
 import { WHATSAPP_URL } from './data/vehicles'
 
@@ -40,27 +40,64 @@ function TarjetaChica({ vehicle }) {
   )
 }
 
-/* Una sección: título, cuántos hay y la cuadrícula. */
-function Seccion({ titulo, nota, autos, primera }) {
+/* Una sección: título, cuántos hay y la cuadrícula. Con `verMas`, el nombre
+   de la marca lleva a su página y se ven
+   sólo las primeras POR_SECCION y abajo va "Ver más", que lleva a la página
+   de esa marca (/autos?marca=…) con todos: una marca con seis o diez autos
+   llenaría la página. */
+const POR_SECCION = 3
+
+function Seccion({ titulo, nota, autos, primera, verMas }) {
+  const visibles = verMas ? autos.slice(0, POR_SECCION) : autos
+  const hayMas = visibles.length < autos.length
   return (
     <section className={primera ? 'mt-6 sm:mt-8' : 'mt-7 sm:mt-10 lg:mt-14'}>
       <div className="flex items-baseline gap-2.5 border-b border-white/10 pb-2 sm:gap-3 sm:pb-3">
         <h2 className="font-display text-[17px] font-semibold uppercase leading-[1.1] tracking-[-0.01em] text-white sm:text-[24px]">
-          {titulo}
+          {verMas ? (
+            /* El nombre de la marca también lleva a su página. */
+            <a
+              href={verMas.href}
+              onClick={(e) => {
+                e.preventDefault()
+                verMas.ir()
+              }}
+              className="group inline-flex items-center gap-1.5 transition-colors hover:text-[#E0323F] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >
+              {titulo}
+              <ChevronRightIcon className="h-4 w-4 text-white/45 transition-colors group-hover:text-[#E0323F] sm:h-5 sm:w-5" />
+            </a>
+          ) : (
+            titulo
+          )}
         </h2>
         <span className="font-sans text-[13px] tabular-nums text-white/45">{autos.length}</span>
       </div>
       {nota ? <p className="mt-2 font-sans text-[13px] text-white/55 sm:mt-3 sm:text-[14px]">{nota}</p> : null}
       <div className="mt-3 grid grid-cols-3 gap-2 sm:hidden">
-        {autos.map((v) => (
+        {visibles.map((v) => (
           <TarjetaChica key={v.id} vehicle={v} />
         ))}
       </div>
       <div className="mt-6 hidden gap-5 sm:grid sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-        {autos.map((v) => (
+        {visibles.map((v) => (
           <VehicleCard key={v.id} vehicle={v} />
         ))}
       </div>
+      {hayMas ? (
+        <div className="mt-4 flex justify-center sm:mt-6">
+          <Cta
+            href={verMas.href}
+            size="sm"
+            onClick={(e) => {
+              e.preventDefault()
+              verMas.ir()
+            }}
+          >
+            Ver más
+          </Cta>
+        </div>
+      ) : null}
     </section>
   )
 }
@@ -91,6 +128,20 @@ function Listado() {
     setMarca(m)
     window.history.replaceState(null, '', m ? `/autos?marca=${encodeURIComponent(m)}` : '/autos')
   }
+
+  /* "Ver más" de una sección: filtra esa marca y vuelve arriba. */
+  const verMarca = (m) => {
+    setMarca(m)
+    /* pushState (no replace): la flecha de atrás del celular vuelve a todas. */
+    window.history.pushState(null, '', `/autos?marca=${encodeURIComponent(m)}`)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  useEffect(() => {
+    const volver = () => setMarca(marcaDeLaDireccion())
+    window.addEventListener('popstate', volver)
+    return () => window.removeEventListener('popstate', volver)
+  }, [])
 
   const chip = (seleccionada) =>
     `shrink-0 rounded-full border px-4 py-1.5 font-sans text-[14px] transition-colors ${
@@ -152,7 +203,13 @@ function Listado() {
         ) : (
           <>
             {porMarca.map(([m, autos], i) => (
-              <Seccion key={m} titulo={m} autos={autos} primera={i === 0} />
+              <Seccion
+                key={m}
+                titulo={m}
+                autos={autos}
+                primera={i === 0}
+                verMas={activa ? null : { href: `/autos?marca=${encodeURIComponent(m)}`, ir: () => verMarca(m) }}
+              />
             ))}
             {reservados.length > 0 ? (
               <Seccion
