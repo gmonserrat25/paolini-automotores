@@ -12,13 +12,19 @@ const SPEC_ICONS = [FuelIcon, GearboxIcon]
 const flechita =
   'flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-white transition-colors hover:bg-white/10 disabled:opacity-30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white'
 
-function Deslizable({ autos, className = '' }) {
+/* En la home del celular el carrusel trae seis; el resto, en /autos. */
+const EN_CELULAR = 6
+
+function Deslizable({ autos, enCelular = autos.length, className = '' }) {
   const pista = useRef(null)
   const [actual, setActual] = useState(0)
+  /* En el celular se ven las primeras `enCelular`; las demás quedan para la
+     compu (o para /autos). */
+  const total = Math.min(enCelular, autos.length)
   const ir = (n) => {
     const el = pista.current
     if (!el) return
-    const i = Math.max(0, Math.min(autos.length - 1, n))
+    const i = Math.max(0, Math.min(total - 1, n))
     el.scrollTo({ left: el.children[i].offsetLeft - el.firstElementChild.offsetLeft, behavior: 'smooth' })
   }
   function alMover() {
@@ -34,21 +40,21 @@ function Deslizable({ autos, className = '' }) {
         onScroll={alMover}
         className="flex snap-x snap-mandatory gap-5 overflow-x-auto [scrollbar-width:none] sm:grid sm:grid-cols-2 sm:overflow-visible lg:grid-cols-3 lg:gap-6 [&::-webkit-scrollbar]:hidden"
       >
-        {autos.map((vehicle) => (
-          <div key={vehicle.id} className="grid w-full shrink-0 snap-center sm:w-auto">
+        {autos.map((vehicle, i) => (
+          <div key={vehicle.id} className={`grid w-full shrink-0 snap-center sm:w-auto ${i >= total ? 'max-sm:hidden' : ''}`}>
             <VehicleCard vehicle={vehicle} />
           </div>
         ))}
       </div>
-      {autos.length > 1 ? (
+      {total > 1 ? (
         <div className="mt-5 flex items-center justify-center gap-5 sm:hidden">
           <button type="button" onClick={() => ir(actual - 1)} disabled={actual === 0} aria-label="Auto anterior" className={flechita}>
             <ChevronLeftIcon className="h-5 w-5" />
           </button>
           <p className="min-w-[64px] text-center font-sans text-[14px] tabular-nums text-white/60">
-            {Math.min(actual, autos.length - 1) + 1} de {autos.length}
+            {Math.min(actual, total - 1) + 1} de {total}
           </p>
-          <button type="button" onClick={() => ir(actual + 1)} disabled={actual >= autos.length - 1} aria-label="Auto siguiente" className={flechita}>
+          <button type="button" onClick={() => ir(actual + 1)} disabled={actual >= total - 1} aria-label="Auto siguiente" className={flechita}>
             <ChevronRightIcon className="h-5 w-5" />
           </button>
         </div>
@@ -207,12 +213,20 @@ export default function Vehicles({ marca = null, onLimpiar }) {
         ) : (
           <>
             {disponibles.length > 0 ? (
-              <Deslizable key={marca ?? 'todos'} autos={disponibles} className="mt-8 lg:mt-10" />
+              <Deslizable
+                key={marca ?? 'todos'}
+                autos={disponibles}
+                enCelular={marca ? disponibles.length : EN_CELULAR}
+                className="mt-8 lg:mt-10"
+              />
             ) : null}
 
             {!marca ? (
               <div className="mt-8 flex justify-center lg:mt-10">
-                <Cta href="/autos">Ver todos los vehículos</Cta>
+                <Cta href="/autos">
+                  <span className="sm:hidden">Ver más</span>
+                  <span className="max-sm:hidden">Ver todos los vehículos</span>
+                </Cta>
               </div>
             ) : null}
 
