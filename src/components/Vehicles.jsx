@@ -7,10 +7,10 @@ import { Corner, Cta, SectionTitle } from './Ui'
 const SPEC_ICONS = [FuelIcon, GearboxIcon]
 
 /* En el celular los autos no van uno abajo del otro: se pasan deslizando de
-   costado, uno por pantalla, con flechas y "3 de 29". Desde sm en adelante
+   costado, uno por pantalla, con flechas en círculos sobre la tarjeta. Desde sm en adelante
    es la grilla de siempre (las mismas clases hacen las dos cosas). */
 const flechita =
-  'flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-white transition-colors hover:bg-white/10 disabled:opacity-30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white'
+  'absolute top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-black/35 text-white backdrop-blur-sm transition-opacity active:bg-black/55 disabled:pointer-events-none disabled:opacity-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white sm:hidden'
 
 /* En la home del celular el carrusel trae seis; el resto, en /autos. */
 const EN_CELULAR = 6
@@ -34,7 +34,7 @@ function Deslizable({ autos, enCelular = autos.length, className = '' }) {
     setActual(Math.round(el.scrollLeft / paso))
   }
   return (
-    <div className={className}>
+    <div className={`relative ${className}`}>
       <div
         ref={pista}
         onScroll={alMover}
@@ -47,17 +47,14 @@ function Deslizable({ autos, enCelular = autos.length, className = '' }) {
         ))}
       </div>
       {total > 1 ? (
-        <div className="mt-5 flex items-center justify-center gap-5 sm:hidden">
-          <button type="button" onClick={() => ir(actual - 1)} disabled={actual === 0} aria-label="Auto anterior" className={flechita}>
+        <>
+          <button type="button" onClick={() => ir(actual - 1)} disabled={actual === 0} aria-label="Auto anterior" className={`${flechita} left-2`}>
             <ChevronLeftIcon className="h-5 w-5" />
           </button>
-          <p className="min-w-[64px] text-center font-sans text-[14px] tabular-nums text-white/60">
-            {Math.min(actual, total - 1) + 1} de {total}
-          </p>
-          <button type="button" onClick={() => ir(actual + 1)} disabled={actual >= total - 1} aria-label="Auto siguiente" className={flechita}>
+          <button type="button" onClick={() => ir(actual + 1)} disabled={actual >= total - 1} aria-label="Auto siguiente" className={`${flechita} right-2`}>
             <ChevronRightIcon className="h-5 w-5" />
           </button>
-        </div>
+        </>
       ) : null}
     </div>
   )
