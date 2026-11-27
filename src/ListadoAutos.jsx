@@ -3,7 +3,7 @@ import TopNav from './components/TopNav'
 import Footer from './components/Footer'
 import { VehicleCard } from './components/Vehicles'
 import { Cta } from './components/Ui'
-import { WhatsAppIcon } from './components/Icons'
+import { ChevronRightIcon, WhatsAppIcon } from './components/Icons'
 import { CatalogoProvider, useCatalogo } from './lib/catalogo'
 import { WHATSAPP_URL } from './data/vehicles'
 
@@ -40,7 +40,8 @@ function TarjetaChica({ vehicle }) {
   )
 }
 
-/* Una sección: título, cuántos hay y la cuadrícula. Con `onVerMas`, se ven
+/* Una sección: título, cuántos hay y la cuadrícula. Con `verMas`, el nombre
+   de la marca lleva a su página y se ven
    sólo las primeras POR_SECCION y abajo va "Ver más", que lleva a la página
    de esa marca (/autos?marca=…) con todos: una marca con seis o diez autos
    llenaría la página. */
@@ -53,7 +54,22 @@ function Seccion({ titulo, nota, autos, primera, verMas }) {
     <section className={primera ? 'mt-6 sm:mt-8' : 'mt-7 sm:mt-10 lg:mt-14'}>
       <div className="flex items-baseline gap-2.5 border-b border-white/10 pb-2 sm:gap-3 sm:pb-3">
         <h2 className="font-display text-[17px] font-semibold uppercase leading-[1.1] tracking-[-0.01em] text-white sm:text-[24px]">
-          {titulo}
+          {verMas ? (
+            /* El nombre de la marca también lleva a su página. */
+            <a
+              href={verMas.href}
+              onClick={(e) => {
+                e.preventDefault()
+                verMas.ir()
+              }}
+              className="group inline-flex items-center gap-1.5 transition-colors hover:text-[#E0323F] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >
+              {titulo}
+              <ChevronRightIcon className="h-4 w-4 text-white/45 transition-colors group-hover:text-[#E0323F] sm:h-5 sm:w-5" />
+            </a>
+          ) : (
+            titulo
+          )}
         </h2>
         <span className="font-sans text-[13px] tabular-nums text-white/45">{autos.length}</span>
       </div>
