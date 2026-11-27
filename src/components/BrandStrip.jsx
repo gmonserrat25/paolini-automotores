@@ -38,7 +38,7 @@ export default function BrandStrip({ marca, onSelect }) {
 
         <ul
           ref={railRef}
-          className="pa-rail flex flex-1 items-center gap-8 overflow-x-auto sm:justify-between sm:gap-4"
+          className="pa-rail relative flex flex-1 items-center gap-8 overflow-x-auto sm:justify-between sm:gap-4"
         >
           {BRANDS.map((brand) => {
             /* La maqueta nunca muestra la tira apagada entera: siempre hay
