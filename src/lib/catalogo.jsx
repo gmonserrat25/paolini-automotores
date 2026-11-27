@@ -16,8 +16,15 @@ const pesos = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS
 
 const capitalizar = (palabra) => palabra.charAt(0) + palabra.slice(1).toLowerCase()
 
+/* Errores de tipeo que ya vinieron en las listas de Paolini (si no se
+   corrigen, la misma marca sale dos veces en la tira y en /autos) y siglas
+   que el tipo título rompería (MG, no Mg). */
+const MAL_ESCRITAS = { volskwagen: 'Volkswagen', volkswaguen: 'Volkswagen', wolkswagen: 'Volkswagen', vw: 'Volkswagen', mg: 'MG' }
+
 /* Las marcas conocidas salen con su nombre de siempre (BYD, no Byd). */
 function marcaBonita(marca) {
+  const corregida = MAL_ESCRITAS[marca.trim().toLowerCase()]
+  if (corregida) return corregida
   const conocida = BRANDS.find((b) => b.toLowerCase() === marca.toLowerCase())
   return conocida ?? marca.split(' ').map(capitalizar).join(' ')
 }

@@ -7,10 +7,63 @@ import { WhatsAppIcon } from './components/Icons'
 import { CatalogoProvider, useCatalogo } from './lib/catalogo'
 import { WHATSAPP_URL } from './data/vehicles'
 
-/* /autos: todo el stock junto. Se filtra por marca (las que hay hoy en el
-   salón) y el filtro vive en la dirección (?marca=Toyota), así se puede
-   mandar el enlace de una marca por WhatsApp. Los reservados van aparte,
-   después de los que se pueden comprar. */
+/* /autos: todo el stock, separado en secciones por marca (en orden
+   alfabético). Se puede filtrar una marca y el filtro vive en la dirección
+   (?marca=Toyota), así se puede mandar el enlace por WhatsApp. Los
+   reservados van al final, en su propia sección.
+
+   En el celular la lista de tarjetas grandes obligaba a bajar y bajar: ahí
+   va una cuadrícula de tres con tarjetas compactas (foto, modelo, año·km y
+   precio). Tocarla abre la página del auto, que tiene el botón de WhatsApp.
+   Desde sm, las tarjetas de siempre. */
+
+function TarjetaChica({ vehicle }) {
+  return (
+    <a
+      href={`/autos/${vehicle.id}`}
+      className="flex flex-col overflow-hidden rounded-[8px] bg-gradient-to-b from-[#1D1D1D] to-[#131313] focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+    >
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#111]">
+        <img
+          src={vehicle.image}
+          alt={`${vehicle.brand} ${vehicle.model}`}
+          loading="lazy"
+          className={`h-full w-full object-cover ${vehicle.reservado ? 'opacity-70' : ''}`}
+        />
+      </div>
+      <div className="flex flex-1 flex-col px-2 pb-2.5 pt-2">
+        <p className="line-clamp-2 font-sans text-[12.5px] font-semibold leading-[1.2] text-white">{vehicle.model}</p>
+        {vehicle.ficha ? <p className="mt-0.5 truncate font-sans text-[11px] text-white/50">{vehicle.ficha}</p> : null}
+        <p className="mt-auto pt-1.5 font-sans text-[12px] font-semibold tabular-nums text-white">{vehicle.tag}</p>
+      </div>
+    </a>
+  )
+}
+
+/* Una sección: título, cuántos hay y la cuadrícula. */
+function Seccion({ titulo, nota, autos, primera }) {
+  return (
+    <section className={primera ? 'mt-6 sm:mt-8' : 'mt-7 sm:mt-10 lg:mt-14'}>
+      <div className="flex items-baseline gap-2.5 border-b border-white/10 pb-2 sm:gap-3 sm:pb-3">
+        <h2 className="font-display text-[17px] font-semibold uppercase leading-[1.1] tracking-[-0.01em] text-white sm:text-[24px]">
+          {titulo}
+        </h2>
+        <span className="font-sans text-[13px] tabular-nums text-white/45">{autos.length}</span>
+      </div>
+      {nota ? <p className="mt-2 font-sans text-[13px] text-white/55 sm:mt-3 sm:text-[14px]">{nota}</p> : null}
+      <div className="mt-3 grid grid-cols-3 gap-2 sm:hidden">
+        {autos.map((v) => (
+          <TarjetaChica key={v.id} vehicle={v} />
+        ))}
+      </div>
+      <div className="mt-6 hidden gap-5 sm:grid sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+        {autos.map((v) => (
+          <VehicleCard key={v.id} vehicle={v} />
+        ))}
+      </div>
+    </section>
+  )
+}
 
 const marcaDeLaDireccion = () => new URLSearchParams(window.location.search).get('marca')
 
@@ -28,6 +81,11 @@ function Listado() {
   const listado = activa ? vehicles.filter((v) => v.brand === activa) : vehicles
   const disponibles = listado.filter((v) => !v.reservado)
   const reservados = listado.filter((v) => v.reservado)
+  const porMarca = useMemo(() => {
+    const grupos = new Map()
+    for (const v of disponibles) grupos.set(v.brand, [...(grupos.get(v.brand) ?? []), v])
+    return [...grupos].sort(([a], [b]) => a.localeCompare(b, 'es'))
+  }, [disponibles])
 
   const elegir = (m) => {
     setMarca(m)
@@ -35,7 +93,7 @@ function Listado() {
   }
 
   const chip = (seleccionada) =>
-    `rounded-full border px-4 py-1.5 font-sans text-[14px] transition-colors ${
+    `shrink-0 rounded-full border px-4 py-1.5 font-sans text-[14px] transition-colors ${
       seleccionada
         ? 'border-[#D52B38] bg-[#D52B38] text-white'
         : 'border-white/15 text-white/75 hover:border-white/35 hover:text-white'
@@ -55,7 +113,11 @@ function Listado() {
         ) : null}
 
         {marcas.length > 1 ? (
-          <div className="mt-6 flex flex-wrap gap-2" role="group" aria-label="Filtrar por marca">
+          <div
+            className="-mx-5 mt-5 flex gap-2 overflow-x-auto px-5 [scrollbar-width:none] sm:mx-0 sm:mt-6 sm:flex-wrap sm:px-0 [&::-webkit-scrollbar]:hidden"
+            role="group"
+            aria-label="Filtrar por marca"
+          >
             <button type="button" onClick={() => elegir(null)} aria-pressed={!activa} className={chip(!activa)}>
               Todas
             </button>
@@ -89,27 +151,16 @@ function Listado() {
           </div>
         ) : (
           <>
-            {disponibles.length > 0 ? (
-              <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-                {disponibles.map((v) => (
-                  <VehicleCard key={v.id} vehicle={v} />
-                ))}
-              </div>
-            ) : null}
+            {porMarca.map(([m, autos], i) => (
+              <Seccion key={m} titulo={m} autos={autos} primera={i === 0} />
+            ))}
             {reservados.length > 0 ? (
-              <div className="mt-12 lg:mt-16">
-                <h2 className="font-display text-[20px] font-semibold uppercase leading-[1.1] tracking-[-0.01em] text-white sm:text-[24px]">
-                  Reservados
-                </h2>
-                <p className="mt-2 font-sans text-[14px] text-white/55">
-                  Ya tienen dueño en camino. Si te interesa uno parecido, consultanos.
-                </p>
-                <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-                  {reservados.map((v) => (
-                    <VehicleCard key={v.id} vehicle={v} />
-                  ))}
-                </div>
-              </div>
+              <Seccion
+                titulo="Reservados"
+                nota="Ya tienen dueño en camino. Si te interesa uno parecido, consultanos."
+                autos={reservados}
+                primera={porMarca.length === 0}
+              />
             ) : null}
           </>
         )}
