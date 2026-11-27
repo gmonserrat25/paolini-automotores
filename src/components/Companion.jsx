@@ -61,7 +61,7 @@ export default function Companion() {
   }
 
   return (
-    <section className="overflow-hidden bg-[#050505] py-16 lg:py-24">
+    <section className="relative overflow-hidden bg-[#050505] py-16 lg:py-24">
       <div className="mx-auto max-w-[1440px] px-5 text-center sm:px-8 lg:px-[60px]">
         <h2 className="mx-auto max-w-[940px] font-display text-[26px] font-semibold uppercase leading-[1.14] tracking-[-0.01em] text-white sm:text-[34px] lg:text-[40px]">
           Tu próximo auto ya está en el salón
@@ -135,7 +135,9 @@ export default function Companion() {
             <span className="sr-only">Vehículo anterior</span>
           </button>
 
-          <div className="flex items-center gap-2">
+          {/* Con muchos autos los puntos no entran en el celular: ahí quedan
+              sólo las flechas. */}
+          <div className={`flex items-center gap-2 ${VEHICLES.length > 10 ? 'max-sm:hidden' : ''}`}>
             {VEHICLES.map((vehicle, i) => (
               <button
                 key={vehicle.id}
