@@ -1,9 +1,16 @@
+import { useState } from 'react'
 import { WHATSAPP_URL } from '../data/vehicles'
 import { useCatalogo } from '../lib/catalogo'
-import { FuelIcon, GearboxIcon, WhatsAppIcon } from './Icons'
+import { ChevronRightIcon, FuelIcon, GearboxIcon, WhatsAppIcon } from './Icons'
 import { Corner, Cta, SectionTitle } from './Ui'
 
 const SPEC_ICONS = [FuelIcon, GearboxIcon]
+
+/* En el celular la lista entera es un scroll interminable (hay casi 30 autos):
+   se muestran de a cuatro y "Ver más" suma otros cuatro. En la compu la grilla
+   va completa como siempre; por eso se esconden con clases de Tailwind
+   (max-sm:hidden) y no sacándolas del HTML. */
+const DE_A = 4
 
 export function VehicleCard({ vehicle }) {
   const consulta = `${WHATSAPP_URL}?text=${encodeURIComponent(
@@ -91,6 +98,12 @@ export default function Vehicles({ marca = null, onLimpiar }) {
   const disponibles = listado.filter((v) => !v.reservado)
   const reservados = listado.filter((v) => v.reservado)
 
+  /* Cuántas se ven en el celular; vuelve a cuatro al cambiar de marca. */
+  const [vista, setVista] = useState({ marca, n: DE_A })
+  const enCelular = vista.marca === marca ? vista.n : DE_A
+  const quedan = disponibles.length - enCelular
+  const soloCompu = quedan > 0 ? 'max-sm:hidden' : ''
+
   const consultaMarca = `${WHATSAPP_URL}?text=${encodeURIComponent(
     `Hola Paolini, ¿qué tienen disponible de ${marca}?`,
   )}`
@@ -156,20 +169,40 @@ export default function Vehicles({ marca = null, onLimpiar }) {
           <>
             {disponibles.length > 0 ? (
               <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:mt-10 lg:grid-cols-3 lg:gap-6">
-                {disponibles.map((vehicle) => (
-                  <VehicleCard key={vehicle.id} vehicle={vehicle} />
+                {disponibles.map((vehicle, i) => (
+                  <div key={vehicle.id} className={`grid ${i >= enCelular ? 'max-sm:hidden' : ''}`}>
+                    <VehicleCard vehicle={vehicle} />
+                  </div>
                 ))}
               </div>
             ) : null}
 
+            {quedan > 0 ? (
+              <div className="mt-8 flex flex-col items-center gap-2 sm:hidden">
+                <Cta
+                  onClick={() => setVista({ marca, n: enCelular + DE_A })}
+                  icon={
+                    <span className="flex h-[22px] w-[22px] items-center justify-center rounded-[4px] bg-[#0A0A0A]">
+                      <ChevronRightIcon className="h-3.5 w-3.5 rotate-90 text-white" />
+                    </span>
+                  }
+                >
+                  Ver más
+                </Cta>
+                <p className="font-sans text-[13px] tabular-nums text-white/50">
+                  {enCelular} de {disponibles.length}
+                </p>
+              </div>
+            ) : null}
+
             {!marca ? (
-              <div className="mt-8 flex justify-center lg:mt-10">
+              <div className={`mt-8 flex justify-center lg:mt-10 ${soloCompu}`}>
                 <Cta href="/autos">Ver todos los vehículos</Cta>
               </div>
             ) : null}
 
             {reservados.length > 0 ? (
-              <div className={disponibles.length > 0 ? 'mt-12 lg:mt-16' : 'mt-8 lg:mt-10'}>
+              <div className={`${disponibles.length > 0 ? 'mt-12 lg:mt-16' : 'mt-8 lg:mt-10'} ${soloCompu}`}>
                 <h3 className="font-display text-[20px] font-semibold uppercase leading-[1.1] tracking-[-0.01em] text-white sm:text-[24px]">
                   Reservados
                 </h3>

@@ -5,46 +5,169 @@ import { ChevronLeftIcon, ChevronRightIcon } from './Icons'
 /* Las entregas: cada vez que se vende un auto, la foto con quien se lo llevó.
    Las carga el dueño desde el panel (#entregas) y se leen de GET /api/entregas.
    Sin entregas cargadas la sección no se dibuja: una vidriera vacía es peor que
-   ninguna. Con cinco o más, la última va grande y las demás la rodean.
-   Al tocar una foto se abre grande; con más de una se pasa con las flechas
+   ninguna. Van en una fila que rota sola (una por vez en el celular, cuatro
+   en la compu). Al tocar una foto se abre grande; con más de una se pasa con las flechas
    (en pantalla o del teclado) o deslizando el dedo. */
 
-function Tarjeta({ entrega, grande, onAbrir }) {
+function Tarjeta({ entrega, onAbrir }) {
   return (
-    <figure className={`flex flex-col ${grande ? 'lg:col-span-2 lg:row-span-2' : ''}`}>
+    <figure className="flex flex-col">
       <button
         type="button"
         onClick={onAbrir}
         aria-label={`Ver grande: ${frase(entrega)}`}
-        className={`relative block w-full cursor-zoom-in overflow-hidden rounded-[6px] bg-[#111] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
-          grande ? 'aspect-[4/5] lg:aspect-auto lg:flex-1' : 'aspect-[4/5]'
-        }`}
+        className="relative block aspect-[4/5] w-full cursor-zoom-in overflow-hidden rounded-[6px] bg-[#111] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
       >
         <img
           src={entrega.foto}
           alt={frase(entrega)}
           loading="lazy"
+          draggable="false"
           className="absolute inset-0 h-full w-full object-cover"
         />
       </button>
       <figcaption className="mt-4">
-        <p
-          className={`font-display font-semibold leading-[1.1] tracking-[-0.01em] text-white ${
-            grande ? 'text-[26px] lg:text-[40px]' : 'text-[21px] lg:text-[26px]'
-          }`}
-        >
+        <p className="font-display text-[21px] font-semibold leading-[1.1] tracking-[-0.01em] text-white lg:text-[26px]">
           {gracias(entrega)}
         </p>
-        <p className={`mt-1.5 font-sans leading-[1.4] text-white/70 ${grande ? 'text-[16px] lg:text-[19px]' : 'text-[15px] lg:text-[16px]'}`}>
-          {seFue(entrega)}
-        </p>
+        <p className="mt-1.5 font-sans text-[15px] leading-[1.4] text-white/70 lg:text-[16px]">{seFue(entrega)}</p>
         {mensajeDe(entrega) && (
-          <p className={`mt-1 font-sans leading-[1.4] text-white ${grande ? 'text-[16px] lg:text-[19px]' : 'text-[15px] lg:text-[16px]'}`}>
-            {mensajeDe(entrega)}
-          </p>
+          <p className="mt-1 font-sans text-[15px] leading-[1.4] text-white lg:text-[16px]">{mensajeDe(entrega)}</p>
         )}
       </figcaption>
     </figure>
+  )
+}
+
+/* Pasa sola a la siguiente cada PAUSA ms y al llegar al final vuelve al
+   principio. Se frena mientras la tocan, le pasan el mouse o tiene el foco,
+   cuando no está a la vista y con "reducir movimiento" del sistema. Deslizar
+   con el dedo funciona siempre (es un scroll horizontal con imán). */
+const PAUSA = 3500
+
+function Carrusel({ entregas, onAbrir }) {
+  const pista = useRef(null)
+  const [actual, setActual] = useState(0)
+  const [quieta, setQuieta] = useState(false)
+  const [visible, setVisible] = useState(false)
+  const [ultima, setUltima] = useState(entregas.length - 1)
+  const soltada = useRef(null)
+
+  const posiciones = useCallback(() => {
+    const el = pista.current
+    if (!el) return []
+    const max = el.scrollWidth - el.clientWidth
+    return [...el.children].map((c) => Math.min(c.offsetLeft - el.firstElementChild.offsetLeft, max))
+  }, [])
+
+  const ir = useCallback(
+    (n) => {
+      const el = pista.current
+      const pos = posiciones()
+      if (!el || !pos.length) return
+      el.scrollTo({ left: pos[n] ?? 0, behavior: 'smooth' })
+    },
+    [posiciones],
+  )
+
+  /* Qué foto está adelante (la más cercana al borde izquierdo). Cuando ya no
+     se puede correr más, cuenta como la última. */
+  function alMover() {
+    const el = pista.current
+    const pos = posiciones()
+    if (!el || !pos.length) return
+    const x = el.scrollLeft
+    let n = 0
+    pos.forEach((p, i) => {
+      if (Math.abs(p - x) < Math.abs(pos[n] - x)) n = i
+    })
+    const fin = pos.findIndex((p) => p === pos[pos.length - 1])
+    if (x >= el.scrollWidth - el.clientWidth - 2) n = fin
+    setActual(n)
+    setUltima(fin)
+  }
+
+  /* En la compu entran cuatro: la última posición es antes del final. */
+  useEffect(() => {
+    alMover()
+    window.addEventListener('resize', alMover)
+    return () => window.removeEventListener('resize', alMover)
+  })
+
+  useEffect(() => {
+    const el = pista.current
+    if (!el || !('IntersectionObserver' in window)) return setVisible(true)
+    const obs = new IntersectionObserver(([e]) => setVisible(e.isIntersecting), { threshold: 0.4 })
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (quieta || !visible || entregas.length < 2) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const t = setTimeout(() => ir(actual >= ultima ? 0 : actual + 1), PAUSA)
+    return () => clearTimeout(t)
+  }, [actual, ultima, quieta, visible, entregas.length, ir])
+
+  /* Después de tocarla espera un poco antes de volver a andar sola. */
+  function frenar() {
+    clearTimeout(soltada.current)
+    setQuieta(true)
+  }
+  function seguir() {
+    clearTimeout(soltada.current)
+    soltada.current = setTimeout(() => setQuieta(false), PAUSA)
+  }
+  useEffect(() => () => clearTimeout(soltada.current), [])
+
+  const puntos = Math.max(1, ultima + 1)
+
+  return (
+    <div
+      onPointerEnter={(e) => e.pointerType === 'mouse' && frenar()}
+      onPointerLeave={(e) => e.pointerType === 'mouse' && seguir()}
+      onTouchStart={frenar}
+      onTouchEnd={seguir}
+      onFocus={frenar}
+      onBlur={seguir}
+    >
+      <div
+        ref={pista}
+        onScroll={alMover}
+        aria-roledescription="carrusel"
+        className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-5 px-5 [scrollbar-width:none] sm:-mx-8 sm:gap-4 sm:scroll-px-8 sm:px-8 lg:mx-0 lg:scroll-px-0 lg:px-0 [&::-webkit-scrollbar]:hidden"
+      >
+        {entregas.map((e, i) => (
+          <div
+            key={e.id}
+            className="w-[78%] shrink-0 snap-start sm:w-[calc((100%-1rem)/2.3)] lg:w-[calc((100%-3rem)/4)]"
+          >
+            <Tarjeta entrega={e} onAbrir={() => onAbrir(i)} />
+          </div>
+        ))}
+      </div>
+
+      {puntos > 1 && (
+        <div className="mt-8 flex items-center justify-center gap-1">
+          {Array.from({ length: puntos }, (_, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => ir(i)}
+              aria-label={`Ir a la entrega ${i + 1}`}
+              aria-current={i === Math.min(actual, puntos - 1) ? 'true' : undefined}
+              className="flex h-8 w-6 items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+            >
+              <span
+                className={`block h-[3px] rounded-full transition-all duration-300 ${
+                  i === Math.min(actual, puntos - 1) ? 'w-5 bg-[#D52B38]' : 'w-2 bg-white/30'
+                }`}
+              />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -159,7 +282,6 @@ export default function Entregas() {
   }, [])
 
   if (!entregas.length) return null
-  const destacada = entregas.length >= 5
 
   return (
     <section id="entregas" className="bg-[#050505] py-16 lg:py-24">
@@ -168,10 +290,8 @@ export default function Entregas() {
           Ya se fueron con su auto
         </h2>
 
-        <div className="mt-10 grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-4 lg:grid-cols-4 lg:gap-y-10">
-          {entregas.map((e, i) => (
-            <Tarjeta key={e.id} entrega={e} grande={destacada && i === 0} onAbrir={() => setAbierta(i)} />
-          ))}
+        <div className="mt-10">
+          <Carrusel entregas={entregas} onAbrir={setAbierta} />
         </div>
       </div>
       {abierta !== null && <Visor entregas={entregas} inicial={abierta} onCerrar={cerrarVisor} />}
