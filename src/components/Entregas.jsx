@@ -5,8 +5,8 @@ import { ChevronLeftIcon, ChevronRightIcon } from './Icons'
 /* Las entregas: cada vez que se vende un auto, la foto con quien se lo llevó.
    Las carga el dueño desde el panel (#entregas) y se leen de GET /api/entregas.
    Sin entregas cargadas la sección no se dibuja: una vidriera vacía es peor que
-   ninguna. Van en una fila que rota sola (una por vez en el celular, cuatro
-   en la compu). Al tocar una foto se abre grande; con más de una se pasa con las flechas
+   ninguna. Van en una fila que rota sola (una foto entera por vez en el celular,
+   cuatro en la compu). Al tocar una foto se abre grande; con más de una se pasa con las flechas
    (en pantalla o del teclado) o deslizando el dedo. */
 
 function Tarjeta({ entrega, onAbrir }) {
@@ -135,12 +135,12 @@ function Carrusel({ entregas, onAbrir }) {
         ref={pista}
         onScroll={alMover}
         aria-roledescription="carrusel"
-        className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-5 px-5 [scrollbar-width:none] sm:-mx-8 sm:gap-4 sm:scroll-px-8 sm:px-8 lg:mx-0 lg:scroll-px-0 lg:px-0 [&::-webkit-scrollbar]:hidden"
+        className="flex snap-x snap-mandatory gap-5 overflow-x-auto [scrollbar-width:none] sm:-mx-8 sm:gap-4 sm:scroll-px-8 sm:px-8 lg:mx-0 lg:scroll-px-0 lg:px-0 [&::-webkit-scrollbar]:hidden"
       >
         {entregas.map((e, i) => (
           <div
             key={e.id}
-            className="w-[78%] shrink-0 snap-start sm:w-[calc((100%-1rem)/2.3)] lg:w-[calc((100%-3rem)/4)]"
+            className="w-full shrink-0 snap-start sm:w-[calc((100%-1rem)/2.3)] lg:w-[calc((100%-3rem)/4)]"
           >
             <Tarjeta entrega={e} onAbrir={() => onAbrir(i)} />
           </div>
