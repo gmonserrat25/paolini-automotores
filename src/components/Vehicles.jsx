@@ -1,9 +1,64 @@
+import { useRef, useState } from 'react'
 import { WHATSAPP_URL } from '../data/vehicles'
 import { useCatalogo } from '../lib/catalogo'
-import { FuelIcon, GearboxIcon, WhatsAppIcon } from './Icons'
+import { ChevronLeftIcon, ChevronRightIcon, FuelIcon, GearboxIcon, WhatsAppIcon } from './Icons'
 import { Corner, Cta, SectionTitle } from './Ui'
 
 const SPEC_ICONS = [FuelIcon, GearboxIcon]
+
+/* En el celular los autos no van uno abajo del otro: se pasan deslizando de
+   costado, uno por pantalla, con flechas en círculos sobre la tarjeta. Desde sm en adelante
+   es la grilla de siempre (las mismas clases hacen las dos cosas). */
+const flechita =
+  'absolute top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-black/35 text-white backdrop-blur-sm transition-opacity active:bg-black/55 disabled:pointer-events-none disabled:opacity-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white sm:hidden'
+
+/* En la home del celular el carrusel trae seis; el resto, en /autos. */
+const EN_CELULAR = 6
+
+function Deslizable({ autos, enCelular = autos.length, className = '' }) {
+  const pista = useRef(null)
+  const [actual, setActual] = useState(0)
+  /* En el celular se ven las primeras `enCelular`; las demás quedan para la
+     compu (o para /autos). */
+  const total = Math.min(enCelular, autos.length)
+  const ir = (n) => {
+    const el = pista.current
+    if (!el) return
+    const i = Math.max(0, Math.min(total - 1, n))
+    el.scrollTo({ left: el.children[i].offsetLeft - el.firstElementChild.offsetLeft, behavior: 'smooth' })
+  }
+  function alMover() {
+    const el = pista.current
+    if (!el || el.children.length < 2) return
+    const paso = el.children[1].offsetLeft - el.children[0].offsetLeft
+    setActual(Math.round(el.scrollLeft / paso))
+  }
+  return (
+    <div className={`relative ${className}`}>
+      <div
+        ref={pista}
+        onScroll={alMover}
+        className="flex snap-x snap-mandatory gap-5 overflow-x-auto [scrollbar-width:none] sm:grid sm:grid-cols-2 sm:overflow-visible lg:grid-cols-3 lg:gap-6 [&::-webkit-scrollbar]:hidden"
+      >
+        {autos.map((vehicle, i) => (
+          <div key={vehicle.id} className={`grid w-full shrink-0 snap-center sm:w-auto ${i >= total ? 'max-sm:hidden' : ''}`}>
+            <VehicleCard vehicle={vehicle} />
+          </div>
+        ))}
+      </div>
+      {total > 1 ? (
+        <>
+          <button type="button" onClick={() => ir(actual - 1)} disabled={actual === 0} aria-label="Auto anterior" className={`${flechita} left-2`}>
+            <ChevronLeftIcon className="h-5 w-5" />
+          </button>
+          <button type="button" onClick={() => ir(actual + 1)} disabled={actual >= total - 1} aria-label="Auto siguiente" className={`${flechita} right-2`}>
+            <ChevronRightIcon className="h-5 w-5" />
+          </button>
+        </>
+      ) : null}
+    </div>
+  )
+}
 
 export function VehicleCard({ vehicle }) {
   const consulta = `${WHATSAPP_URL}?text=${encodeURIComponent(
@@ -155,16 +210,20 @@ export default function Vehicles({ marca = null, onLimpiar }) {
         ) : (
           <>
             {disponibles.length > 0 ? (
-              <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:mt-10 lg:grid-cols-3 lg:gap-6">
-                {disponibles.map((vehicle) => (
-                  <VehicleCard key={vehicle.id} vehicle={vehicle} />
-                ))}
-              </div>
+              <Deslizable
+                key={marca ?? 'todos'}
+                autos={disponibles}
+                enCelular={marca ? disponibles.length : EN_CELULAR}
+                className="mt-8 lg:mt-10"
+              />
             ) : null}
 
             {!marca ? (
               <div className="mt-8 flex justify-center lg:mt-10">
-                <Cta href="/autos">Ver todos los vehículos</Cta>
+                <Cta href="/autos">
+                  <span className="sm:hidden">Ver más</span>
+                  <span className="max-sm:hidden">Ver todos los vehículos</span>
+                </Cta>
               </div>
             ) : null}
 
@@ -176,11 +235,7 @@ export default function Vehicles({ marca = null, onLimpiar }) {
                 <p className="mt-2 font-sans text-[14px] text-white/55">
                   Ya tienen dueño en camino. Si te interesa uno parecido, consultanos.
                 </p>
-                <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-                  {reservados.map((vehicle) => (
-                    <VehicleCard key={vehicle.id} vehicle={vehicle} />
-                  ))}
-                </div>
+                <Deslizable key={`r-${marca ?? 'todos'}`} autos={reservados} className="mt-6" />
               </div>
             ) : null}
           </>
